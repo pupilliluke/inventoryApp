@@ -1,20 +1,27 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+// App.tsx
+import React, { useEffect } from 'react';
+import { View, Text } from 'react-native';
+import { InventoryProvider } from './context/InventoryContext';
+import HomeScreen from './screens/HomeScreen';
+import { signInAnonymously } from 'firebase/auth';
+import { auth } from './firebaseConfig';
+import { Provider as PaperProvider } from 'react-native-paper';
 
 export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
-}
+  useEffect(() => {
+    signInAnonymously(auth)
+      // .then(() => console.log('✅ Signed in anonymously'))
+      .catch((err) => console.error('Auth error:', err));
+  }, []);
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+
+  return (
+    <PaperProvider>
+      <InventoryProvider>
+        <HomeScreen />
+      </InventoryProvider>
+    </PaperProvider>
+  );
+
+
+}
