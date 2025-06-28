@@ -1,27 +1,31 @@
 // App.tsx
 import React, { useEffect } from 'react';
-import { View, Text } from 'react-native';
-import { InventoryProvider } from './context/InventoryContext';
-import HomeScreen from './screens/HomeScreen';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Provider as PaperProvider } from 'react-native-paper';
 import { signInAnonymously } from 'firebase/auth';
 import { auth } from './firebaseConfig';
-import { Provider as PaperProvider } from 'react-native-paper';
+import { InventoryProvider } from './context/InventoryContext';
+import HomeScreen from './screens/HomeScreen';
+import UserListPage from './screens/UserListPage';
+
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   useEffect(() => {
-    signInAnonymously(auth)
-      // .then(() => console.log('✅ Signed in anonymously'))
-      .catch((err) => console.error('Auth error:', err));
+    signInAnonymously(auth).catch((err) => console.error('Auth error:', err));
   }, []);
-
 
   return (
     <PaperProvider>
       <InventoryProvider>
-        <HomeScreen />
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName="InventoryMain">
+            <Stack.Screen name="InventoryMain" component={InventoryMain} />
+            <Stack.Screen name="UserListPage" component={UserListPage} />
+          </Stack.Navigator>
+        </NavigationContainer>
       </InventoryProvider>
     </PaperProvider>
   );
-
-
 }

@@ -4,10 +4,12 @@ import FilterBar from '../components/FilterBar';
 import InventoryRow from '../components/InventoryRow';
 import { Button, Modal, Portal, TextInput, Appbar, Chip, List } from 'react-native-paper';
 import { Keyboard, SafeAreaView, View, Text, FlatList, StyleSheet, Alert, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 const typeFilters = [
   'Assortment', 'Candle', 'Firecracker', 'Rocket', 'Smoke', 'Sparkler', 'Toy', 'Mortar', '200g', '500g', 'Novelty', 'Free Item', 'Shirt', 'Other'
 ];
+const navigation = useNavigation();
 
 export default function InventoryMain() {
   const {
@@ -91,8 +93,9 @@ const [deleteExpanded, setDeleteExpanded] = useState(false);
       }}
     >
       <Appbar.Content title="Fireworks Inventory" />
+      <Appbar.Action icon="account" onPress={() => navigation.navigate('UserList')} />
       <Appbar.Action icon="plus-box-multiple" onPress={() => setManageVisible(true)} />
-    </Appbar.Header>
+</Appbar.Header>
 
 
   {/* Add a spacer view below to offset the content below the fixed header */}

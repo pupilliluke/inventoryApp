@@ -4,16 +4,20 @@
     "slug": "inventoryApp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/1024.png",
+    "icon": "./assets/dylan2.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/1024.png",
+      "image": "./assets/dylan2.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.pupilli.dev.inventoryApp",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,6 +28,11 @@
     },
     "web": {
       "favicon": "./assets/1024.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "0d07f774-8388-4e93-abfe-2bce0852957c"
+      }
     }
   }
 }
