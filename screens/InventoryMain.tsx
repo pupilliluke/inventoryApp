@@ -9,9 +9,10 @@ import { useNavigation } from '@react-navigation/native';
 const typeFilters = [
   'Assortment', 'Candle', 'Firecracker', 'Rocket', 'Smoke', 'Sparkler', 'Toy', 'Mortar', '200g', '500g', 'Novelty', 'Free Item', 'Shirt', 'Other'
 ];
-const navigation = useNavigation();
 
 export default function InventoryMain() {
+  const navigation = useNavigation();
+
   const {
     inventory,
     updateItem,

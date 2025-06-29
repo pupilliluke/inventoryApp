@@ -1,4 +1,3 @@
-// App.tsx
 import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -6,8 +5,8 @@ import { Provider as PaperProvider } from 'react-native-paper';
 import { signInAnonymously } from 'firebase/auth';
 import { auth } from './firebaseConfig';
 import { InventoryProvider } from './context/InventoryContext';
-import HomeScreen from './screens/HomeScreen';
-import UserListPage from './screens/UserListPage';
+import InventoryMain from './screens/HomeScreen'; // <- renamed to InventoryMain
+// import UserListPage from './screens/UserListPage';
 
 const Stack = createNativeStackNavigator();
 
@@ -20,9 +19,9 @@ export default function App() {
     <PaperProvider>
       <InventoryProvider>
         <NavigationContainer>
-          <Stack.Navigator initialRouteName="InventoryMain">
-            <Stack.Screen name="InventoryMain" component={InventoryMain} />
-            <Stack.Screen name="UserListPage" component={UserListPage} />
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Inventory" component={InventoryMain} />
+            {/* <Stack.Screen name="UserList" component={UserListPage} /> */}
           </Stack.Navigator>
         </NavigationContainer>
       </InventoryProvider>
