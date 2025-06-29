@@ -6,8 +6,8 @@ import { InventoryItem } from '../types/InventoryItem';
 import { useInventory } from '../context/InventoryContext';
 
 const typeOptions = [
-  'Assortment', 'Candle', 'Firecracker', 'Rocket',
-  'Smoke', 'Sparkler', 'Toy', 'Mortar', '500g', 'Other'
+  'Assortment', 'Candle', 'Firecracker', 'Rocket', 'Smoke', 'Sparkler', 'Toy', 
+  'Rack', 'Fountain', 'Mortar', 'Missile', 'Z-repeater', '200g', '500g', 'Novelty', 'Free Item', 'Shirt', 'Other'
 ];
 
 const InventoryRow = ({ item }: { item: InventoryItem }) => {

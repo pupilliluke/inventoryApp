@@ -7,7 +7,8 @@ import { Keyboard, SafeAreaView, View, Text, FlatList, StyleSheet, Alert, Scroll
 import { useNavigation } from '@react-navigation/native';
 
 const typeFilters = [
-  'Assortment', 'Candle', 'Firecracker', 'Rocket', 'Smoke', 'Sparkler', 'Toy', 'Mortar', '200g', '500g', 'Novelty', 'Free Item', 'Shirt', 'Other'
+  'Assortment', 'Candle', 'Firecracker', 'Rocket', 'Smoke', 'Sparkler', 'Toy', 'Mortar', 'Missile', 
+  'Rack', 'Fountain', 'Z-repeater', '200g', '500g', 'Novelty', 'Free Item', 'Shirt', 'Other'
 ];
 
 export default function InventoryMain() {

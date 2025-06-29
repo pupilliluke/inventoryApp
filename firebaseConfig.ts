@@ -17,7 +17,7 @@ const firebaseConfig = {
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
 const auth = getAuth(app);
-// signInAnonymously(auth).catch(console.error);
+signInAnonymously(auth).catch(console.error);
 
 const db = getDatabase(app);
 
