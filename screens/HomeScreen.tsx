@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Button, SafeAreaView, Keyboard } from 'react-native';
 import ActualInventoryApp from './InventoryMain'; // rename your existing HomeScreen to InventoryMain.tsx
 
-const PASSWORD = 'fireworks123'; // 🔐 change this to whatever password you want
+const PASSWORD = 'monroeville'; // 🔐 change this to whatever password you want
 
 export default function ProtectedInventoryApp() {
   const [enteredPassword, setEnteredPassword] = useState('');

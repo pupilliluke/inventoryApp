@@ -4,11 +4,11 @@
     "slug": "inventoryApp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/dylan2.png",
+    "icon": "./assets/1024.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/dylan2.png",
+      "image": "./assets/1024.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
