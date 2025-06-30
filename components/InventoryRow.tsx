@@ -36,9 +36,19 @@ useEffect(() => {
   };
 
   const handleSaveInfo = () => {
-    updateItem({ ...localItem });
-    setEditingInfo(false);
-  };
+  const trimmedCode = localItem.code?.trim();
+  const trimmedName = localItem.name?.trim();
+
+  if (!trimmedCode || !trimmedName) {
+    alert("Both code and name are required.");
+    return;
+  }
+
+  updateItem({ ...localItem, code: trimmedCode, name: trimmedName });
+  setEditingInfo(false);
+};
+
+
 
   const handleSaveLocation = () => {
     updateItem({ ...localItem });
