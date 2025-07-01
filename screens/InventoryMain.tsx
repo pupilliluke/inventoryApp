@@ -135,7 +135,7 @@ const clearLocation = async (location: 'warehouse' | 'showroom') => {
       }}
     >
       <Appbar.Content title="Fireworks Inventory" />
-      <Appbar.Action icon="account" onPress={() => navigation.navigate('UserList')} />
+      {/* <Appbar.Action icon="account" onPress={() => navigation.navigate('UserList')} /> */}
       <Appbar.Action icon="plus-box-multiple" onPress={() => setManageVisible(true)} />
 </Appbar.Header>
 
@@ -148,7 +148,8 @@ const clearLocation = async (location: 'warehouse' | 'showroom') => {
 
      <View style={styles.filterRow}>
         <View style={{ flex: 1, flexDirection: 'column', }}>
-            <List.Accordion
+            <List.Accordion 
+            style={{  }}
             title="Filter by Type"
             expanded={showTypeFilters}
             onPress={() => setShowTypeFilters(!showTypeFilters)}
