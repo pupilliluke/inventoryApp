@@ -5,5 +5,6 @@ export interface InventoryItem {
   showroom: number;
   warehouse: number;
   storage: number;
-  editable: boolean;
+  closet: number; // ← Add this
+  editable?: boolean;
 }

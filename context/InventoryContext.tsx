@@ -22,12 +22,14 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const data = snapshot.val() || {};
       // console.log('🔥 Firebase Inventory:', data);
 
-      const loaded: InventoryItem[] = Object.values(data).map(item => ({
-        ...item,
-        showroom: Number(item.showroom) || 0,
-        warehouse: Number(item.warehouse) || 0,
-        storage: Number(item.storage) || 0
-      }));
+  const loaded: InventoryItem[] = Object.values(data).map(item => ({
+      ...item,
+      showroom: Number(item.showroom) || 0,
+      warehouse: Number(item.warehouse) || 0,
+      storage: Number(item.storage) || 0,
+      closet: Number(item.closet) || 0, 
+    }));
+
       setInventory(loaded);
       setOriginalInventory(loaded);
     });
@@ -48,7 +50,8 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const locationMatch = !filterLocation ||
       (filterLocation === 'showroom' && item.showroom > 0) ||
       (filterLocation === 'warehouse' && item.warehouse > 0) ||
-      (filterLocation === 'storage' && item.storage > 0);
+      (filterLocation === 'storage' && item.storage > 0) ||
+      (filterLocation === 'closet' && item.closet > 0);
 
     const searchMatch = !searchQuery ||
       itemName.includes(searchQuery.toLowerCase()) ||

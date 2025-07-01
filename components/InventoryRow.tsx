@@ -29,7 +29,7 @@ useEffect(() => {
   const handleChange = (key: keyof InventoryItem, value: string) => {
     setLocalItem(prev => ({
       ...prev,
-      [key]: key === 'showroom' || key === 'warehouse' || key === 'storage'
+      [key]: key === 'showroom' || key === 'warehouse' || key === 'storage' || key === 'closet'
         ? parseInt(value) || 0
         : value,
     }));
@@ -124,7 +124,7 @@ useEffect(() => {
         <Text style={{ marginBottom: 6 }}>Type: {item.type}</Text>
       )}
 
-      {(['showroom', 'warehouse', 'storage'] as const).map((loc) =>
+      {(['showroom', 'warehouse', 'storage', 'closet'] as const).map((loc) =>
         shouldShow(loc) ? (
           <View key={loc} style={styles.inputRow}>
             <Text style={styles.label}>{loc}:</Text>

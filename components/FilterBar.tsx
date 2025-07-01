@@ -57,6 +57,18 @@ const FilterBar = ({ editable = true }) => {
             >
               <Text>Storage</Text>
             </TouchableOpacity>
+            <TouchableOpacity   
+              style={[
+                styles.locationButton,
+                filterLocation === 'closet' && styles.activeLocationButton
+              ]}
+              onPress={() => setFilterLocation(
+                filterLocation === 'closet' ? '' : 'closet'
+              )}
+            >
+              <Text>Closet</Text>
+            </TouchableOpacity>
+
           </View>
         </>
       ) : (
@@ -85,6 +97,7 @@ const FilterBar = ({ editable = true }) => {
 const styles = StyleSheet.create({
   container: {
     marginBottom: 10,
+    marginTop: 30,
   },
   searchInput: {
     height: 40,

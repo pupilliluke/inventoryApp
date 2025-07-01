@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useInventory } from '../context/InventoryContext';
 import FilterBar from '../components/FilterBar';
 import InventoryRow from '../components/InventoryRow';
 import { Button, Modal, Portal, TextInput, Appbar, Chip, List } from 'react-native-paper';
 import { Keyboard, SafeAreaView, View, Text, FlatList, StyleSheet, Alert, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { ref, update } from 'firebase/database'; // at the top, if not already
+import { db } from '../firebaseConfig'; // make sure this import exists
 
 const typeFilters = [
   'Assortment', 'Candle', 'Firecracker', 'Rocket', 'Smoke', 'Sparkler', 'Toy', 'Mortar', 'Missile', 
@@ -23,6 +25,7 @@ export default function InventoryMain() {
     setFilterType,
     filterType,
     setMultiTypeFilters,
+    filterLocation,
     multiTypeFilters = [],
   } = useInventory();
 
@@ -31,8 +34,25 @@ export default function InventoryMain() {
   const [newName, setNewName] = useState('');
   const [deleteQuery, setDeleteQuery] = useState('');
   const [showTypeFilters, setShowTypeFilters] = useState(false);
-const [addExpanded, setAddExpanded] = useState(false);
-const [deleteExpanded, setDeleteExpanded] = useState(false);
+  const [addExpanded, setAddExpanded] = useState(false);
+  const [deleteExpanded, setDeleteExpanded] = useState(false);
+  useEffect(() => {
+    const patchClosetField = () => {
+      originalInventory.forEach((item) => {
+        if (item.closet === undefined) {
+          const itemRef = ref(db, `inventory/${item.code}`);
+          update(itemRef, { closet: 0 });
+        }
+      });
+    };
+
+    if (originalInventory.length > 0) {
+      patchClosetField();
+    }
+  }, [originalInventory]);
+
+
+
 
   const handleAddItem = () => {
     if (!newCode || !newName) return;
@@ -80,8 +100,27 @@ const [deleteExpanded, setDeleteExpanded] = useState(false);
     );
   }) : [];
 
+
+const clearLocation = async (location: 'warehouse' | 'showroom') => {
+  const updates = {};
+  originalInventory.forEach(item => {
+    if (item[location] !== 0) {
+      updates[`inventory/${item.code}/${location}`] = 0;
+    }
+  });
+
+  try {
+    await update(ref(db), updates);
+  } catch (error) {
+    console.error('Error clearing location:', error);
+  }
+};
+
+
+
   return (
-   <SafeAreaView style={{ flex: 1, backgroundColor: 'white', paddingTop: 0 }}>
+    
+   <SafeAreaView style={{ flex: 1, backgroundColor: 'white', paddingTop: 0,}}>
     <Appbar.Header
       elevated={true}
       style={{
@@ -90,8 +129,9 @@ const [deleteExpanded, setDeleteExpanded] = useState(false);
         position: 'absolute',
         top: 0,
         left: 5,
-        right: 5,
-        zIndex: 10,
+        right: 5, 
+        bottom: 10,
+        zIndex: 1,
       }}
     >
       <Appbar.Content title="Fireworks Inventory" />
@@ -107,7 +147,7 @@ const [deleteExpanded, setDeleteExpanded] = useState(false);
         <FilterBar />
 
      <View style={styles.filterRow}>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, flexDirection: 'column', }}>
             <List.Accordion
             title="Filter by Type"
             expanded={showTypeFilters}
@@ -129,10 +169,13 @@ const [deleteExpanded, setDeleteExpanded] = useState(false);
         </View>
 
         <View style={styles.resetWrapper}>
-            <Button mode="outlined" onPress={resetFilters}>
+            <Button mode="contained" onPress={resetFilters}>
             <Text>Reset</Text>
             </Button>
         </View>
+        
+      
+
         </View>
 
 
@@ -164,14 +207,14 @@ const [deleteExpanded, setDeleteExpanded] = useState(false);
                 label="Code"
                 value={newCode}
                 onChangeText={setNewCode}
-                mode="outlined"
+                mode="contained"
                 style={styles.input}
               />
               <TextInput
                 label="Name"
                 value={newName}
                 onChangeText={setNewName}
-                mode="outlined"
+                mode="contained"
                 style={styles.input}
               />
               <Button
@@ -197,14 +240,14 @@ const [deleteExpanded, setDeleteExpanded] = useState(false);
                 label="Search by code, name, type, or location"
                 value={deleteQuery}
                 onChangeText={setDeleteQuery}
-                mode="outlined"
+                mode="contained"
                 style={styles.input}
               />
               {filteredForDelete.map(item => (
                 <View key={item.code} style={{ marginBottom: 8 }}>
                   <Text>{item.code} — {item.name}</Text>
                   <Button
-                    mode="outlined"
+                    mode="contained"
                     icon="delete"
                     onPress={() => handleDeleteItem(item.code)}
                   >
@@ -218,8 +261,10 @@ const [deleteExpanded, setDeleteExpanded] = useState(false);
 
           </Modal>
 
-        </Portal>              </View>
+        </Portal>              
+        </View>
     </SafeAreaView>
+    
   );
 }
 
@@ -229,7 +274,7 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: 'white',
   },
-  filterRow: {
+ filterRow: {
   flexDirection: 'row',
   alignItems: 'center',
   justifyContent: 'space-between',
@@ -264,6 +309,7 @@ resetWrapper: {
     flexWrap: 'wrap',
     marginVertical: 10,
     paddingLeft: 10,
+    backgroundColor: 'white',
   },
   chip: {
     marginRight: 8,
