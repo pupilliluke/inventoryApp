@@ -121,7 +121,7 @@ useEffect(() => {
           </Portal>
         </View>
       ) : (
-        <Text style={{ marginBottom: 6 }}>Type: {item.type}</Text>
+        <Text style={{ marginBottom: 8, fontSize: 15, color: '#6C757D', fontWeight: '500' }}>Type: {item.type}</Text>
       )}
 
       {(['showroom', 'warehouse', 'storage', 'closet'] as const).map((loc) =>
@@ -136,14 +136,32 @@ useEffect(() => {
                 onChangeText={(val) => handleChange(loc, val)}
               />
             ) : (
-              <Text>{localItem[loc]}</Text>
+              <Text style={{ 
+                fontSize: 16, 
+                fontWeight: '600', 
+                color: '#495057',
+                minWidth: 30 
+              }}>{localItem[loc]}</Text>
             )}
           </View>
         ) : null
       )}
 
       {calculateTotal(localItem) > 0 && (
-        <Text>Total: {calculateTotal(localItem)}</Text>
+        <View style={{ 
+          backgroundColor: '#E8F5E8', 
+          padding: 10, 
+          borderRadius: 8, 
+          marginTop: 8,
+          borderLeftWidth: 4,
+          borderLeftColor: '#4CAF50'
+        }}>
+          <Text style={{ 
+            fontSize: 16, 
+            fontWeight: '700', 
+            color: '#2E7D32' 
+          }}>Total: {calculateTotal(localItem)}</Text>
+        </View>
       )}
     </View>
   );
@@ -151,46 +169,77 @@ useEffect(() => {
 
 const styles = StyleSheet.create({
   modal: {
-  backgroundColor: 'white',
-  margin: 20,
-  borderRadius: 8,
-  padding: 16,
-},
+    backgroundColor: 'white',
+    margin: 20,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
   row: {
-    borderBottomWidth: 1,
-    borderColor: '#ccc',
-    paddingVertical: 10,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginVertical: 6,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   header: {
-    fontWeight: 'bold',
+    fontWeight: '700',
+    fontSize: 16,
+    color: '#2C3E50',
     flex: 1,
-    paddingRight: 10,
+    paddingRight: 12,
   },
   buttonGroup: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 8,
+    paddingVertical: 4,
   },
   label: {
     width: 90,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#34495E',
+    textTransform: 'capitalize',
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    width: 180,
+    borderWidth: 1.5,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    flex: 1,
     marginVertical: 4,
+    fontSize: 16,
+    backgroundColor: '#FAFAFA',
+    maxWidth: 200,
   },
   pickerContainer: {
     height: 40,

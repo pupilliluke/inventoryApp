@@ -33,7 +33,9 @@ const FilterBar = ({ editable = true }) => {
                 filterLocation === 'showroom' ? '' : 'showroom'
               )}
             >
-              <Text>Showroom</Text>
+              <Text style={[
+                { color: filterLocation === 'showroom' ? '#333333' : '#666666', fontWeight: '500' }
+              ]}>Showroom Pull List</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={[
@@ -44,7 +46,9 @@ const FilterBar = ({ editable = true }) => {
                 filterLocation === 'warehouse' ? '' : 'warehouse'
               )}
             >
-              <Text>Warehouse</Text>
+              <Text style={[
+                { color: filterLocation === 'warehouse' ? '#333333' : '#666666', fontWeight: '500' }
+              ]}>Warehouse</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={[
@@ -55,7 +59,9 @@ const FilterBar = ({ editable = true }) => {
                 filterLocation === 'storage' ? '' : 'storage'
               )}
             >
-              <Text>Storage</Text>
+              <Text style={[
+                { color: filterLocation === 'storage' ? '#333333' : '#666666', fontWeight: '500' }
+              ]}>Storage</Text>
             </TouchableOpacity>
             <TouchableOpacity   
               style={[
@@ -66,7 +72,9 @@ const FilterBar = ({ editable = true }) => {
                 filterLocation === 'closet' ? '' : 'closet'
               )}
             >
-              <Text>Closet</Text>
+              <Text style={[
+                { color: filterLocation === 'closet' ? '#333333' : '#666666', fontWeight: '500' }
+              ]}>Closet</Text>
             </TouchableOpacity>
 
           </View>
@@ -96,41 +104,67 @@ const FilterBar = ({ editable = true }) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 10,
-    marginTop: 30,
+    marginBottom: 16,
+    marginTop: 20,
+    paddingHorizontal: 4,
   },
   searchInput: {
-    height: 40,
-    borderColor: '#ddd',
-    borderWidth: 1,
-    borderRadius: 4,
-    paddingHorizontal: 10,
-    marginBottom: 10,
+    height: 48,
+    borderColor: '#E0E0E0',
+    borderWidth: 1.5,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    fontSize: 16,
+    backgroundColor: '#FAFAFA',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   locationFilters: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: 8,
   },
   locationButton: {
     flex: 1,
-    marginHorizontal: 2,
-    padding: 8,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 4,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   activeLocationButton: {
-    backgroundColor: '#3498db',
+    backgroundColor: '#F5F5F5',
+    borderColor: '#D0D0D0',
   },
   readOnlyContainer: {
-    padding: 12,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 4,
+    padding: 16,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E9ECEF',
   },
   readOnlyText: {
-    fontSize: 14,
-    color: '#333',
+    fontSize: 15,
+    color: '#495057',
     marginVertical: 2,
+    fontWeight: '500',
   },
 });
 

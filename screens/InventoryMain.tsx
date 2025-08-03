@@ -7,13 +7,25 @@ import { Keyboard, SafeAreaView, View, Text, FlatList, StyleSheet, Alert, Scroll
 import { useNavigation } from '@react-navigation/native';
 import { ref, update } from 'firebase/database'; // at the top, if not already
 import { db } from '../firebaseConfig'; // make sure this import exists
+import UserListPage from './UserListPage'; // Import UserPage if needed
 
 const typeFilters = [
   'Assortment', 'Candle', 'Firecracker', 'Rocket', 'Smoke', 'Sparkler', 'Toy', 'Mortar', 'Missile', 
   'Rack', 'Fountain', 'Z-repeater', '200g', '500g', 'Novelty', 'Free Item', 'Shirt', 'Other'
 ];
 
+
+
 export default function InventoryMain() {
+
+  // const [ getUserPage, setUserPage] = useState(false);
+
+  // if(getUserPage)
+  //   {
+  //     return <UserListPage />;
+  //   }
+  
+
   const navigation = useNavigation();
 
   const {
@@ -120,7 +132,7 @@ const clearLocation = async (location: 'warehouse' | 'showroom') => {
 
   return (
     
-   <SafeAreaView style={{ flex: 1, backgroundColor: 'white', paddingTop: 0,}}>
+   <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF', paddingTop: 0,}}>
     <Appbar.Header
       elevated={true}
       style={{
@@ -132,16 +144,34 @@ const clearLocation = async (location: 'warehouse' | 'showroom') => {
         right: 5, 
         bottom: 10,
         zIndex: 1,
+        backgroundColor: '#FFFFFF',
+        borderBottomWidth: 1,
+        borderBottomColor: '#E5E5E5',
       }}
     >
-      <Appbar.Content title="Fireworks Inventory" />
-      {/* <Appbar.Action icon="account" onPress={() => navigation.navigate('UserList')} /> */}
-      <Appbar.Action icon="plus-box-multiple" onPress={() => setManageVisible(true)} />
-</Appbar.Header>
+      <Appbar.Content 
+        title="Fireworks Inventory" 
+        titleStyle={{
+          fontSize: 18,
+          fontWeight: '600',
+          color: '#333333',
+        }}
+      />
+        <Appbar.Action 
+          icon="account" 
+          iconColor="#666666"
+          onPress={() => navigation.navigate('UserListPage')} 
+        />
+        <Appbar.Action 
+          icon="plus-box-multiple" 
+          iconColor="#666666"
+          onPress={() => setManageVisible(true)} 
+        />
+      </Appbar.Header>
 
 
   {/* Add a spacer view below to offset the content below the fixed header */}
-  <View style={{ flex: 1, paddingHorizontal: 16 }}>
+  <View style={{ flex: 1, paddingHorizontal: 16, backgroundColor: '#FFFFFF' }}>
     <View style={{ height: 56 }} />
 
         <FilterBar />
@@ -149,7 +179,18 @@ const clearLocation = async (location: 'warehouse' | 'showroom') => {
      <View style={styles.filterRow}>
         <View style={{ flex: 1, flexDirection: 'column', }}>
             <List.Accordion 
-            style={{  }}
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderWidth: 1,
+              borderColor: '#E5E5E5',
+              borderRadius: 8,
+              marginVertical: 8,
+            }}
+            titleStyle={{
+              color: '#333333',
+              fontSize: 16,
+              fontWeight: '500',
+            }}
             title="Filter by Type"
             expanded={showTypeFilters}
             onPress={() => setShowTypeFilters(!showTypeFilters)}
@@ -170,8 +211,26 @@ const clearLocation = async (location: 'warehouse' | 'showroom') => {
         </View>
 
         <View style={styles.resetWrapper}>
-            <Button mode="contained" onPress={resetFilters}>
-            <Text>Reset</Text>
+            <Button 
+              mode="contained" 
+              onPress={resetFilters}
+              style={{
+                backgroundColor: '#F5F5F5',
+                borderRadius: 8,
+                borderWidth: 1,
+                borderColor: '#E5E5E5',
+              }}
+              contentStyle={{
+                paddingVertical: 8,
+                paddingHorizontal: 16,
+              }}
+              labelStyle={{
+                fontSize: 14,
+                fontWeight: '500',
+                color: '#666666',
+              }}
+            >
+              Reset
             </Button>
         </View>
         
@@ -180,9 +239,27 @@ const clearLocation = async (location: 'warehouse' | 'showroom') => {
         </View>
 
 
-        <Text style={{ marginVertical: 10, color: 'black' }}>
-          Showing {inventory.length} items
-        </Text>
+        <View style={{
+          backgroundColor: '#FFFFFF',
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          borderRadius: 8,
+          marginVertical: 12,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.05,
+          shadowRadius: 2,
+          elevation: 1,
+        }}>
+          <Text style={{ 
+            fontSize: 16, 
+            color: '#495057', 
+            fontWeight: '600',
+            textAlign: 'center'
+          }}>
+            Showing {inventory.length} items
+          </Text>
+        </View>
 
         <FlatList
           data={inventory}
@@ -194,29 +271,77 @@ const clearLocation = async (location: 'warehouse' | 'showroom') => {
           <Modal
             visible={manageVisible}
             onDismiss={() => setManageVisible(false)}
-            contentContainerStyle={[styles.modal, { justifyContent: 'flex-start' }]}
+            contentContainerStyle={styles.modal}
           >
-         <ScrollView>
+            <View style={{
+              backgroundColor: '#F8F9FA',
+              paddingVertical: 20,
+              paddingHorizontal: 24,
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              borderBottomWidth: 1,
+              borderBottomColor: '#E5E5E5',
+            }}>
+              <Text style={{
+                fontSize: 20,
+                fontWeight: '700',
+                color: '#2C3E50',
+                textAlign: 'center',
+              }}>Manage Inventory</Text>
+              <Text style={{
+                fontSize: 14,
+                color: '#7F8C8D',
+                textAlign: 'center',
+                marginTop: 4,
+              }}>Add new items or remove existing ones</Text>
+            </View>
+         <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
          <List.Accordion
             title="Add New Item"
             expanded={addExpanded}
             onPress={() => setAddExpanded(!addExpanded)}
-            left={props => <List.Icon {...props} icon="plus" />}
+            left={props => <List.Icon {...props} icon="plus-box" />}
+            style={{
+              marginBottom: 16,
+              backgroundColor: '#FFFFFF',
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: '#E5E5E5',
+            }}
+            titleStyle={{
+              fontSize: 16,
+              fontWeight: '600',
+              color: '#333333',
+            }}
           >
-            <View>
+            <View style={{
+              padding: 20,
+              backgroundColor: '#FAFAFA',
+              borderBottomLeftRadius: 12,
+              borderBottomRightRadius: 12,
+              marginTop: -1,
+            }}>
               <TextInput
-                label="Code"
+                label="Product Code"
                 value={newCode}
                 onChangeText={setNewCode}
-                mode="contained"
-                style={styles.input}
+                mode="outlined"
+                style={[styles.input, { marginBottom: 20 }]}
+                outlineStyle={{
+                  borderColor: '#E5E5E5',
+                  borderRadius: 8,
+                }}
               />
               <TextInput
-                label="Name"
+                label="Product Name"
                 value={newName}
                 onChangeText={setNewName}
-                mode="contained"
-                style={styles.input}
+                mode="outlined"
+                style={[styles.input, { marginBottom: 24 }]}
+                outlineStyle={{
+                  borderColor: '#E5E5E5',
+                  borderRadius: 8,
+                }}
               />
               <Button
                 mode="contained"
@@ -224,10 +349,22 @@ const clearLocation = async (location: 'warehouse' | 'showroom') => {
                   Keyboard.dismiss();
                   handleAddItem();
                 }}
+                style={{
+                  backgroundColor: '#4CAF50',
+                  borderRadius: 8,
+                  paddingVertical: 4,
+                }}
+                contentStyle={{
+                  paddingVertical: 12,
+                }}
+                labelStyle={{
+                  fontSize: 16,
+                  fontWeight: '600',
+                  color: '#FFFFFF',
+                }}
               >
-                <Text>Add Item</Text>
+                Add Item
               </Button>
-
             </View>
           </List.Accordion>
 
@@ -235,31 +372,109 @@ const clearLocation = async (location: 'warehouse' | 'showroom') => {
           <List.Accordion
             title="Delete Item"
             left={props => <List.Icon {...props} icon="delete" />}
+            style={{
+              marginBottom: 16,
+              backgroundColor: '#FFFFFF',
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: '#E5E5E5',
+            }}
+            titleStyle={{
+              fontSize: 16,
+              fontWeight: '600',
+              color: '#333333',
+            }}
           >
-            <View>
+            <View style={{
+              padding: 20,
+              backgroundColor: '#FAFAFA',
+              borderBottomLeftRadius: 12,
+              borderBottomRightRadius: 12,
+              marginTop: -1,
+            }}>
               <TextInput
                 label="Search by code, name, type, or location"
                 value={deleteQuery}
                 onChangeText={setDeleteQuery}
-                mode="contained"
-                style={styles.input}
+                mode="outlined"
+                style={[styles.input, { marginBottom: 20 }]}
+                outlineStyle={{
+                  borderColor: '#E5E5E5',
+                  borderRadius: 8,
+                }}
               />
-              {filteredForDelete.map(item => (
-                <View key={item.code} style={{ marginBottom: 8 }}>
-                  <Text>{item.code} — {item.name}</Text>
-                  <Button
-                    mode="contained"
-                    icon="delete"
-                    onPress={() => handleDeleteItem(item.code)}
-                  >
-                    <Text>Delete</Text>
-                  </Button>
+              {filteredForDelete.length > 0 && (
+                <View style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 8,
+                  padding: 16,
+                  marginBottom: 16,
+                  borderWidth: 1,
+                  borderColor: '#E5E5E5',
+                }}>
+                  <Text style={{
+                    fontSize: 16,
+                    fontWeight: '600',
+                    color: '#333333',
+                    marginBottom: 16,
+                    textAlign: 'center',
+                  }}>Found {filteredForDelete.length} item(s)</Text>
+                  {filteredForDelete.map(item => (
+                    <View key={item.code} style={{
+                      backgroundColor: '#F8F9FA',
+                      borderRadius: 8,
+                      padding: 16,
+                      marginBottom: 12,
+                      borderWidth: 1,
+                      borderColor: '#E9ECEF',
+                    }}>
+                      <Text style={{
+                        fontSize: 15,
+                        fontWeight: '600',
+                        color: '#333333',
+                        marginBottom: 8,
+                      }}>{item.code} — {item.name}</Text>
+                      <Button
+                        mode="contained"
+                        icon="delete"
+                        onPress={() => handleDeleteItem(item.code)}
+                        style={{
+                          backgroundColor: '#FF6B6B',
+                          borderRadius: 8,
+                        }}
+                        contentStyle={{
+                          paddingVertical: 8,
+                        }}
+                        labelStyle={{
+                          fontSize: 14,
+                          fontWeight: '600',
+                          color: '#FFFFFF',
+                        }}
+                      >
+                        Delete Item
+                      </Button>
+                    </View>
+                  ))}
                 </View>
-              ))}
+              )}
+              {deleteQuery.trim().length > 0 && filteredForDelete.length === 0 && (
+                <View style={{
+                  backgroundColor: '#FFF3CD',
+                  borderRadius: 8,
+                  padding: 16,
+                  borderWidth: 1,
+                  borderColor: '#FFEAA7',
+                }}>
+                  <Text style={{
+                    fontSize: 15,
+                    color: '#856404',
+                    textAlign: 'center',
+                  }}>No items found matching your search</Text>
+                </View>
+              )}
             </View>
           </List.Accordion>
         </ScrollView>
-
           </Modal>
 
         </Portal>              
@@ -273,44 +488,63 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: 'white',
+    backgroundColor: '#FFFFFF',
   },
- filterRow: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  marginBottom: 10,
-},
-resetWrapper: {
-  marginLeft: 8,
-  justifyContent: 'center',
-},
-
+  filterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  resetWrapper: {
+    marginLeft: 12,
+    justifyContent: 'center',
+  },
   resetBtn: {
     marginBottom: 10,
   },
   modal: {
     backgroundColor: 'white',
-    padding: 20,
-    margin: 0,
-    borderRadius: 8,
-    maxHeight: '90%',
+    padding: 0,
+    margin: 20,
+    borderRadius: 20,
+    maxHeight: '85%',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 15,
   },
   modalTitle: {
-    fontWeight: 'bold',
-    fontSize: 18,
-    marginBottom: 16,
-    color: 'black',
+    fontWeight: '700',
+    fontSize: 20,
+    marginBottom: 20,
+    color: '#2C3E50',
+    textAlign: 'center',
   },
   input: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   typeFilterContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginVertical: 10,
-    paddingLeft: 10,
-    backgroundColor: 'white',
+    marginVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   chip: {
     marginRight: 8,
