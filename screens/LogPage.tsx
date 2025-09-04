@@ -5,6 +5,7 @@ import { getDatabase, ref, query, orderByChild, limitToLast, onValue } from 'fir
 import { LogEntry } from '../types/session';
 import { useNavigation } from '@react-navigation/native';
 import CustomIconButton from '../components/CustomIconButton';
+import { SuccessIcon, CloseIcon, RefreshIcon, EditIcon, ChartIcon } from '../components/CustomIcons';
 
 export default function LogPage() {
   const navigation = useNavigation();
@@ -83,13 +84,13 @@ export default function LogPage() {
     return '#666666';
   };
 
-  const getActionIcon = (message: string | undefined): string => {
-    if (!message) return '•';
-    if (message.includes('created')) return '✓';
-    if (message.includes('deleted')) return '✗';
-    if (message.includes('updated') || message.includes('moved')) return '↻';
-    if (message.includes('renamed')) return '✎';
-    return '•';
+  const getActionIcon = (message: string | undefined) => {
+    if (!message) return <View style={styles.dotIcon}><Text>•</Text></View>;
+    if (message.includes('created')) return <SuccessIcon size={16} color="#4CAF50" />;
+    if (message.includes('deleted')) return <CloseIcon size={16} color="#F44336" />;
+    if (message.includes('updated') || message.includes('moved')) return <RefreshIcon size={16} color="#FF9800" />;
+    if (message.includes('renamed')) return <EditIcon size={16} color="#2196F3" />;
+    return <View style={styles.dotIcon}><Text>•</Text></View>;
   };
 
   const renderLogItem = ({ item }: { item: LogEntry }) => (
@@ -97,9 +98,9 @@ export default function LogPage() {
       <Card.Content>
         <View style={styles.logHeader}>
           <View style={styles.logUser}>
-            <Text style={[styles.actionIcon, { color: getActionColor(item.message) }]}>
+            <View style={styles.actionIcon}>
               {getActionIcon(item.message)}
-            </Text>
+            </View>
             <Chip
               style={[styles.userChip, { borderColor: getActionColor(item.message) }]}
               textStyle={[styles.userChipText, { color: getActionColor(item.message) }]}
@@ -119,7 +120,9 @@ export default function LogPage() {
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyIcon}>📊</Text>
+      <View style={styles.emptyIcon}>
+        <ChartIcon size={48} color="#9E9E9E" />
+      </View>
       <Title style={styles.emptyTitle}>No Activity Yet</Title>
       <Text style={styles.emptySubtitle}>
         Inventory changes and user actions will appear here in real-time
@@ -138,17 +141,10 @@ export default function LogPage() {
           title="Activity Log"
           titleStyle={styles.headerTitle}
         />
-        <Appbar.Action
-          icon="refresh"
-          iconColor="#666666"
-          size={28}
+        <CustomIconButton
+          iconType="refresh"
           onPress={handleRefresh}
           disabled={refreshing}
-          style={{ 
-            marginHorizontal: 2,
-            minWidth: 48,
-            minHeight: 48,
-          }}
         />
       </Appbar.Header>
 
@@ -247,11 +243,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   actionIcon: {
-    fontSize: 16,
-    fontWeight: 'bold',
     marginRight: 8,
     width: 20,
-    textAlign: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dotIcon: {
+    width: 16,
+    height: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   userChip: {
     backgroundColor: 'transparent',
@@ -282,8 +283,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   emptyIcon: {
-    fontSize: 64,
     marginBottom: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   emptyTitle: {
     fontSize: 20,

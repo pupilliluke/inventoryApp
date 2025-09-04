@@ -59,8 +59,7 @@ export const EraserIcon: React.FC<IconProps> = ({ size = 24, color = "currentCol
 export const BackIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
   <View style={{ width: size, height: size }}>
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path d="M15 18l-6-6 6-6" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M19 12H9" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   </View>
 );
@@ -68,7 +67,15 @@ export const BackIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor
 export const DropdownIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
   <View style={{ width: size, height: size }}>
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path d="M6 9l6 6 6-6" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  </View>
+);
+
+export const CollapseIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
+  <View style={{ width: size, height: size }}>
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M8.25 6.75 12 3m0 0 3.75 3.75M12 3v18" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   </View>
 );
@@ -76,8 +83,8 @@ export const DropdownIcon: React.FC<IconProps> = ({ size = 24, color = "currentC
 export const ViewIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
   <View style={{ width: size, height: size }}>
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <Circle cx="12" cy="12" r="3" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   </View>
 );
@@ -85,8 +92,89 @@ export const ViewIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor
 export const EditIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
   <View style={{ width: size, height: size }}>
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path d="M12 20h9" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  </View>
+);
+
+export const FilterIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
+  <View style={{ width: size, height: size }}>
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  </View>
+);
+
+export const RefreshIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
+  <View style={{ width: size, height: size }}>
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  </View>
+);
+
+export const CheckIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
+  <View style={{ width: size, height: size }}>
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M20 6L9 17l-5-5" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  </View>
+);
+
+export const CloseIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
+  <View style={{ width: size, height: size }}>
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M18 6L6 18" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M6 6l12 12" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  </View>
+);
+
+export const SearchIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
+  <View style={{ width: size, height: size }}>
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="11" cy="11" r="8" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="m21 21-4.35-4.35" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  </View>
+);
+
+export const AccountIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
+  <View style={{ width: size, height: size }}>
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Circle cx="12" cy="7" r="4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  </View>
+);
+
+export const SwitchIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
+  <View style={{ width: size, height: size }}>
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M16 3h5v5" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M8 3H3v5" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M21 3l-7.5 7.5A4 4 0 0 0 12 13.7V22" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  </View>
+);
+
+export const SuccessIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
+  <View style={{ width: size, height: size }}>
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M9 12l2 2 4-4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  </View>
+);
+
+export const ChartIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
+  <View style={{ width: size, height: size }}>
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M3 3v18h18" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M18 17V9" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M13 17V5" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M8 17v-3" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   </View>
 );

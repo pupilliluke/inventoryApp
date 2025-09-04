@@ -12,7 +12,7 @@ import UserBadge from '../components/UserBadge';
 import { useSession } from '../context/SessionContext';
 import { InventoryMutations, UserNotAuthenticatedError } from '../utils/inventoryMutations';
 import CustomIconButton from '../components/CustomIconButton';
-import { EraserIcon, AddIcon, DeleteIcon, DropdownIcon } from '../components/CustomIcons';
+import { EraserIcon, AddIcon, DeleteIcon, DropdownIcon, CollapseIcon, FilterIcon } from '../components/CustomIcons';
 
 const typeFilters = [
   'Assortment', 'Candle', 'Firecracker', 'Rocket', 'Smoke', 'Sparkler', 'Toy', 'Mortar', 'Missile', 
@@ -52,6 +52,7 @@ export default function InventoryMain() {
   const [newName, setNewName] = useState('');
   const [deleteQuery, setDeleteQuery] = useState('');
   const [showTypeFilters, setShowTypeFilters] = useState(false);
+  const [filtersVisible, setFiltersVisible] = useState(true);
   const [addExpanded, setAddExpanded] = useState(false);
   const [deleteExpanded, setDeleteExpanded] = useState(false);
   const [clearLocationExpanded, setClearLocationExpanded] = useState(false);
@@ -224,6 +225,11 @@ export default function InventoryMain() {
       />
         <UserBadge style={{ marginRight: 4 }} />
         <CustomIconButton
+          iconType="filter"
+          onPress={() => setFiltersVisible(!filtersVisible)}
+          color={filtersVisible ? '#2196F3' : '#666666'}
+        />
+        <CustomIconButton
           iconType="log"
           onPress={() => navigation.navigate('LogPage')}
         />
@@ -242,9 +248,11 @@ export default function InventoryMain() {
   <View style={{ flex: 1, paddingHorizontal: 16, backgroundColor: '#FFFFFF' }}>
     <View style={{ height: 56 }} />
 
+    {filtersVisible && (
+      <>
         <FilterBar />
 
-     <View style={styles.filterRow}>
+        <View style={styles.filterRow}>
         <View style={{ flex: 1, flexDirection: 'column', }}>
             <List.Accordion 
             style={{
@@ -263,10 +271,12 @@ export default function InventoryMain() {
             expanded={showTypeFilters}
             onPress={() => setShowTypeFilters(!showTypeFilters)}
             right={props => (
-              <View style={{ 
-                transform: [{ rotate: showTypeFilters ? '180deg' : '0deg' }]
-              }}>
-                <DropdownIcon size={24} color="#333333" />
+              <View>
+                {showTypeFilters ? (
+                  <CollapseIcon size={24} color="#333333" />
+                ) : (
+                  <DropdownIcon size={24} color="#333333" />
+                )}
               </View>
             )}
             >
@@ -312,6 +322,8 @@ export default function InventoryMain() {
       
 
         </View>
+      </>
+    )}
 
 
         <View style={{
@@ -741,9 +753,11 @@ const styles = StyleSheet.create({
   modal: {
     backgroundColor: 'white',
     padding: 0,
-    margin: 20,
+    margin: 16,
     borderRadius: 20,
-    maxHeight: '85%',
+    maxHeight: '90%',
+    maxWidth: '95%',
+    alignSelf: 'center',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
