@@ -179,10 +179,11 @@ export default function UserListPage() {
   };
 
   const filteredInventory = inventory.filter(item => 
-    !searchQuery || 
-    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.type.toLowerCase().includes(searchQuery.toLowerCase())
+    searchQuery && (
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.type.toLowerCase().includes(searchQuery.toLowerCase())
+    )
   );
 
   const getUserStats = (userKey) => {
@@ -417,10 +418,16 @@ export default function UserListPage() {
                 }
               />
 
-              {filteredInventory.length === 0 ? (
+              {!searchQuery ? (
                 <Card style={styles.emptyCard}>
                   <Card.Content>
-                    <Text style={styles.emptyText}>No items found</Text>
+                    <Text style={styles.emptyText}>Search for items to manage user lists</Text>
+                  </Card.Content>
+                </Card>
+              ) : filteredInventory.length === 0 ? (
+                <Card style={styles.emptyCard}>
+                  <Card.Content>
+                    <Text style={styles.emptyText}>No items found matching your search</Text>
                   </Card.Content>
                 </Card>
               ) : (

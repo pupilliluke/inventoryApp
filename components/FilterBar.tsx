@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { useInventory } from '../context/InventoryContext';
+import { CloseIcon } from './CustomIcons';
 
 const FilterBar = ({ editable = true }) => {
   const { 
@@ -16,13 +17,23 @@ const FilterBar = ({ editable = true }) => {
     <View style={styles.container}>
       {editable ? (
         <>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search by name, type, or code"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            returnKeyType="search"
-          />
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search by name, type, or code"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              returnKeyType="search"
+            />
+            {searchQuery ? (
+              <TouchableOpacity 
+                style={styles.clearButton}
+                onPress={() => setSearchQuery('')}
+              >
+                <CloseIcon size={18} color="#666666" />
+              </TouchableOpacity>
+            ) : null}
+          </View>
           
           <View style={styles.locationFilters}>
             <TouchableOpacity 
@@ -109,13 +120,17 @@ const styles = StyleSheet.create({
     marginTop: 20,
     paddingHorizontal: 4,
   },
+  searchContainer: {
+    position: 'relative',
+    marginBottom: 16,
+  },
   searchInput: {
     height: 48,
     borderColor: '#E0E0E0',
     borderWidth: 1.5,
     borderRadius: 12,
     paddingHorizontal: 16,
-    marginBottom: 16,
+    paddingRight: 50,
     fontSize: 16,
     backgroundColor: '#FAFAFA',
     shadowColor: '#000',
@@ -126,6 +141,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+  },
+  clearButton: {
+    position: 'absolute',
+    right: 12,
+    top: 15,
+    padding: 4,
+    borderRadius: 12,
   },
   locationFilters: {
     flexDirection: 'row',
