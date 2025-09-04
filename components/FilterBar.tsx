@@ -21,6 +21,7 @@ const FilterBar = ({ editable = true }) => {
             placeholder="Search by name, type, or code"
             value={searchQuery}
             onChangeText={setSearchQuery}
+            returnKeyType="search"
           />
           
           <View style={styles.locationFilters}>

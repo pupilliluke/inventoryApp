@@ -6,7 +6,10 @@
       "mcp__ide__getDiagnostics",
       "Bash(curl:*)",
       "Bash(npm run build:*)",
-      "Bash(npm start)"
+      "Bash(npm start)",
+      "Bash(open http://localhost:8084)",
+      "Bash(start http://localhost:8084)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []

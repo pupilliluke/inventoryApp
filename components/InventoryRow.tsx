@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Alert } from 'react-native';
 import { Modal, Portal, Button as PaperButton, List } from 'react-native-paper';
 import { Picker } from '@react-native-picker/picker';
 import { InventoryItem } from '../types/inventoryItem';
 import { useInventory } from '../context/InventoryContext';
+import { useSession } from '../context/SessionContext';
+import { InventoryMutations, UserNotAuthenticatedError } from '../utils/inventoryMutations';
+import { useNavigation } from '@react-navigation/native';
 
 const typeOptions = [
   'Assortment', 'Candle', 'Firecracker', 'Rocket', 'Smoke', 'Sparkler', 'Toy', 
@@ -14,6 +17,8 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
   const [typeModalVisible, setTypeModalVisible] = useState(false);
 
   const { calculateTotal, updateItem } = useInventory();
+  const { activeUser } = useSession();
+  const navigation = useNavigation();
   const [localItem, setLocalItem] = useState(item);
   const [editingInfo, setEditingInfo] = useState(false);
   const [editingLocation, setEditingLocation] = useState(false);
@@ -35,24 +40,46 @@ useEffect(() => {
     }));
   };
 
-  const handleSaveInfo = () => {
-  const trimmedCode = localItem.code?.trim();
-  const trimmedName = localItem.name?.trim();
+  const handleSaveInfo = async () => {
+    const trimmedCode = localItem.code?.trim();
+    const trimmedName = localItem.name?.trim();
 
-  if (!trimmedCode || !trimmedName) {
-    alert("Both code and name are required.");
-    return;
-  }
+    if (!trimmedCode || !trimmedName) {
+      Alert.alert("Error", "Both code and name are required.");
+      return;
+    }
 
-  updateItem({ ...localItem, code: trimmedCode, name: trimmedName });
-  setEditingInfo(false);
-};
+    try {
+      await InventoryMutations.updateItem(activeUser, item, { 
+        ...localItem, 
+        code: trimmedCode, 
+        name: trimmedName 
+      });
+      setEditingInfo(false);
+    } catch (error) {
+      if (error instanceof UserNotAuthenticatedError) {
+        navigation.navigate('UserSelection' as never);
+      } else {
+        Alert.alert('Error', 'Failed to update item');
+        console.error(error);
+      }
+    }
+  };
 
 
 
-  const handleSaveLocation = () => {
-    updateItem({ ...localItem });
-    setEditingLocation(false);
+  const handleSaveLocation = async () => {
+    try {
+      await InventoryMutations.updateItem(activeUser, item, { ...localItem });
+      setEditingLocation(false);
+    } catch (error) {
+      if (error instanceof UserNotAuthenticatedError) {
+        navigation.navigate('UserSelection' as never);
+      } else {
+        Alert.alert('Error', 'Failed to update item quantities');
+        console.error(error);
+      }
+    }
   };
 
   const shouldShow = (key: keyof InventoryItem) =>
@@ -66,6 +93,8 @@ useEffect(() => {
             style={[styles.input, { flex: 1, marginRight: 10 }]}
             value={localItem.code}
             onChangeText={(val) => handleChange('code', val)}
+            onSubmitEditing={handleSaveInfo}
+            returnKeyType="done"
           />
         ) : (
           <Text style={styles.header}>
@@ -96,6 +125,8 @@ useEffect(() => {
           style={styles.input}
           value={localItem.name}
           onChangeText={(val) => handleChange('name', val)}
+          onSubmitEditing={handleSaveInfo}
+          returnKeyType="done"
         />
       )}
 
@@ -140,6 +171,8 @@ useEffect(() => {
                 keyboardType="numeric"
                 value={String(localItem[loc])}
                 onChangeText={(val) => handleChange(loc, val)}
+                onSubmitEditing={handleSaveLocation}
+                returnKeyType="done"
               />
             ) : (
               <Text style={{ 

@@ -8,6 +8,9 @@ import { useNavigation } from '@react-navigation/native';
 import { ref, update } from 'firebase/database'; // at the top, if not already
 import { db } from '../firebaseConfig'; // make sure this import exists
 import UserListPage from './UserListPage'; // Import UserPage if needed
+import UserBadge from '../components/UserBadge';
+import { useSession } from '../context/SessionContext';
+import { InventoryMutations, UserNotAuthenticatedError } from '../utils/inventoryMutations';
 
 const typeFilters = [
   'Assortment', 'Candle', 'Firecracker', 'Rocket', 'Smoke', 'Sparkler', 'Toy', 'Mortar', 'Missile', 
@@ -27,6 +30,7 @@ export default function InventoryMain() {
   
 
   const navigation = useNavigation();
+  const { activeUser } = useSession();
 
   const {
     inventory,
@@ -66,32 +70,58 @@ export default function InventoryMain() {
 
 
 
-  const handleAddItem = () => {
+  const handleAddItem = async () => {
     if (!newCode || !newName) return;
-    Keyboard.dismiss(); //  Dismiss keyboard
-    updateItem({
-      code: newCode,
-      name: newName,
-      type: 'Other',
-      showroom: 0,
-      warehouse: 0,
-      storage: 0,
-      closet: 0,
-      editable: false,
-    });
-    setNewCode('');
-    setNewName('');
-    setManageVisible(false);
+    Keyboard.dismiss(); 
+    
+    try {
+      await InventoryMutations.createItem(activeUser, {
+        code: newCode,
+        name: newName,
+        type: 'Other',
+        showroom: 0,
+        warehouse: 0,
+        storage: 0,
+        closet: 0,
+        editable: false,
+      });
+      setNewCode('');
+      setNewName('');
+      setManageVisible(false);
+    } catch (error) {
+      if (error instanceof UserNotAuthenticatedError) {
+        navigation.navigate('UserSelection' as never);
+      } else {
+        Alert.alert('Error', 'Failed to create item');
+        console.error(error);
+      }
+    }
   };
 
 
   const handleDeleteItem = (code) => {
+    const item = originalInventory.find(item => item.code === code);
     Alert.alert(
       'Confirm Delete',
       `Are you sure you want to delete item ${code}?`,
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: () => removeItem(code) }
+        { 
+          text: 'Delete', 
+          style: 'destructive', 
+          onPress: async () => {
+            try {
+              await InventoryMutations.deleteItem(activeUser, code, item?.name);
+            } catch (error) {
+              if (error instanceof UserNotAuthenticatedError) {
+                navigation.navigate('UserSelection' as never);
+              } else {
+                Alert.alert('Error', 'Failed to delete item');
+                console.error(error);
+              }
+            }
+          }
+        }
       ]
     );
   };
@@ -158,6 +188,12 @@ const clearLocation = async (location: 'warehouse' | 'showroom' | 'storage' | 'c
           color: '#333333',
         }}
       />
+        <UserBadge style={{ marginRight: 8 }} />
+        <Appbar.Action 
+          icon="clipboard-text" 
+          iconColor="#666666"
+          onPress={() => navigation.navigate('LogPage')} 
+        />
         <Appbar.Action 
           icon="account" 
           iconColor="#666666"
@@ -328,23 +364,35 @@ const clearLocation = async (location: 'warehouse' | 'showroom' | 'storage' | 'c
                 label="Product Code"
                 value={newCode}
                 onChangeText={setNewCode}
+                onSubmitEditing={() => {
+                  if (newCode && newName) {
+                    handleAddItem();
+                  }
+                }}
                 mode="outlined"
                 style={[styles.input, { marginBottom: 20 }]}
                 outlineStyle={{
                   borderColor: '#E5E5E5',
                   borderRadius: 8,
                 }}
+                returnKeyType="done"
               />
               <TextInput
                 label="Product Name"
                 value={newName}
                 onChangeText={setNewName}
+                onSubmitEditing={() => {
+                  if (newCode && newName) {
+                    handleAddItem();
+                  }
+                }}
                 mode="outlined"
                 style={[styles.input, { marginBottom: 24 }]}
                 outlineStyle={{
                   borderColor: '#E5E5E5',
                   borderRadius: 8,
                 }}
+                returnKeyType="done"
               />
               <Button
                 mode="contained"
@@ -405,6 +453,7 @@ const clearLocation = async (location: 'warehouse' | 'showroom' | 'storage' | 'c
                   borderColor: '#E5E5E5',
                   borderRadius: 8,
                 }}
+                returnKeyType="search"
               />
               {filteredForDelete.length > 0 && (
                 <View style={{

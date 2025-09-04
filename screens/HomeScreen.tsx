@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, SafeAreaView, Keyboard, ImageBackground, TouchableOpacity } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useSession } from '../context/SessionContext';
 import ActualInventoryApp from './InventoryMain';
 
 const PASSWORD = 'monroeville'; // 🔐 change this to whatever password you want
@@ -8,6 +10,17 @@ export default function ProtectedInventoryApp() {
   const [enteredPassword, setEnteredPassword] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
   const [error, setError] = useState('');
+  const { activeUser, isSessionLoaded } = useSession();
+  const navigation = useNavigation();
+
+  // Redirect to user selection if no user is selected after session loads
+  useFocusEffect(
+    React.useCallback(() => {
+      if (isSessionLoaded && !activeUser && authenticated) {
+        navigation.navigate('UserSelection' as never);
+      }
+    }, [isSessionLoaded, activeUser, authenticated, navigation])
+  );
 
   const handleSubmit = () => {
     Keyboard.dismiss();

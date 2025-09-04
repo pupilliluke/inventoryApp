@@ -4,9 +4,12 @@ import { Text, TextInput, Button, Appbar, Checkbox, List, IconButton, Card, Titl
 import { ref, onValue, set, remove } from 'firebase/database';
 import { db } from '../firebaseConfig';
 import { useNavigation } from '@react-navigation/native';
+import { useSession } from '../context/SessionContext';
+import { UserMutations, UserNotAuthenticatedError } from '../utils/inventoryMutations';
 
 export default function UserListPage() {
   const navigation = useNavigation();
+  const { activeUser } = useSession();
   const [username, setUsername] = useState('');
   const [userItems, setUserItems] = useState({});
   const [inventory, setInventory] = useState([]);
@@ -53,17 +56,17 @@ export default function UserListPage() {
     }
 
     try {
-      await set(ref(db, `users/${username}`), { 
-        name: username, 
-        list: {},
-        createdAt: new Date().toISOString()
-      });
+      await UserMutations.createUser(activeUser, username);
       setUsername('');
       setShowAddUser(false);
       Alert.alert('Success', 'User added successfully');
     } catch (error) {
-      Alert.alert('Error', 'Failed to add user');
-      console.error(error);
+      if (error instanceof UserNotAuthenticatedError) {
+        navigation.navigate('UserSelection' as never);
+      } else {
+        Alert.alert('Error', 'Failed to add user');
+        console.error(error);
+      }
     }
   };
 
@@ -74,7 +77,7 @@ export default function UserListPage() {
 
   const confirmDeleteUser = async () => {
     try {
-      await remove(ref(db, `users/${userToDelete}`));
+      await UserMutations.deleteUser(activeUser, userToDelete);
       if (selectedUser === userToDelete) {
         setSelectedUser(null);
         setUserItems({});
@@ -83,8 +86,12 @@ export default function UserListPage() {
       setUserToDelete(null);
       Alert.alert('Success', 'User deleted successfully');
     } catch (error) {
-      Alert.alert('Error', 'Failed to delete user');
-      console.error(error);
+      if (error instanceof UserNotAuthenticatedError) {
+        navigation.navigate('UserSelection' as never);
+      } else {
+        Alert.alert('Error', 'Failed to delete user');
+        console.error(error);
+      }
     }
   };
 
@@ -113,12 +120,8 @@ export default function UserListPage() {
     try {
       const { oldName, newName } = userToEdit;
       const userData = users[oldName];
-      await set(ref(db, `users/${newName}`), { 
-        ...userData, 
-        name: newName,
-        updatedAt: new Date().toISOString()
-      });
-      await remove(ref(db, `users/${oldName}`));
+      
+      await UserMutations.renameUser(activeUser, oldName, newName, userData);
       
       if (selectedUser === oldName) {
         setSelectedUser(newName);
@@ -130,8 +133,12 @@ export default function UserListPage() {
       setUserToEdit({ oldName: '', newName: '' });
       Alert.alert('Success', 'User renamed successfully');
     } catch (error) {
-      Alert.alert('Error', 'Failed to rename user');
-      console.error(error);
+      if (error instanceof UserNotAuthenticatedError) {
+        navigation.navigate('UserSelection' as never);
+      } else {
+        Alert.alert('Error', 'Failed to rename user');
+        console.error(error);
+      }
     }
   };
 
