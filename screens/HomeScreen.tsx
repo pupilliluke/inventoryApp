@@ -81,7 +81,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    margin: 32,
+    marginVertical: 32,
+    marginHorizontal: 48,
     borderRadius: 24,
     shadowColor: '#000',
     shadowOffset: {

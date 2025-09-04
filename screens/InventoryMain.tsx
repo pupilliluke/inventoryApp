@@ -12,7 +12,7 @@ import UserBadge from '../components/UserBadge';
 import { useSession } from '../context/SessionContext';
 import { InventoryMutations, UserNotAuthenticatedError } from '../utils/inventoryMutations';
 import CustomIconButton from '../components/CustomIconButton';
-import { EraserIcon, AddIcon, DeleteIcon, DropdownIcon, CollapseIcon, FilterIcon } from '../components/CustomIcons';
+import { EraserIcon, AddIcon, DeleteIcon, DropdownIcon, CollapseIcon, FilterIcon, CheckIcon } from '../components/CustomIcons';
 
 const typeFilters = [
   'Assortment', 'Candle', 'Firecracker', 'Rocket', 'Smoke', 'Sparkler', 'Toy', 'Mortar', 'Missile', 
@@ -245,7 +245,7 @@ export default function InventoryMain() {
 
 
   {/* Add a spacer view below to offset the content below the fixed header */}
-  <View style={{ flex: 1, paddingHorizontal: 16, backgroundColor: '#FFFFFF' }}>
+  <ScrollView style={{ flex: 1, paddingHorizontal: 16, backgroundColor: '#FFFFFF' }}>
     <View style={{ height: 56 }} />
 
     {filtersVisible && (
@@ -287,6 +287,7 @@ export default function InventoryMain() {
                     selected={(multiTypeFilters || []).includes(type)}
                     onPress={() => toggleTypeFilter(type)}
                     style={styles.chip}
+                    icon={(multiTypeFilters || []).includes(type) ? () => <CheckIcon size={16} color="#4CAF50" /> : undefined}
                 >
                     {type}
                 </Chip>
@@ -348,11 +349,12 @@ export default function InventoryMain() {
           </Text>
         </View>
 
-        <FlatList
-          data={inventory}
-          keyExtractor={item => item.code}
-          renderItem={({ item }) => <InventoryRow item={item} />}
-        />
+        {inventory.map((item) => (
+          <InventoryRow key={item.code} item={item} />
+        ))}
+        
+        <View style={{ height: 20 }} />
+  </ScrollView>
 
         <Portal>
           <Modal
@@ -364,8 +366,8 @@ export default function InventoryMain() {
           >
             <View style={{
               backgroundColor: '#F8F9FA',
-              paddingVertical: 20,
-              paddingHorizontal: 24,
+              paddingVertical: 24,
+              paddingHorizontal: 32,
               borderTopLeftRadius: 20,
               borderTopRightRadius: 20,
               borderBottomWidth: 1,
@@ -384,7 +386,7 @@ export default function InventoryMain() {
                 marginTop: 4,
               }}>Add new items or remove existing ones</Text>
             </View>
-         <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+         <ScrollView contentContainerStyle={{ paddingBottom: 24, paddingHorizontal: 8 }}>
          <List.Accordion
             title="Add New Item"
             expanded={addExpanded}
@@ -446,6 +448,7 @@ export default function InventoryMain() {
               />
               <Button
                 mode="contained"
+                icon={() => <AddIcon size={18} color="#FFFFFF" />}
                 onPress={() => {
                   Keyboard.dismiss();
                   handleAddItem();
@@ -753,10 +756,10 @@ const styles = StyleSheet.create({
   modal: {
     backgroundColor: 'white',
     padding: 0,
-    margin: 16,
+    margin: 24,
     borderRadius: 20,
-    maxHeight: '90%',
-    maxWidth: '95%',
+    maxHeight: '88%',
+    maxWidth: '92%',
     alignSelf: 'center',
     shadowColor: '#000',
     shadowOffset: {
