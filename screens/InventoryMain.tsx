@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useInventory } from '../context/InventoryContext';
 import FilterBar from '../components/FilterBar';
 import InventoryRow from '../components/InventoryRow';
-import { Button, Modal, Portal, TextInput, Appbar, Chip, List } from 'react-native-paper';
+import { Button, Modal, Portal, TextInput, Appbar, Chip, List, Dialog, Text as PaperText } from 'react-native-paper';
 import { Keyboard, SafeAreaView, View, Text, FlatList, StyleSheet, Alert, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ref, update } from 'firebase/database'; // at the top, if not already
@@ -52,6 +52,10 @@ export default function InventoryMain() {
   const [showTypeFilters, setShowTypeFilters] = useState(false);
   const [addExpanded, setAddExpanded] = useState(false);
   const [deleteExpanded, setDeleteExpanded] = useState(false);
+  const [clearLocationExpanded, setClearLocationExpanded] = useState(false);
+  const [confirmClearVisible, setConfirmClearVisible] = useState(false);
+  const [locationToClear, setLocationToClear] = useState<'warehouse' | 'showroom' | 'storage' | null>(null);
+  const [clearLocationStats, setClearLocationStats] = useState<{itemCount: number, totalQuantity: number}>({ itemCount: 0, totalQuantity: 0 });
   useEffect(() => {
     const patchClosetField = () => {
       originalInventory.forEach((item) => {
@@ -144,20 +148,48 @@ export default function InventoryMain() {
   }) : [];
 
 
-const clearLocation = async (location: 'warehouse' | 'showroom' | 'storage' | 'closet') => {
-  const updates = {};
-  originalInventory.forEach(item => {
-    if (item[location] !== 0) {
-      updates[`inventory/${item.code}/${location}`] = 0;
+  const handleClearLocation = async (location: 'warehouse' | 'showroom' | 'storage') => {
+    console.log(`Clear location button clicked for: ${location}`);
+    
+    const itemsWithQuantity = originalInventory.filter(item => item[location] > 0);
+    const totalQuantity = itemsWithQuantity.reduce((sum, item) => sum + item[location], 0);
+    
+    console.log(`Items with quantity in ${location}:`, itemsWithQuantity.length, 'Total quantity:', totalQuantity);
+    
+    if (itemsWithQuantity.length === 0) {
+      Alert.alert('Info', `No items found in ${location} to clear`);
+      return;
     }
-  });
 
-  try {
-    await update(ref(db), updates);
-  } catch (error) {
-    console.error('Error clearing location:', error);
-  }
-};
+    setLocationToClear(location);
+    setClearLocationStats({ itemCount: itemsWithQuantity.length, totalQuantity });
+    setConfirmClearVisible(true);
+  };
+
+  const confirmClearLocation = async () => {
+    if (!locationToClear) return;
+    
+    console.log(`Confirming clear for location: ${locationToClear}`);
+    
+    try {
+      await InventoryMutations.clearLocation(activeUser, originalInventory, locationToClear);
+      setConfirmClearVisible(false);
+      setLocationToClear(null);
+      Alert.alert('Success', `All ${locationToClear} quantities cleared`);
+    } catch (error) {
+      if (error instanceof UserNotAuthenticatedError) {
+        navigation.navigate('UserSelection' as never);
+      } else {
+        Alert.alert('Error', `Failed to clear ${locationToClear} quantities`);
+        console.error('Clear location error:', error);
+      }
+    }
+  };
+
+  const cancelClearLocation = () => {
+    setConfirmClearVisible(false);
+    setLocationToClear(null);
+  };
 
 
 
@@ -526,9 +558,153 @@ const clearLocation = async (location: 'warehouse' | 'showroom' | 'storage' | 'c
               )}
             </View>
           </List.Accordion>
+
+          <List.Accordion
+            title="Clear Locations"
+            left={props => <List.Icon {...props} icon="broom" />}
+            expanded={clearLocationExpanded}
+            onPress={() => setClearLocationExpanded(!clearLocationExpanded)}
+            style={{
+              marginBottom: 16,
+              backgroundColor: '#FFFFFF',
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: '#E5E5E5',
+            }}
+            titleStyle={{
+              fontSize: 16,
+              fontWeight: '600',
+              color: '#333333',
+            }}
+          >
+            <View style={{
+              padding: 20,
+              backgroundColor: '#FAFAFA',
+              borderBottomLeftRadius: 12,
+              borderBottomRightRadius: 12,
+              marginTop: -1,
+            }}>
+              <Text style={{
+                fontSize: 14,
+                color: '#666666',
+                marginBottom: 16,
+                textAlign: 'center',
+                lineHeight: 20,
+              }}>
+                Clear all quantities from specific locations (Closet is protected)
+              </Text>
+              
+              <View style={{ gap: 12 }}>
+                {(['showroom', 'warehouse', 'storage'] as const).map((location) => (
+                  <Button
+                    key={location}
+                    mode="contained"
+                    icon="delete-sweep"
+                    onPress={() => {
+                      console.log(`Button pressed for: ${location}`);
+                      handleClearLocation(location);
+                    }}
+                    style={{
+                      backgroundColor: '#FF9800',
+                      borderRadius: 8,
+                    }}
+                    contentStyle={{
+                      paddingVertical: 8,
+                    }}
+                    labelStyle={{
+                      fontSize: 14,
+                      fontWeight: '600',
+                      color: '#FFFFFF',
+                      textTransform: 'capitalize',
+                    }}
+                  >
+                    Clear All {location}
+                  </Button>
+                ))}
+              </View>
+            </View>
+          </List.Accordion>
         </ScrollView>
           </Modal>
 
+        </Portal>
+
+        {/* Clear Location Confirmation Dialog */}
+        <Portal>
+          <Dialog
+            visible={confirmClearVisible}
+            onDismiss={cancelClearLocation}
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: 16,
+              elevation: 10,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 10 },
+              shadowOpacity: 0.3,
+              shadowRadius: 20,
+            }}
+            theme={{
+              colors: { backdrop: 'rgba(0, 0, 0, 0.5)' }
+            }}
+          >
+            <Dialog.Icon icon="delete-sweep" size={48} color="#FF9800" />
+            <Dialog.Title style={{
+              fontSize: 20,
+              fontWeight: '700',
+              color: '#1A1A1A',
+              textAlign: 'center',
+              marginBottom: 8,
+            }}>
+              Clear {locationToClear}
+            </Dialog.Title>
+            <Dialog.Content>
+              <PaperText style={{
+                fontSize: 16,
+                color: '#333333',
+                textAlign: 'center',
+                marginBottom: 12,
+                lineHeight: 22,
+              }}>
+                Are you sure you want to clear all quantities from {locationToClear}?
+              </PaperText>
+              <PaperText style={{
+                fontSize: 14,
+                color: '#666666',
+                textAlign: 'center',
+                marginBottom: 8,
+              }}>
+                This will affect {clearLocationStats.itemCount} items
+              </PaperText>
+              <PaperText style={{
+                fontSize: 14,
+                color: '#FF9800',
+                textAlign: 'center',
+                fontWeight: '600',
+              }}>
+                Total quantity to clear: {clearLocationStats.totalQuantity}
+              </PaperText>
+            </Dialog.Content>
+            <Dialog.Actions style={{
+              justifyContent: 'space-between',
+              paddingHorizontal: 16,
+              paddingTop: 20,
+            }}>
+              <Button
+                mode="text"
+                onPress={cancelClearLocation}
+                textColor="#666666"
+              >
+                Cancel
+              </Button>
+              <Button
+                mode="contained"
+                onPress={confirmClearLocation}
+                buttonColor="#FF9800"
+              >
+                Clear All
+              </Button>
+            </Dialog.Actions>
+          </Dialog>
         </Portal>              
         </View>
     </SafeAreaView>

@@ -1,4 +1,4 @@
-import { set, ref, remove, getDatabase } from 'firebase/database';
+import { set, ref, remove, getDatabase, update } from 'firebase/database';
 import { ActiveUser } from '../types/session';
 import { InventoryItem } from '../types/inventoryItem';
 import { appendLog, LogMessages, generateQuantityChanges } from './logging';
@@ -200,6 +200,48 @@ export const InventoryMutations = {
       });
     } catch (error) {
       console.error('Failed to update inventory quantity:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Clear all quantities from a specific location (excludes closet)
+   */
+  async clearLocation(
+    user: ActiveUser | null,
+    inventoryItems: InventoryItem[],
+    location: keyof Pick<InventoryItem, 'showroom' | 'warehouse' | 'storage'>
+  ): Promise<void> {
+    ensureUserAuthenticated(user);
+    
+    const db = getDatabase();
+    const updates: { [key: string]: number } = {};
+    const itemsToUpdate: Array<{code: string, oldQty: number}> = [];
+    
+    // Collect all items that need clearing
+    inventoryItems.forEach(item => {
+      if (item[location] > 0) {
+        updates[`inventory/${item.code}/${location}`] = 0;
+        itemsToUpdate.push({ code: item.code, oldQty: item[location] });
+      }
+    });
+
+    if (itemsToUpdate.length === 0) {
+      return; // Nothing to clear
+    }
+    
+    try {
+      // Perform the batch update
+      await update(ref(db), updates);
+      
+      // Log the action (non-blocking)
+      await appendLog({
+        userId: user.id,
+        userName: user.name,
+        message: LogMessages.clearLocation(user, location, itemsToUpdate.length, itemsToUpdate.reduce((sum, item) => sum + item.oldQty, 0))
+      });
+    } catch (error) {
+      console.error(`Failed to clear ${location} quantities:`, error);
       throw error;
     }
   }
