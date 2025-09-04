@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Chip, Menu, IconButton, Text, Portal, Dialog, Button } from 'react-native-paper';
+import { UsersIcon, SwitchIcon } from './CustomIcons';
 import { useSession } from '../context/SessionContext';
 import { useNavigation } from '@react-navigation/native';
 
@@ -40,7 +41,7 @@ export default function UserBadge({ style }: UserBadgeProps) {
         onDismiss={() => setMenuVisible(false)}
         anchor={
           <Chip
-            icon="account"
+            icon={() => <UsersIcon size={16} color="#1565C0" />}
             onPress={() => setMenuVisible(true)}
             style={styles.chip}
             textStyle={styles.chipText}
@@ -53,7 +54,7 @@ export default function UserBadge({ style }: UserBadgeProps) {
         <Menu.Item
           onPress={handleSwitchUser}
           title="Switch User"
-          leadingIcon="account-switch"
+          leadingIcon={() => <SwitchIcon size={20} color="#666666" />}
         />
       </Menu>
 
@@ -69,7 +70,7 @@ export default function UserBadge({ style }: UserBadgeProps) {
             }
           }}
         >
-          <Dialog.Icon icon="account-switch" size={48} color="#FF9800" />
+          <Dialog.Icon icon={() => <SwitchIcon size={48} color="#FF9800" />} />
           <Dialog.Title style={styles.dialogTitle}>Switch User</Dialog.Title>
           <Dialog.Content>
             <Text style={styles.dialogText}>
@@ -132,6 +133,9 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.3,
     shadowRadius: 20,
+    margin: 16,
+    maxWidth: '90%',
+    alignSelf: 'center',
   },
   dialogTitle: {
     fontSize: 20,

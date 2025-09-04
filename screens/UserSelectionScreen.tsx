@@ -5,6 +5,7 @@ import { getDatabase, ref, onValue, orderByChild, query } from 'firebase/databas
 import { useSession } from '../context/SessionContext';
 import { User } from '../types/session';
 import { useNavigation } from '@react-navigation/native';
+import { SuccessIcon } from '../components/CustomIcons';
 
 export default function UserSelectionScreen() {
   const [users, setUsers] = useState<User[]>([]);
@@ -118,7 +119,9 @@ export default function UserSelectionScreen() {
                           {user.name}
                         </Text>
                         {selectedUserId === user.id && (
-                          <Text style={styles.selectedIcon}>✓</Text>
+                          <View style={styles.selectedIcon}>
+                            <SuccessIcon size={20} color="#4CAF50" />
+                          </View>
                         )}
                       </View>
                     </TouchableRipple>
@@ -243,11 +246,10 @@ const styles = StyleSheet.create({
     color: '#2E7D32',
   },
   selectedIcon: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#4CAF50',
     position: 'absolute',
     right: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   confirmButton: {
     backgroundColor: '#4CAF50',

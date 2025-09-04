@@ -1,9 +1,9 @@
 import React from 'react';
 import { TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
-import { LogIcon, UsersIcon, AddIcon, DeleteIcon, EraserIcon, BackIcon, DropdownIcon, ViewIcon, EditIcon } from './CustomIcons';
+import { LogIcon, UsersIcon, AddIcon, DeleteIcon, EraserIcon, BackIcon, DropdownIcon, CollapseIcon, ViewIcon, EditIcon, FilterIcon, RefreshIcon, CheckIcon, CloseIcon, SearchIcon, AccountIcon, SwitchIcon, SuccessIcon, ChartIcon } from './CustomIcons';
 
 interface CustomIconButtonProps {
-  iconType: 'log' | 'users' | 'add' | 'delete' | 'eraser' | 'back' | 'dropdown' | 'view' | 'edit';
+  iconType: 'log' | 'users' | 'add' | 'delete' | 'eraser' | 'back' | 'dropdown' | 'collapse' | 'view' | 'edit' | 'filter' | 'refresh' | 'check' | 'close' | 'search' | 'account' | 'switch' | 'success' | 'chart';
   size?: number;
   color?: string;
   onPress: () => void;
@@ -35,10 +35,30 @@ const CustomIconButton: React.FC<CustomIconButtonProps> = ({
         return <BackIcon size={size} color={color} />;
       case 'dropdown':
         return <DropdownIcon size={size} color={color} />;
+      case 'collapse':
+        return <CollapseIcon size={size} color={color} />;
       case 'view':
         return <ViewIcon size={size} color={color} />;
       case 'edit':
         return <EditIcon size={size} color={color} />;
+      case 'filter':
+        return <FilterIcon size={size} color={color} />;
+      case 'refresh':
+        return <RefreshIcon size={size} color={color} />;
+      case 'check':
+        return <CheckIcon size={size} color={color} />;
+      case 'close':
+        return <CloseIcon size={size} color={color} />;
+      case 'search':
+        return <SearchIcon size={size} color={color} />;
+      case 'account':
+        return <AccountIcon size={size} color={color} />;
+      case 'switch':
+        return <SwitchIcon size={size} color={color} />;
+      case 'success':
+        return <SuccessIcon size={size} color={color} />;
+      case 'chart':
+        return <ChartIcon size={size} color={color} />;
       default:
         return <AddIcon size={size} color={color} />;
     }

@@ -42,9 +42,6 @@ export default function ProtectedInventoryApp() {
     >
       <SafeAreaView style={styles.container}>
         <Text style={styles.title}>Fireworks Inventory</Text>
-        <Text style={styles.subtitle}>
-          Inventory management system for tracking fireworks stock.
-        </Text>
         
         <View style={styles.inputContainer}>
           <TextInput
@@ -70,7 +67,7 @@ export default function ProtectedInventoryApp() {
             onPress={handleSubmit}
             activeOpacity={0.8}
           >
-            <Text style={styles.buttonText}>Access System</Text>
+            <Text style={styles.buttonText}>Authenticate</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -100,18 +97,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    marginBottom: 32,
+    marginBottom: 40,
     color: '#2C3E50',
     textAlign: 'center',
     letterSpacing: 1,
-  },
-  subtitle: {
-    fontSize: 16,
-    fontWeight: '400',
-    marginBottom: 40,
-    color: '#7F8C8D',
-    textAlign: 'center',
-    paddingHorizontal: 20,
   },
   inputContainer: {
     width: '85%',

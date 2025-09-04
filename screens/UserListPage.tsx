@@ -6,7 +6,7 @@ import { db } from '../firebaseConfig';
 import { useNavigation } from '@react-navigation/native';
 import { useSession } from '../context/SessionContext';
 import { UserMutations, UserNotAuthenticatedError } from '../utils/inventoryMutations';
-import { AddIcon, DeleteIcon, UsersIcon, EditIcon, ViewIcon } from '../components/CustomIcons';
+import { AddIcon, DeleteIcon, UsersIcon, EditIcon, ViewIcon, CheckIcon, CloseIcon, SearchIcon } from '../components/CustomIcons';
 import CustomIconButton from '../components/CustomIconButton';
 
 export default function UserListPage() {
@@ -226,15 +226,13 @@ export default function UserListPage() {
               {isEditing ? (
                 <>
                   <IconButton
-                    icon="check"
+                    icon={() => <CheckIcon size={18} color="#4CAF50" />}
                     size={20}
-                    iconColor="#4CAF50"
                     onPress={() => handleRenameUser(userKey, newUserName)}
                   />
                   <IconButton
-                    icon="close"
+                    icon={() => <CloseIcon size={18} color="#FF5722" />}
                     size={20}
-                    iconColor="#FF5722"
                     onPress={() => {
                       setEditingUser(null);
                       setNewUserName('');
@@ -408,11 +406,11 @@ export default function UserListPage() {
                 onChangeText={setSearchQuery}
                 style={styles.searchInput}
                 mode="outlined"
-                left={<TextInput.Icon icon="magnify" />}
+                left={<TextInput.Icon icon={() => <SearchIcon size={18} color="#666666" />} />}
                 right={
                   searchQuery ? (
                     <TextInput.Icon 
-                      icon="close" 
+                      icon={() => <CloseIcon size={18} color="#666666" />}
                       onPress={() => setSearchQuery('')}
                     />
                   ) : null
@@ -702,6 +700,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 20,
     zIndex: 9999,
+    margin: 16,
+    maxWidth: '90%',
+    alignSelf: 'center',
   },
   modalTitle: {
     fontSize: 20,

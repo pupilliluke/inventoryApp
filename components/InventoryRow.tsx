@@ -193,7 +193,7 @@ useEffect(() => {
 const styles = StyleSheet.create({
   modal: {
     backgroundColor: 'white',
-    margin: 20,
+    margin: 16,
     borderRadius: 16,
     padding: 20,
     shadowColor: '#000',
@@ -204,6 +204,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+    maxWidth: '90%',
+    alignSelf: 'center',
+    maxHeight: '80%',
   },
   row: {
     backgroundColor: '#FFFFFF',
