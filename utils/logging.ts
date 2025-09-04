@@ -70,7 +70,10 @@ export const LogMessages = {
     `${deleterUser.name} deleted user: ${deletedUserName}`,
   
   userRenamed: (renamerUser: ActiveUser, oldName: string, newName: string) =>
-    `${renamerUser.name} renamed user: ${oldName} → ${newName}`
+    `${renamerUser.name} renamed user: ${oldName} → ${newName}`,
+  
+  clearLocation: (user: ActiveUser, location: string, itemCount: number, totalQuantity: number) =>
+    `${user.name} cleared ${location}: ${itemCount} items (${totalQuantity} total qty) → 0`
 };
 
 /**
