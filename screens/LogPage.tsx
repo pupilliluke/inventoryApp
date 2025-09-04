@@ -4,6 +4,7 @@ import { Text, Card, Appbar, Chip, ActivityIndicator, Title } from 'react-native
 import { getDatabase, ref, query, orderByChild, limitToLast, onValue } from 'firebase/database';
 import { LogEntry } from '../types/session';
 import { useNavigation } from '@react-navigation/native';
+import CustomIconButton from '../components/CustomIconButton';
 
 export default function LogPage() {
   const navigation = useNavigation();
@@ -129,15 +130,25 @@ export default function LogPage() {
   return (
     <SafeAreaView style={styles.container}>
       <Appbar.Header style={styles.header}>
-        <Appbar.BackAction onPress={() => navigation.goBack()} />
+        <CustomIconButton
+          iconType="back"
+          onPress={() => navigation.goBack()}
+        />
         <Appbar.Content
           title="Activity Log"
           titleStyle={styles.headerTitle}
         />
         <Appbar.Action
           icon="refresh"
+          iconColor="#666666"
+          size={28}
           onPress={handleRefresh}
           disabled={refreshing}
+          style={{ 
+            marginHorizontal: 2,
+            minWidth: 48,
+            minHeight: 48,
+          }}
         />
       </Appbar.Header>
 

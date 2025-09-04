@@ -11,6 +11,8 @@ import UserListPage from './UserListPage'; // Import UserPage if needed
 import UserBadge from '../components/UserBadge';
 import { useSession } from '../context/SessionContext';
 import { InventoryMutations, UserNotAuthenticatedError } from '../utils/inventoryMutations';
+import CustomIconButton from '../components/CustomIconButton';
+import { EraserIcon, AddIcon, DeleteIcon, DropdownIcon } from '../components/CustomIcons';
 
 const typeFilters = [
   'Assortment', 'Candle', 'Firecracker', 'Rocket', 'Smoke', 'Sparkler', 'Toy', 'Mortar', 'Missile', 
@@ -220,21 +222,18 @@ export default function InventoryMain() {
           color: '#333333',
         }}
       />
-        <UserBadge style={{ marginRight: 8 }} />
-        <Appbar.Action 
-          icon="clipboard-text" 
-          iconColor="#666666"
-          onPress={() => navigation.navigate('LogPage')} 
+        <UserBadge style={{ marginRight: 4 }} />
+        <CustomIconButton
+          iconType="log"
+          onPress={() => navigation.navigate('LogPage')}
         />
-        <Appbar.Action 
-          icon="account" 
-          iconColor="#666666"
-          onPress={() => navigation.navigate('UserListPage')} 
+        <CustomIconButton
+          iconType="users"
+          onPress={() => navigation.navigate('UserListPage')}
         />
-        <Appbar.Action 
-          icon="plus-box-multiple" 
-          iconColor="#666666"
-          onPress={() => setManageVisible(true)} 
+        <CustomIconButton
+          iconType="add"
+          onPress={() => setManageVisible(true)}
         />
       </Appbar.Header>
 
@@ -263,6 +262,13 @@ export default function InventoryMain() {
             title="Filter by Type"
             expanded={showTypeFilters}
             onPress={() => setShowTypeFilters(!showTypeFilters)}
+            right={props => (
+              <View style={{ 
+                transform: [{ rotate: showTypeFilters ? '180deg' : '0deg' }]
+              }}>
+                <DropdownIcon size={24} color="#333333" />
+              </View>
+            )}
             >
             <View style={styles.typeFilterContainer}>
                 {typeFilters.map(type => (
@@ -371,7 +377,7 @@ export default function InventoryMain() {
             title="Add New Item"
             expanded={addExpanded}
             onPress={() => setAddExpanded(!addExpanded)}
-            left={props => <List.Icon {...props} icon="plus-box" />}
+            left={props => <AddIcon size={24} color="#333333" />}
             style={{
               marginBottom: 16,
               backgroundColor: '#FFFFFF',
@@ -454,7 +460,7 @@ export default function InventoryMain() {
 
           <List.Accordion
             title="Delete Item"
-            left={props => <List.Icon {...props} icon="delete" />}
+            left={props => <DeleteIcon size={24} color="#333333" />}
             style={{
               marginBottom: 16,
               backgroundColor: '#FFFFFF',
@@ -520,7 +526,7 @@ export default function InventoryMain() {
                       }}>{item.code} — {item.name}</Text>
                       <Button
                         mode="contained"
-                        icon="delete"
+                        icon={() => <DeleteIcon size={18} color="#FFFFFF" />}
                         onPress={() => handleDeleteItem(item.code)}
                         style={{
                           backgroundColor: '#FF6B6B',
@@ -561,7 +567,7 @@ export default function InventoryMain() {
 
           <List.Accordion
             title="Clear Locations"
-            left={props => <List.Icon {...props} icon="broom" />}
+            left={props => <EraserIcon size={24} color="#333333" />}
             expanded={clearLocationExpanded}
             onPress={() => setClearLocationExpanded(!clearLocationExpanded)}
             style={{
@@ -599,7 +605,7 @@ export default function InventoryMain() {
                   <Button
                     key={location}
                     mode="contained"
-                    icon="delete-sweep"
+                    icon={() => <EraserIcon size={20} color="#FFFFFF" />}
                     onPress={() => {
                       console.log(`Button pressed for: ${location}`);
                       handleClearLocation(location);
@@ -647,7 +653,7 @@ export default function InventoryMain() {
               colors: { backdrop: 'rgba(0, 0, 0, 0.5)' }
             }}
           >
-            <Dialog.Icon icon="delete-sweep" size={48} color="#FF9800" />
+            <Dialog.Icon icon={() => <EraserIcon size={48} color="#FF9800" />} />
             <Dialog.Title style={{
               fontSize: 20,
               fontWeight: '700',
