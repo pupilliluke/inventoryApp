@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView, View, StyleSheet, FlatList, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { Text, TextInput, Button, Appbar, Checkbox, List, IconButton, Card, Title, Paragraph, Chip, Divider, FAB, Portal, Modal, Dialog } from 'react-native-paper';
-import { ref, onValue, set, remove } from 'firebase/database';
+import { Text, TextInput, Button, Appbar, List, IconButton, Card, Title, Paragraph, Chip, Divider, FAB, Portal, Modal, Dialog } from 'react-native-paper';
+import { ref, onValue } from 'firebase/database';
 import { db } from '../firebaseConfig';
 import { useNavigation } from '@react-navigation/native';
 import { useSession } from '../context/SessionContext';
@@ -13,7 +13,6 @@ export default function UserListPage() {
   const navigation = useNavigation();
   const { activeUser } = useSession();
   const [username, setUsername] = useState('');
-  const [userItems, setUserItems] = useState({});
   const [inventory, setInventory] = useState([]);
   const [users, setUsers] = useState({});
   const [editingUser, setEditingUser] = useState(null);
@@ -82,7 +81,6 @@ export default function UserListPage() {
       await UserMutations.deleteUser(activeUser, userToDelete);
       if (selectedUser === userToDelete) {
         setSelectedUser(null);
-        setUserItems({});
       }
       setDeleteConfirmVisible(false);
       setUserToDelete(null);
@@ -153,30 +151,8 @@ export default function UserListPage() {
 
   const loadUserList = (userKey) => {
     setSelectedUser(userKey);
-    const userRef = ref(db, `users/${userKey}/list`);
-    onValue(userRef, snapshot => {
-      const data = snapshot.val() || {};
-      setUserItems(data);
-    });
   };
 
-  const toggleItem = async (code) => {
-    if (!selectedUser) return;
-    
-    try {
-      const newValue = !userItems[code];
-      const itemRef = ref(db, `users/${selectedUser}/list/${code}`);
-      
-      if (newValue) {
-        await set(itemRef, true);
-      } else {
-        await remove(itemRef);
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to update item');
-      console.error(error);
-    }
-  };
 
   const filteredInventory = inventory.filter(item => 
     searchQuery && (
@@ -186,16 +162,9 @@ export default function UserListPage() {
     )
   );
 
-  const getUserStats = (userKey) => {
-    const userList = users[userKey]?.list || {};
-    const totalItems = Object.keys(userList).length;
-    const checkedItems = Object.values(userList).filter(Boolean).length;
-    return { totalItems, checkedItems };
-  };
 
   const renderUserCard = ({ item: userKey }) => {
     const user = users[userKey];
-    const stats = getUserStats(userKey);
     const isSelected = selectedUser === userKey;
     const isEditing = editingUser === userKey;
 
@@ -217,9 +186,6 @@ export default function UserListPage() {
             ) : (
               <View style={{ flex: 1 }}>
                 <Title style={styles.userName}>{user.name}</Title>
-                <Paragraph style={styles.userStats}>
-                  {stats.totalItems} items • {stats.checkedItems} completed
-                </Paragraph>
               </View>
             )}
             
@@ -265,21 +231,6 @@ export default function UserListPage() {
             </View>
           </View>
           
-          {stats.totalItems > 0 && (
-            <View style={styles.progressContainer}>
-              <View style={styles.progressBar}>
-                <View 
-                  style={[
-                    styles.progressFill, 
-                    { width: `${(stats.checkedItems / stats.totalItems) * 100}%` }
-                  ]} 
-                />
-              </View>
-              <Text style={styles.progressText}>
-                {Math.round((stats.checkedItems / stats.totalItems) * 100)}%
-              </Text>
-            </View>
-          )}
         </Card.Content>
       </Card>
     );
@@ -288,18 +239,12 @@ export default function UserListPage() {
   const renderInventoryItem = ({ item }) => (
     <Card style={styles.inventoryItemCard}>
       <Card.Content>
-        <View style={styles.inventoryItemRow}>
-          <Checkbox
-            status={userItems[item.code] ? 'checked' : 'unchecked'}
-            onPress={() => toggleItem(item.code)}
-          />
-          <View style={styles.itemInfo}>
-            <Text style={styles.itemCode}>{item.code}</Text>
-            <Text style={styles.itemName}>{item.name}</Text>
-            <Chip mode="outlined" compact style={styles.typeChip}>
-              {item.type}
-            </Chip>
-          </View>
+        <View style={styles.itemInfo}>
+          <Text style={styles.itemCode}>{item.code}</Text>
+          <Text style={styles.itemName}>{item.name}</Text>
+          <Chip mode="outlined" compact style={styles.typeChip}>
+            {item.type}
+          </Chip>
         </View>
       </Card.Content>
     </Card>
@@ -467,7 +412,7 @@ export default function UserListPage() {
           <Dialog.Title style={styles.modalTitle}>Delete User</Dialog.Title>
           <Dialog.Content>
             <Paragraph style={styles.modalText}>
-              Are you sure you want to delete "{userToDelete}" and all their checklist data?
+              Are you sure you want to delete "{userToDelete}" and all their data?
             </Paragraph>
             <Paragraph style={styles.modalWarning}>
               This action cannot be undone.
@@ -605,10 +550,6 @@ const styles = StyleSheet.create({
     color: '#1A1A1A',
     marginBottom: 4,
   },
-  userStats: {
-    fontSize: 14,
-    color: '#666666',
-  },
   userActions: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -617,29 +558,6 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 8,
     backgroundColor: '#FFFFFF',
-  },
-  progressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  progressBar: {
-    flex: 1,
-    height: 8,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 4,
-    marginRight: 12,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#4CAF50',
-    borderRadius: 4,
-  },
-  progressText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#4CAF50',
-    minWidth: 32,
   },
   searchInput: {
     marginBottom: 16,
@@ -650,13 +568,8 @@ const styles = StyleSheet.create({
     elevation: 1,
     backgroundColor: '#FFFFFF',
   },
-  inventoryItemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
   itemInfo: {
     flex: 1,
-    marginLeft: 12,
   },
   itemCode: {
     fontSize: 14,
