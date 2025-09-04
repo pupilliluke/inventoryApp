@@ -62,7 +62,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   });
 
   const calculateTotal = (item: InventoryItem) => {
-    return item.showroom + item.warehouse + item.storage;
+    return item.showroom + item.warehouse + item.storage + item.closet;
   };
 
   const updateItem = (item: InventoryItem) => {

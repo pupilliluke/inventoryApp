@@ -76,6 +76,7 @@ export default function InventoryMain() {
       showroom: 0,
       warehouse: 0,
       storage: 0,
+      closet: 0,
       editable: false,
     });
     setNewCode('');
@@ -108,12 +109,12 @@ export default function InventoryMain() {
       item.code.toLowerCase().includes(query) ||
       item.name.toLowerCase().includes(query) ||
       item.type?.toLowerCase().includes(query) ||
-      ['showroom', 'warehouse', 'storage'].some(loc => item[loc] > 0 && loc.includes(query))
+      ['showroom', 'warehouse', 'storage', 'closet'].some(loc => item[loc] > 0 && loc.includes(query))
     );
   }) : [];
 
 
-const clearLocation = async (location: 'warehouse' | 'showroom') => {
+const clearLocation = async (location: 'warehouse' | 'showroom' | 'storage' | 'closet') => {
   const updates = {};
   originalInventory.forEach(item => {
     if (item[location] !== 0) {
@@ -272,6 +273,8 @@ const clearLocation = async (location: 'warehouse' | 'showroom') => {
             visible={manageVisible}
             onDismiss={() => setManageVisible(false)}
             contentContainerStyle={styles.modal}
+            dismissable={true}
+            style={{ backgroundColor: 'transparent' }}
           >
             <View style={{
               backgroundColor: '#F8F9FA',

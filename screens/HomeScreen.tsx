@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, SafeAreaView, Keyboard, ImageBackground } from 'react-native';
-import ActualInventoryApp from './InventoryMain'; 
-import { TouchableOpacity } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, TextInput, SafeAreaView, Keyboard, ImageBackground, TouchableOpacity } from 'react-native';
+import ActualInventoryApp from './InventoryMain';
 
 const PASSWORD = 'monroeville'; // 🔐 change this to whatever password you want
 

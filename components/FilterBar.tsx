@@ -35,7 +35,7 @@ const FilterBar = ({ editable = true }) => {
             >
               <Text style={[
                 { color: filterLocation === 'showroom' ? '#333333' : '#666666', fontWeight: '500' }
-              ]}>Showroom Pull List</Text>
+              ]}>Showroom</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={[

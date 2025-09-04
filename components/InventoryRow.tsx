@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
 import { Modal, Portal, Button as PaperButton, List } from 'react-native-paper';
 import { Picker } from '@react-native-picker/picker';
-import { InventoryItem } from '../types/InventoryItem';
+import { InventoryItem } from '../types/inventoryItem';
 import { useInventory } from '../context/InventoryContext';
 
 const typeOptions = [
@@ -106,7 +106,13 @@ useEffect(() => {
           </PaperButton>
 
           <Portal>
-            <Modal visible={typeModalVisible} onDismiss={() => setTypeModalVisible(false)} contentContainerStyle={styles.modal}>
+            <Modal 
+              visible={typeModalVisible} 
+              onDismiss={() => setTypeModalVisible(false)} 
+              contentContainerStyle={styles.modal}
+              dismissable={true}
+              style={{ backgroundColor: 'transparent' }}
+            >
               {typeOptions.map((type) => (
                 <List.Item
                   key={type}
@@ -147,22 +153,6 @@ useEffect(() => {
         ) : null
       )}
 
-      {calculateTotal(localItem) > 0 && (
-        <View style={{ 
-          backgroundColor: '#E8F5E8', 
-          padding: 10, 
-          borderRadius: 8, 
-          marginTop: 8,
-          borderLeftWidth: 4,
-          borderLeftColor: '#4CAF50'
-        }}>
-          <Text style={{ 
-            fontSize: 16, 
-            fontWeight: '700', 
-            color: '#2E7D32' 
-          }}>Total: {calculateTotal(localItem)}</Text>
-        </View>
-      )}
     </View>
   );
 };
