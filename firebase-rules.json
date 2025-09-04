@@ -1,0 +1,37 @@
+{
+  "rules": {
+    ".read": true,
+    ".write": false,
+    
+    "inventory": {
+      ".read": true,
+      ".write": true
+    },
+    
+    "log": {
+      ".read": true,
+      ".write": true,
+      ".indexOn": "ts",
+      "$logId": {
+        ".validate": 
+          "newData.hasChildren(['message','userId','userName','ts']) && " +
+          "newData.child('message').isString() && " +
+          "newData.child('message').val().length > 0 && " +
+          "newData.child('message').val().length <= 500 && " +
+          "newData.child('userId').isString() && " +
+          "newData.child('userId').val().length > 0 && " +
+          "newData.child('userName').isString() && " +
+          "newData.child('userName').val().length > 0 && " +
+          "newData.child('ts').val() == now"
+      }
+    },
+    
+    "users": { 
+      ".read": true,
+      ".write": true,
+      "$userId": {
+        ".validate": "newData.hasChild('name') && newData.child('name').isString()"
+      }
+    }
+  }
+}

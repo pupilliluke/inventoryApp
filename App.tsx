@@ -5,8 +5,11 @@ import { Provider as PaperProvider, DefaultTheme } from 'react-native-paper';
 import { signInAnonymously } from 'firebase/auth';
 import { auth } from './firebaseConfig';
 import { InventoryProvider } from './context/InventoryContext';
+import { SessionProvider } from './context/SessionContext';
 import InventoryMain from './screens/HomeScreen'; 
 import UserListPage from './screens/UserListPage';
+import UserSelectionScreen from './screens/UserSelectionScreen';
+import LogPage from './screens/LogPage';
 
 const Stack = createNativeStackNavigator();
 
@@ -25,14 +28,18 @@ export default function App() {
 
   return (
     <PaperProvider theme={theme}>
-      <InventoryProvider>
-        <NavigationContainer>
-          <Stack.Navigator screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="Inventory" component={InventoryMain} />
-            <Stack.Screen name="UserListPage" component={UserListPage} />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </InventoryProvider>
+      <SessionProvider>
+        <InventoryProvider>
+          <NavigationContainer>
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="UserSelection" component={UserSelectionScreen} />
+              <Stack.Screen name="Inventory" component={InventoryMain} />
+              <Stack.Screen name="UserListPage" component={UserListPage} />
+              <Stack.Screen name="LogPage" component={LogPage} />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </InventoryProvider>
+      </SessionProvider>
     </PaperProvider>
   );
 }
