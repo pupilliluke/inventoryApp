@@ -6,6 +6,8 @@ import { db } from '../firebaseConfig';
 import { useNavigation } from '@react-navigation/native';
 import { useSession } from '../context/SessionContext';
 import { UserMutations, UserNotAuthenticatedError } from '../utils/inventoryMutations';
+import { AddIcon, DeleteIcon, UsersIcon, EditIcon, ViewIcon } from '../components/CustomIcons';
+import CustomIconButton from '../components/CustomIconButton';
 
 export default function UserListPage() {
   const navigation = useNavigation();
@@ -242,24 +244,21 @@ export default function UserListPage() {
               ) : (
                 <>
                   <IconButton
-                    icon="eye"
+                    icon={() => <ViewIcon size={18} color="#2196F3" />}
                     size={20}
-                    iconColor="#2196F3"
                     onPress={() => loadUserList(userKey)}
                   />
                   <IconButton
-                    icon="pencil"
+                    icon={() => <EditIcon size={18} color="#FF9800" />}
                     size={20}
-                    iconColor="#FF9800"
                     onPress={() => {
                       setEditingUser(userKey);
                       setNewUserName(user.name);
                     }}
                   />
                   <IconButton
-                    icon="delete"
+                    icon={() => <DeleteIcon size={18} color="#F44336" />}
                     size={20}
-                    iconColor="#F44336"
                     onPress={() => handleDeleteUser(userKey)}
                   />
                 </>
@@ -310,13 +309,16 @@ export default function UserListPage() {
   return (
     <SafeAreaView style={styles.container}>
       <Appbar.Header style={styles.header}>
-        <Appbar.BackAction onPress={() => navigation.goBack()} />
+        <CustomIconButton
+          iconType="back"
+          onPress={() => navigation.goBack()}
+        />
         <Appbar.Content 
           title="User Management" 
           titleStyle={styles.headerTitle}
         />
-        <Appbar.Action 
-          icon="plus"
+        <CustomIconButton
+          iconType="add"
           onPress={() => setShowAddUser(true)}
         />
       </Appbar.Header>
@@ -340,7 +342,7 @@ export default function UserListPage() {
                   onSubmitEditing={handleAddUser}
                   right={
                     <TextInput.Icon 
-                      icon="account-plus" 
+                      icon={() => <AddIcon size={18} color="#666666" />} 
                       onPress={handleAddUser}
                     />
                   }
@@ -439,7 +441,7 @@ export default function UserListPage() {
 
       {!showAddUser && (
         <FAB
-          icon="plus"
+          icon={() => <AddIcon size={20} color="#FFFFFF" />}
           style={styles.fab}
           onPress={() => setShowAddUser(true)}
           label="Add User"
@@ -452,8 +454,11 @@ export default function UserListPage() {
           visible={deleteConfirmVisible} 
           onDismiss={cancelDeleteUser}
           style={styles.confirmModal}
+          theme={{
+            colors: { backdrop: 'rgba(0, 0, 0, 0.5)' }
+          }}
         >
-          <Dialog.Icon icon="delete-alert" size={48} color="#F44336" />
+          <Dialog.Icon icon={() => <DeleteIcon size={48} color="#F44336" />} />
           <Dialog.Title style={styles.modalTitle}>Delete User</Dialog.Title>
           <Dialog.Content>
             <Paragraph style={styles.modalText}>
@@ -489,8 +494,11 @@ export default function UserListPage() {
           visible={editConfirmVisible} 
           onDismiss={cancelRenameUser}
           style={styles.confirmModal}
+          theme={{
+            colors: { backdrop: 'rgba(0, 0, 0, 0.5)' }
+          }}
         >
-          <Dialog.Icon icon="account-edit" size={48} color="#FF9800" />
+          <Dialog.Icon icon={() => <EditIcon size={48} color="#FF9800" />} />
           <Dialog.Title style={styles.modalTitle}>Confirm Rename</Dialog.Title>
           <Dialog.Content>
             <Paragraph style={styles.modalText}>
@@ -683,7 +691,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
   },
   confirmModal: {
-    backgroundColor: 'transparent',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    elevation: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    zIndex: 9999,
   },
   modalTitle: {
     fontSize: 20,

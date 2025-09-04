@@ -9,7 +9,10 @@
       "Bash(npm start)",
       "Bash(open http://localhost:8084)",
       "Bash(start http://localhost:8084)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(npm install:*)",
+      "Bash(firebase --version)",
+      "Bash(firebase deploy:*)"
     ],
     "deny": [],
     "ask": []
