@@ -53,19 +53,29 @@ useEffect(() => {
       return;
     }
 
+    const optimisticUpdate = { 
+      ...localItem, 
+      code: trimmedCode, 
+      name: trimmedName 
+    };
+    const oldItem = { ...item }; // Store original for potential rollback
+    
+    // Optimistic update - UI responds immediately
+    setLocalItem(optimisticUpdate);
+    setEditingInfo(false);
+    
     try {
-      await InventoryMutations.updateItem(activeUser, item, { 
-        ...localItem, 
-        code: trimmedCode, 
-        name: trimmedName 
-      });
-      setEditingInfo(false);
+      // Background database update
+      await InventoryMutations.updateItem(activeUser, item, optimisticUpdate);
     } catch (error) {
       if (error instanceof UserNotAuthenticatedError) {
         navigation.navigate('UserSelection' as never);
       } else {
         Alert.alert('Error', 'Failed to update item');
         console.error(error);
+        // Revert on error
+        setLocalItem(oldItem);
+        setEditingInfo(true);
       }
     }
   };
@@ -73,28 +83,38 @@ useEffect(() => {
 
 
   const handleSaveLocation = async () => {
+    const optimisticUpdate = { ...localItem };
+    const oldItem = { ...item }; // Store original for potential rollback
+    
+    // Optimistic update - UI responds immediately
+    setEditingLocation(false);
+    
     try {
-      await InventoryMutations.updateItem(activeUser, item, { ...localItem });
-      setEditingLocation(false);
+      // Background database update
+      await InventoryMutations.updateItem(activeUser, item, optimisticUpdate);
     } catch (error) {
       if (error instanceof UserNotAuthenticatedError) {
         navigation.navigate('UserSelection' as never);
       } else {
         Alert.alert('Error', 'Failed to update item quantities');
         console.error(error);
+        // Revert on error
+        setLocalItem(oldItem);
+        setEditingLocation(true);
       }
     }
   };
 
   const handleCheckboxToggle = async () => {
     const newCheckedState = !localItem.checked;
-    setLocalItem(prev => ({ ...prev, checked: newCheckedState }));
+    const optimisticUpdate = { ...localItem, checked: newCheckedState };
+    
+    // Optimistic update - UI responds immediately
+    setLocalItem(optimisticUpdate);
     
     try {
-      await InventoryMutations.updateItem(activeUser, item, { 
-        ...localItem, 
-        checked: newCheckedState 
-      });
+      // Background database update
+      await InventoryMutations.updateItem(activeUser, item, optimisticUpdate);
     } catch (error) {
       if (error instanceof UserNotAuthenticatedError) {
         navigation.navigate('UserSelection' as never);
@@ -108,15 +128,24 @@ useEffect(() => {
   };
 
   const handleSaveNote = async () => {
+    const optimisticUpdate = { ...localItem };
+    const oldNote = item.note; // Store original note for potential rollback
+    
+    // Optimistic update - UI responds immediately
+    setEditingNote(false);
+    
     try {
-      await InventoryMutations.updateItem(activeUser, item, { ...localItem });
-      setEditingNote(false);
+      // Background database update
+      await InventoryMutations.updateItem(activeUser, item, optimisticUpdate);
     } catch (error) {
       if (error instanceof UserNotAuthenticatedError) {
         navigation.navigate('UserSelection' as never);
       } else {
         Alert.alert('Error', 'Failed to update note');
         console.error(error);
+        // Revert on error
+        setLocalItem(prev => ({ ...prev, note: oldNote }));
+        setEditingNote(true);
       }
     }
   };

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { useInventory } from '../context/InventoryContext';
 import { CloseIcon } from './CustomIcons';
@@ -15,6 +15,18 @@ const FilterBar = ({ editable = true }) => {
     filterChecked
   } = useInventory();
 
+  // Local search state for debouncing
+  const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
+
+  // Debounce search input to improve performance
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      setSearchQuery(localSearchQuery);
+    }, 300); // 300ms delay
+
+    return () => clearTimeout(debounceTimer);
+  }, [localSearchQuery, setSearchQuery]);
+
   return (
     <View style={styles.container}>
       {editable ? (
@@ -23,14 +35,17 @@ const FilterBar = ({ editable = true }) => {
             <TextInput
               style={styles.searchInput}
               placeholder="Search by name, type, or code"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
+              value={localSearchQuery}
+              onChangeText={setLocalSearchQuery}
               returnKeyType="search"
             />
-            {searchQuery ? (
+            {localSearchQuery ? (
               <TouchableOpacity 
                 style={styles.clearButton}
-                onPress={() => setSearchQuery('')}
+                onPress={() => {
+                  setLocalSearchQuery('');
+                  setSearchQuery('');
+                }}
               >
                 <CloseIcon size={18} color="#666666" />
               </TouchableOpacity>
