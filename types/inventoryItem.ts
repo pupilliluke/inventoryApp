@@ -7,5 +7,6 @@ export interface InventoryItem {
   storage: number;
   closet: number; // ← Add this
   checked?: boolean; // ← Add checkbox field
+  note?: string; // ← Add note field
   editable?: boolean;
 }
