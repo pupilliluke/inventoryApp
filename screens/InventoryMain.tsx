@@ -45,6 +45,7 @@ export default function InventoryMain() {
     setMultiTypeFilters,
     filterLocation,
     multiTypeFilters = [],
+    loading,
   } = useInventory();
 
   const [manageVisible, setManageVisible] = useState(false);
@@ -361,9 +362,22 @@ export default function InventoryMain() {
           </Text>
         </View>
 
-        {inventory.map((item) => (
-          <InventoryRow key={item.code} item={item} />
-        ))}
+        {loading ? (
+          // Loading skeleton
+          <>
+            {[1,2,3,4,5].map(i => (
+              <View key={i} style={styles.skeletonCard}>
+                <View style={styles.skeletonHeader} />
+                <View style={styles.skeletonLine} />
+                <View style={styles.skeletonLineShort} />
+              </View>
+            ))}
+          </>
+        ) : (
+          inventory.map((item) => (
+            <InventoryRow key={item.code} item={item} />
+          ))
+        )}
         
         <View style={{ height: 20 }} />
   </ScrollView>
@@ -811,5 +825,33 @@ const styles = StyleSheet.create({
   chip: {
     marginRight: 8,
     marginBottom: 8,
+  },
+  skeletonCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginVertical: 6,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+  },
+  skeletonHeader: {
+    height: 20,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 4,
+    marginBottom: 12,
+    width: '80%',
+  },
+  skeletonLine: {
+    height: 16,
+    backgroundColor: '#E8E8E8',
+    borderRadius: 4,
+    marginBottom: 8,
+    width: '60%',
+  },
+  skeletonLineShort: {
+    height: 16,
+    backgroundColor: '#E8E8E8',
+    borderRadius: 4,
+    width: '40%',
   },
 });

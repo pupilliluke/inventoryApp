@@ -79,7 +79,13 @@ export const LogMessages = {
     `${user.name} ${checked ? 'checked' : 'unchecked'} Item #${itemCode} (${itemName})`,
   
   itemRenamed: (user: ActiveUser, itemCode: string, oldName: string, newName: string) =>
-    `${user.name} renamed Item #${itemCode}: "${oldName}" → "${newName}"`
+    `${user.name} renamed Item #${itemCode}: "${oldName}" → "${newName}"`,
+  
+  noteChanged: (user: ActiveUser, itemCode: string, itemName: string, oldNote: string, newNote: string) => {
+    const oldNoteDisplay = oldNote?.trim() || '(empty)';
+    const newNoteDisplay = newNote?.trim() || '(empty)';
+    return `${user.name} updated note for Item #${itemCode} (${itemName}): "${oldNoteDisplay}" → "${newNoteDisplay}"`;
+  }
 };
 
 /**
@@ -118,4 +124,13 @@ export function hasCheckboxChanged(oldItem: any, newItem: any): boolean {
  */
 export function hasNameChanged(oldItem: any, newItem: any): boolean {
   return oldItem.name !== newItem.name;
+}
+
+/**
+ * Helper to detect if note changed
+ */
+export function hasNoteChanged(oldItem: any, newItem: any): boolean {
+  const oldNote = (oldItem.note || '').trim();
+  const newNote = (newItem.note || '').trim();
+  return oldNote !== newNote;
 }

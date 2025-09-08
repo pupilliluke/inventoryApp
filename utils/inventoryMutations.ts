@@ -1,7 +1,7 @@
 import { set, ref, remove, getDatabase, update } from 'firebase/database';
 import { ActiveUser } from '../types/session';
 import { InventoryItem } from '../types/inventoryItem';
-import { appendLog, LogMessages, generateQuantityChanges, hasCheckboxChanged, hasNameChanged } from './logging';
+import { appendLog, LogMessages, generateQuantityChanges, hasCheckboxChanged, hasNameChanged, hasNoteChanged } from './logging';
 
 /**
  * Error thrown when user is not authenticated
@@ -86,6 +86,15 @@ export const InventoryMutations = {
           userId: user.id,
           userName: user.name,
           message: LogMessages.itemRenamed(user, newItem.code, oldItem.name, newItem.name)
+        });
+      }
+      
+      // Log note changes separately
+      if (hasNoteChanged(oldItem, newItem)) {
+        await appendLog({
+          userId: user.id,
+          userName: user.name,
+          message: LogMessages.noteChanged(user, newItem.code, newItem.name, oldItem.note || '', newItem.note || '')
         });
       }
       
