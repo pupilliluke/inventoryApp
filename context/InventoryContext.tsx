@@ -13,6 +13,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [filterType, setFilterType] = useState('');
   const [multiTypeFilters, setMultiTypeFilters] = useState<string[]>([]);
   const [filterLocation, setFilterLocation] = useState('');
+  const [filterChecked, setFilterChecked] = useState(''); // '' | 'checked' | 'unchecked'
   const [searchQuery, setSearchQuery] = useState('');
 
   const dbRef = ref(db, 'inventory');
@@ -58,7 +59,11 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       itemType.includes(searchQuery.toLowerCase()) ||
       itemCode.includes(searchQuery.toLowerCase());
 
-    return typeMatch && locationMatch && searchMatch;
+    const checkedMatch = !filterChecked ||
+      (filterChecked === 'checked' && item.checked === true) ||
+      (filterChecked === 'unchecked' && item.checked !== true);
+
+    return typeMatch && locationMatch && searchMatch && checkedMatch;
   });
 
   const calculateTotal = (item: InventoryItem) => {
@@ -77,6 +82,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setFilterType('');
     setMultiTypeFilters([]);
     setFilterLocation('');
+    setFilterChecked('');
     setSearchQuery('');
   };
 
@@ -89,12 +95,14 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       filterType,
       multiTypeFilters,
       setFilterLocation,
+      filterLocation,
+      setFilterChecked,
+      filterChecked,
       updateItem,
       removeItem,
       resetFilters,
       searchQuery,
       setSearchQuery,
-      filterLocation,
       calculateTotal
     }}>
       {children}

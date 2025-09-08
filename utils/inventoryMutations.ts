@@ -1,7 +1,7 @@
 import { set, ref, remove, getDatabase, update } from 'firebase/database';
 import { ActiveUser } from '../types/session';
 import { InventoryItem } from '../types/inventoryItem';
-import { appendLog, LogMessages, generateQuantityChanges } from './logging';
+import { appendLog, LogMessages, generateQuantityChanges, hasCheckboxChanged, hasNameChanged } from './logging';
 
 /**
  * Error thrown when user is not authenticated
@@ -71,15 +71,35 @@ export const InventoryMutations = {
       // Perform the inventory mutation
       await set(itemRef, newItem);
       
-      // Generate change description
+      // Log checkbox changes separately for better tracking
+      if (hasCheckboxChanged(oldItem, newItem)) {
+        await appendLog({
+          userId: user.id,
+          userName: user.name,
+          message: LogMessages.checkboxChanged(user, newItem.code, newItem.name, newItem.checked || false)
+        });
+      }
+      
+      // Log name changes separately
+      if (hasNameChanged(oldItem, newItem)) {
+        await appendLog({
+          userId: user.id,
+          userName: user.name,
+          message: LogMessages.itemRenamed(user, newItem.code, oldItem.name, newItem.name)
+        });
+      }
+      
+      // Generate quantity change description
       const changes = generateQuantityChanges(oldItem, newItem);
       
-      // Log the action (non-blocking)
-      await appendLog({
-        userId: user.id,
-        userName: user.name,
-        message: LogMessages.updateItem(user, newItem.code, changes)
-      });
+      // Log quantity changes if they exist
+      if (changes !== 'no quantity changes') {
+        await appendLog({
+          userId: user.id,
+          userName: user.name,
+          message: LogMessages.updateItem(user, newItem.code, changes)
+        });
+      }
     } catch (error) {
       console.error('Failed to update inventory item:', error);
       throw error;

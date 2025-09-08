@@ -60,17 +60,24 @@ export default function InventoryMain() {
   const [locationToClear, setLocationToClear] = useState<'warehouse' | 'showroom' | 'storage' | null>(null);
   const [clearLocationStats, setClearLocationStats] = useState<{itemCount: number, totalQuantity: number}>({ itemCount: 0, totalQuantity: 0 });
   useEffect(() => {
-    const patchClosetField = () => {
+    const patchMissingFields = () => {
       originalInventory.forEach((item) => {
+        const updates: any = {};
         if (item.closet === undefined) {
+          updates.closet = 0;
+        }
+        if (item.checked === undefined) {
+          updates.checked = false;
+        }
+        if (Object.keys(updates).length > 0) {
           const itemRef = ref(db, `inventory/${item.code}`);
-          update(itemRef, { closet: 0 });
+          update(itemRef, updates);
         }
       });
     };
 
     if (originalInventory.length > 0) {
-      patchClosetField();
+      patchMissingFields();
     }
   }, [originalInventory]);
 
@@ -90,6 +97,7 @@ export default function InventoryMain() {
         warehouse: 0,
         storage: 0,
         closet: 0,
+        checked: false,
         editable: false,
       });
       setNewCode('');
@@ -727,7 +735,6 @@ export default function InventoryMain() {
             </Dialog.Actions>
           </Dialog>
         </Portal>              
-        </View>
     </SafeAreaView>
     
   );

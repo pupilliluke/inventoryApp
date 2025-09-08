@@ -7,10 +7,12 @@ const FilterBar = ({ editable = true }) => {
   const { 
     setFilterType, 
     setFilterLocation,
+    setFilterChecked,
     searchQuery,
     setSearchQuery,
     filterType,
-    filterLocation
+    filterLocation,
+    filterChecked
   } = useInventory();
 
   return (
@@ -33,6 +35,35 @@ const FilterBar = ({ editable = true }) => {
                 <CloseIcon size={18} color="#666666" />
               </TouchableOpacity>
             ) : null}
+          </View>
+
+          <View style={styles.checkboxFilters}>
+            <TouchableOpacity 
+              style={[
+                styles.checkboxButton,
+                filterChecked === 'checked' && styles.activeCheckboxButton
+              ]}
+              onPress={() => setFilterChecked(
+                filterChecked === 'checked' ? '' : 'checked'
+              )}
+            >
+              <Text style={[
+                { color: filterChecked === 'checked' ? '#4CAF50' : '#666666', fontWeight: '600', fontSize: 14 }
+              ]}>✓ Checked</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[
+                styles.checkboxButton,
+                filterChecked === 'unchecked' && styles.activeCheckboxButton
+              ]}
+              onPress={() => setFilterChecked(
+                filterChecked === 'unchecked' ? '' : 'unchecked'
+              )}
+            >
+              <Text style={[
+                { color: filterChecked === 'unchecked' ? '#FF9800' : '#666666', fontWeight: '600', fontSize: 14 }
+              ]}>☐ Unchecked</Text>
+            </TouchableOpacity>
           </View>
           
           <View style={styles.locationFilters}>
@@ -174,6 +205,33 @@ const styles = StyleSheet.create({
   },
   activeLocationButton: {
     backgroundColor: '#F5F5F5',
+    borderColor: '#D0D0D0',
+  },
+  checkboxFilters: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 12,
+    marginBottom: 16,
+  },
+  checkboxButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  activeCheckboxButton: {
+    backgroundColor: '#F8F9FA',
     borderColor: '#D0D0D0',
   },
   readOnlyContainer: {

@@ -73,7 +73,13 @@ export const LogMessages = {
     `${renamerUser.name} renamed user: ${oldName} → ${newName}`,
   
   clearLocation: (user: ActiveUser, location: string, itemCount: number, totalQuantity: number) =>
-    `${user.name} cleared ${location}: ${itemCount} items (${totalQuantity} total qty) → 0`
+    `${user.name} cleared ${location}: ${itemCount} items (${totalQuantity} total qty) → 0`,
+  
+  checkboxChanged: (user: ActiveUser, itemCode: string, itemName: string, checked: boolean) =>
+    `${user.name} ${checked ? 'checked' : 'unchecked'} Item #${itemCode} (${itemName})`,
+  
+  itemRenamed: (user: ActiveUser, itemCode: string, oldName: string, newName: string) =>
+    `${user.name} renamed Item #${itemCode}: "${oldName}" → "${newName}"`
 };
 
 /**
@@ -96,4 +102,20 @@ export function generateQuantityChanges(
   }
   
   return changes.length > 0 ? changes.join(', ') : 'no quantity changes';
+}
+
+/**
+ * Helper to detect if checkbox state changed
+ */
+export function hasCheckboxChanged(oldItem: any, newItem: any): boolean {
+  const oldChecked = oldItem.checked || false;
+  const newChecked = newItem.checked || false;
+  return oldChecked !== newChecked;
+}
+
+/**
+ * Helper to detect if item name changed
+ */
+export function hasNameChanged(oldItem: any, newItem: any): boolean {
+  return oldItem.name !== newItem.name;
 }

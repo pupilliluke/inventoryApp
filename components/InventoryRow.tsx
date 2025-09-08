@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert } from 'react-native';
-import { Modal, Portal, Button as PaperButton, List } from 'react-native-paper';
+import { Modal, Portal, Button as PaperButton, List, Checkbox } from 'react-native-paper';
 import { Picker } from '@react-native-picker/picker';
 import { InventoryItem } from '../types/inventoryItem';
 import { useInventory } from '../context/InventoryContext';
@@ -31,11 +31,13 @@ useEffect(() => {
 }, [item]);
 
 
-  const handleChange = (key: keyof InventoryItem, value: string) => {
+  const handleChange = (key: keyof InventoryItem, value: string | boolean) => {
     setLocalItem(prev => ({
       ...prev,
       [key]: key === 'showroom' || key === 'warehouse' || key === 'storage' || key === 'closet'
-        ? parseInt(value) || 0
+        ? parseInt(value as string) || 0
+        : key === 'checked'
+        ? value
         : value,
     }));
   };
@@ -82,25 +84,53 @@ useEffect(() => {
     }
   };
 
+  const handleCheckboxToggle = async () => {
+    const newCheckedState = !localItem.checked;
+    setLocalItem(prev => ({ ...prev, checked: newCheckedState }));
+    
+    try {
+      await InventoryMutations.updateItem(activeUser, item, { 
+        ...localItem, 
+        checked: newCheckedState 
+      });
+    } catch (error) {
+      if (error instanceof UserNotAuthenticatedError) {
+        navigation.navigate('UserSelection' as never);
+      } else {
+        Alert.alert('Error', 'Failed to update checkbox');
+        console.error(error);
+        // Revert the local state on error
+        setLocalItem(prev => ({ ...prev, checked: !newCheckedState }));
+      }
+    }
+  };
+
   const shouldShow = (key: keyof InventoryItem) =>
     editingLocation || localItem[key] > 0;
 
   return (
     <View style={styles.row}>
       <View style={styles.headerRow}>
-        {editingInfo ? (
-          <TextInput
-            style={[styles.input, { flex: 1, marginRight: 10 }]}
-            value={localItem.code}
-            onChangeText={(val) => handleChange('code', val)}
-            onSubmitEditing={handleSaveInfo}
-            returnKeyType="done"
+        <View style={styles.nameSection}>
+          <Checkbox
+            status={localItem.checked ? 'checked' : 'unchecked'}
+            onPress={handleCheckboxToggle}
+            color="#4CAF50"
           />
-        ) : (
-          <Text style={styles.header}>
-            {item.code} — {item.name}
-          </Text>
-        )}
+          {editingInfo ? (
+            <TextInput
+              style={[styles.input, { flex: 1, marginLeft: 8 }]}
+              value={localItem.code}
+              onChangeText={(val) => handleChange('code', val)}
+              onSubmitEditing={handleSaveInfo}
+              returnKeyType="done"
+            />
+          ) : (
+            <Text style={[styles.header, { marginLeft: 8 }]}>
+              {item.code} — {item.name}
+            </Text>
+          )}
+        </View>
         <View style={styles.buttonGroup}>
          <PaperButton
             mode="contained"
@@ -230,12 +260,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
+  nameSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    paddingRight: 12,
+  },
   header: {
     fontWeight: '700',
     fontSize: 16,
     color: '#2C3E50',
     flex: 1,
-    paddingRight: 12,
   },
   buttonGroup: {
     flexDirection: 'row',
