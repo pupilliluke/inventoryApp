@@ -22,6 +22,8 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
   const [localItem, setLocalItem] = useState(item);
   const [editingInfo, setEditingInfo] = useState(false);
   const [editingLocation, setEditingLocation] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
+  const [editingNote, setEditingNote] = useState(false);
 
 useEffect(() => {
   setLocalItem({
@@ -105,6 +107,20 @@ useEffect(() => {
     }
   };
 
+  const handleSaveNote = async () => {
+    try {
+      await InventoryMutations.updateItem(activeUser, item, { ...localItem });
+      setEditingNote(false);
+    } catch (error) {
+      if (error instanceof UserNotAuthenticatedError) {
+        navigation.navigate('UserSelection' as never);
+      } else {
+        Alert.alert('Error', 'Failed to update note');
+        console.error(error);
+      }
+    }
+  };
+
   const shouldShow = (key: keyof InventoryItem) =>
     editingLocation || localItem[key] > 0;
 
@@ -146,6 +162,17 @@ useEffect(() => {
 >
   {editingLocation ? 'Save' : 'Move'}
 </PaperButton>
+
+          <View style={{ width: 8 }} />
+          <PaperButton
+            mode="contained"
+            onPress={() => setShowNotes(!showNotes)}
+            style={{
+              backgroundColor: (localItem.note && localItem.note.trim()) ? '#FF9800' : '#6C757D'
+            }}
+          >
+            Note
+          </PaperButton>
 
         </View>
       </View>
@@ -214,6 +241,40 @@ useEffect(() => {
             )}
           </View>
         ) : null
+      )}
+
+      {showNotes && (
+        <View style={styles.notesSection}>
+          <View style={styles.noteHeader}>
+            <Text style={styles.noteLabel}>Note:</Text>
+            <PaperButton
+              mode="text"
+              onPress={editingNote ? handleSaveNote : () => setEditingNote(true)}
+              compact
+            >
+              {editingNote ? 'Save' : 'Edit'}
+            </PaperButton>
+          </View>
+          {editingNote ? (
+            <TextInput
+              style={styles.noteInput}
+              multiline
+              numberOfLines={3}
+              value={localItem.note || ''}
+              onChangeText={(val) => handleChange('note', val)}
+              placeholder="Add a note for this item..."
+              returnKeyType="done"
+              onSubmitEditing={handleSaveNote}
+            />
+          ) : (
+            <Text style={[
+              styles.noteText, 
+              { fontStyle: (localItem.note && localItem.note.trim()) ? 'normal' : 'italic' }
+            ]}>
+              {localItem.note || 'No note added'}
+            </Text>
+          )}
+        </View>
       )}
 
     </View>
@@ -315,6 +376,42 @@ const styles = StyleSheet.create({
   picker: {
     height: 40,
     width: '100%',
+  },
+  notesSection: {
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E9ECEF',
+  },
+  noteHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  noteLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#34495E',
+  },
+  noteInput: {
+    borderWidth: 1.5,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 14,
+    backgroundColor: '#FFFFFF',
+    textAlignVertical: 'top',
+    minHeight: 80,
+  },
+  noteText: {
+    fontSize: 14,
+    color: '#495057',
+    lineHeight: 20,
+    minHeight: 60,
   },
 });
 

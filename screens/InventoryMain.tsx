@@ -69,6 +69,9 @@ export default function InventoryMain() {
         if (item.checked === undefined) {
           updates.checked = false;
         }
+        if (item.note === undefined) {
+          updates.note = '';
+        }
         if (Object.keys(updates).length > 0) {
           const itemRef = ref(db, `inventory/${item.code}`);
           update(itemRef, updates);
@@ -98,6 +101,7 @@ export default function InventoryMain() {
         storage: 0,
         closet: 0,
         checked: false,
+        note: '',
         editable: false,
       });
       setNewCode('');
