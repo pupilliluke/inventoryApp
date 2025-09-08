@@ -41,7 +41,7 @@ export default function UserBadge({ style }: UserBadgeProps) {
         onDismiss={() => setMenuVisible(false)}
         anchor={
           <Chip
-            icon={() => <UsersIcon size={16} color="#1565C0" />}
+            icon={() => <UsersIcon size={16} color="#5B21B6" />}
             onPress={() => setMenuVisible(true)}
             style={styles.chip}
             textStyle={styles.chipText}
@@ -108,39 +108,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   chip: {
-    backgroundColor: '#E3F2FD',
-    borderColor: '#2196F3',
-    borderWidth: 1,
+    backgroundColor: '#F3E8FF',
+    borderColor: '#8B5CF6',
+    borderWidth: 2,
   },
   chipText: {
-    color: '#1565C0',
+    color: '#2C3E50',
     fontWeight: '600',
     fontSize: 14,
   },
   menuContent: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    borderRadius: 12,
     elevation: 8,
+    borderWidth: 2,
+    borderColor: '#F3E8FF',
   },
   dialog: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    elevation: 10,
+    borderRadius: 20,
+    elevation: 12,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 10,
+      height: 12,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
     margin: 16,
     maxWidth: '90%',
     alignSelf: 'center',
+    borderWidth: 2,
+    borderColor: '#F3E8FF',
   },
   dialogTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1A1A1A',
+    color: '#2C3E50',
     textAlign: 'center',
     marginBottom: 8,
   },

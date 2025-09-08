@@ -63,7 +63,7 @@ const FilterBar = ({ editable = true }) => {
               )}
             >
               <Text style={[
-                { color: filterChecked === 'checked' ? '#4CAF50' : '#666666', fontWeight: '600', fontSize: 14 }
+                { color: '#FFFFFF', fontWeight: '600', fontSize: 14 }
               ]}>✓ Checked</Text>
             </TouchableOpacity>
             <TouchableOpacity 
@@ -76,7 +76,7 @@ const FilterBar = ({ editable = true }) => {
               )}
             >
               <Text style={[
-                { color: filterChecked === 'unchecked' ? '#FF9800' : '#666666', fontWeight: '600', fontSize: 14 }
+                { color: '#FFFFFF', fontWeight: '600', fontSize: 14 }
               ]}>☐ Unchecked</Text>
             </TouchableOpacity>
           </View>
@@ -92,7 +92,7 @@ const FilterBar = ({ editable = true }) => {
               )}
             >
               <Text style={[
-                { color: filterLocation === 'showroom' ? '#333333' : '#666666', fontWeight: '500' }
+                { color: '#FFFFFF', fontWeight: '600' }
               ]}>Showroom</Text>
             </TouchableOpacity>
             <TouchableOpacity 
@@ -105,7 +105,7 @@ const FilterBar = ({ editable = true }) => {
               )}
             >
               <Text style={[
-                { color: filterLocation === 'warehouse' ? '#333333' : '#666666', fontWeight: '500' }
+                { color: '#FFFFFF', fontWeight: '600' }
               ]}>Warehouse</Text>
             </TouchableOpacity>
             <TouchableOpacity 
@@ -118,7 +118,7 @@ const FilterBar = ({ editable = true }) => {
               )}
             >
               <Text style={[
-                { color: filterLocation === 'storage' ? '#333333' : '#666666', fontWeight: '500' }
+                { color: '#FFFFFF', fontWeight: '600' }
               ]}>Storage</Text>
             </TouchableOpacity>
             <TouchableOpacity   
@@ -131,7 +131,7 @@ const FilterBar = ({ editable = true }) => {
               )}
             >
               <Text style={[
-                { color: filterLocation === 'closet' ? '#333333' : '#666666', fontWeight: '500' }
+                { color: '#FFFFFF', fontWeight: '600' }
               ]}>Closet</Text>
             </TouchableOpacity>
 
@@ -172,13 +172,14 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     height: 48,
-    borderColor: '#E0E0E0',
-    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
+    borderWidth: 2,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingRight: 50,
     fontSize: 16,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#FFFFFF',
+    color: '#333333',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -204,11 +205,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     paddingHorizontal: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#8B5CF6',
     borderRadius: 8,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderWidth: 2,
+    borderColor: '#8B5CF6',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -219,8 +220,8 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   activeLocationButton: {
-    backgroundColor: '#F5F5F5',
-    borderColor: '#D0D0D0',
+    backgroundColor: '#5B21B6',
+    borderColor: '#5B21B6',
   },
   checkboxFilters: {
     flexDirection: 'row',
@@ -231,11 +232,11 @@ const styles = StyleSheet.create({
   checkboxButton: {
     paddingVertical: 8,
     paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#8B5CF6',
     borderRadius: 20,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderWidth: 2,
+    borderColor: '#8B5CF6',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -246,8 +247,8 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   activeCheckboxButton: {
-    backgroundColor: '#F8F9FA',
-    borderColor: '#D0D0D0',
+    backgroundColor: '#5B21B6',
+    borderColor: '#5B21B6',
   },
   readOnlyContainer: {
     padding: 16,

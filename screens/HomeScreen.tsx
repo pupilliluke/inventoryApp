@@ -42,7 +42,7 @@ export default function ProtectedInventoryApp() {
         <View style={styles.inputContainer}>
           <TextInput
             secureTextEntry
-            placeholder="Enter access password"
+            placeholder="Enter Password"
             placeholderTextColor="#BDC3C7"
             value={enteredPassword}
             onChangeText={setEnteredPassword}
@@ -75,26 +75,18 @@ const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'transparent',
     marginHorizontal: 32,
     marginVertical: 48,
     paddingVertical: 88,
     paddingHorizontal: 80,
     borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
     marginBottom: 48,
-    color: '#2C3E50',
+    color: '#FFFFFF',
     textAlign: 'center',
     letterSpacing: 0.5,
   },

@@ -762,7 +762,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#5B21B6',
   },
   filterRow: {
     flexDirection: 'row',
@@ -779,7 +779,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   modal: {
-    backgroundColor: 'white',
+    backgroundColor: '#FFFFFF',
     padding: 0,
     margin: 24,
     borderRadius: 20,
