@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, SafeAreaView, Keyboard, ImageBackground, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TextInput, SafeAreaView, Keyboard, TouchableOpacity } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSession } from '../context/SessionContext';
 import ActualInventoryApp from './InventoryMain';
@@ -35,11 +35,7 @@ export default function ProtectedInventoryApp() {
   if (authenticated) return <ActualInventoryApp />;
 
   return (
-    <ImageBackground
-      source={require('../assets/bg.jpg')}
-      style={styles.background}
-      resizeMode="cover"
-    >
+    <View style={styles.background}>
       <SafeAreaView style={styles.container}>
         <Text style={styles.title}>Fireworks Inventory</Text>
         
@@ -71,46 +67,45 @@ export default function ProtectedInventoryApp() {
           </TouchableOpacity>
         </View>
       </SafeAreaView>
-    </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    marginVertical: 32,
-    marginHorizontal: 48,
-    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 32,
+    marginVertical: 48,
+    paddingVertical: 88,
+    paddingHorizontal: 80,
+    borderRadius: 20,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 10,
+      height: 8,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 15,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '700',
-    marginBottom: 40,
+    marginBottom: 48,
     color: '#2C3E50',
     textAlign: 'center',
-    letterSpacing: 1,
+    letterSpacing: 0.5,
   },
   inputContainer: {
-    width: '85%',
-    marginBottom: 24,
+    width: '100%',
+    marginBottom: 32,
   },
   input: {
     borderWidth: 2,
     borderColor: '#E8E8E8',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'transparent',
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderRadius: 12,
@@ -126,8 +121,8 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   buttonContainer: {
-    width: '85%',
-    marginTop: 8,
+    width: '100%',
+    marginTop: 24,
   },
   button: {
     backgroundColor: '#3498DB',
@@ -151,7 +146,7 @@ const styles = StyleSheet.create({
   },
   error: {
     color: '#E74C3C',
-    marginBottom: 16,
+    marginBottom: 24,
     fontSize: 14,
     fontWeight: '500',
     textAlign: 'center',
@@ -164,6 +159,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#5B21B6', // Darker professional purple
     width: '100%',
     height: '100%',
   },

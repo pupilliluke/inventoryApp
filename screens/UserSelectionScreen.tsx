@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, ImageBackground } from 'react-native';
+import { View, StyleSheet, SafeAreaView } from 'react-native';
 import { Text, Card, Title, Button, ActivityIndicator, List, TouchableRipple } from 'react-native-paper';
 import { getDatabase, ref, onValue, orderByChild, query } from 'firebase/database';
 import { useSession } from '../context/SessionContext';
@@ -79,57 +79,70 @@ export default function UserSelectionScreen() {
   }
 
   return (
-    <ImageBackground
-      source={require('../assets/bg.jpg')}
-      style={styles.background}
-      resizeMode="cover"
-    >
+    <View style={styles.background}>
       <SafeAreaView style={styles.container}>
         <View style={styles.content}>
-          <Card style={styles.card}>
-            <Card.Content>
-              <Title style={styles.title}>Select User</Title>
-              <Text style={styles.subtitle}>
-                Choose your user account to track your inventory changes
-              </Text>
-              
+          {/* Header Section */}
+          <View style={styles.headerSection}>
+            <Title style={styles.title}>Fireworks Inventory</Title>
+            <Text style={styles.subtitle}>
+              Select your account to access the inventory system
+            </Text>
+          </View>
+
+          {/* Main Content Card */}
+          <Card style={styles.mainCard}>
+            <Card.Content style={styles.cardContent}>
               {users.length === 0 ? (
-                <View style={styles.emptyContainer}>
+                <View style={styles.emptyStateCard}>
                   <Text style={styles.emptyText}>No users found</Text>
                   <Text style={styles.emptySubtext}>
                     Please add users through the User Management page first
                   </Text>
                 </View>
               ) : (
-                <View style={styles.usersList}>
-                  {users.map((user) => (
-                    <TouchableRipple
-                      key={user.id}
-                      onPress={() => handleUserSelect(user.id)}
-                      style={[
-                        styles.userItem,
-                        selectedUserId === user.id && styles.selectedUserItem
-                      ]}
-                    >
-                      <View style={styles.userItemContent}>
-                        <Text style={[
-                          styles.userName,
-                          selectedUserId === user.id && styles.selectedUserName
-                        ]}>
-                          {user.name}
-                        </Text>
-                        {selectedUserId === user.id && (
-                          <View style={styles.selectedIcon}>
-                            <SuccessIcon size={20} color="#4CAF50" />
+                <View style={styles.usersSection}>
+                  <View style={styles.usersList}>
+                    {users.map((user) => (
+                      <Card 
+                        key={user.id} 
+                        style={[
+                          styles.userCard,
+                          selectedUserId === user.id && styles.selectedUserCard
+                        ]}
+                      >
+                        <TouchableRipple
+                          onPress={() => handleUserSelect(user.id)}
+                          style={styles.userTouchable}
+                        >
+                          <View style={styles.userItemContent}>
+                            <View style={styles.userInfo}>
+                              <Text style={[
+                                styles.userName,
+                                selectedUserId === user.id && styles.selectedUserName
+                              ]}>
+                                {user.name}
+                              </Text>
+                            </View>
+                            {selectedUserId === user.id && (
+                              <View style={styles.selectedIconContainer}>
+                                <SuccessIcon size={24} color="#4CAF50" />
+                              </View>
+                            )}
                           </View>
-                        )}
-                      </View>
-                    </TouchableRipple>
-                  ))}
+                        </TouchableRipple>
+                      </Card>
+                    ))}
+                  </View>
                 </View>
               )}
+            </Card.Content>
+          </Card>
 
-              {selectedUserId && (
+          {/* Continue Button Section */}
+          {selectedUserId && (
+            <Card style={styles.actionCard}>
+              <Card.Content style={styles.actionCardContent}>
                 <Button
                   mode="contained"
                   onPress={handleConfirmSelection}
@@ -137,125 +150,186 @@ export default function UserSelectionScreen() {
                   disabled={confirming}
                   style={styles.confirmButton}
                   contentStyle={styles.confirmButtonContent}
+                  labelStyle={styles.confirmButtonLabel}
                 >
                   {confirming ? 'Setting up...' : 'Continue as ' + users.find(u => u.id === selectedUserId)?.name}
                 </Button>
-              )}
-            </Card.Content>
-          </Card>
+              </Card.Content>
+            </Card>
+          )}
         </View>
       </SafeAreaView>
-    </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   background: {
     flex: 1,
+    backgroundColor: '#5B21B6', // Darker professional purple
+    // You can also use a linear gradient here for more sophistication
   },
   container: {
     flex: 1,
     justifyContent: 'center',
-    padding: 20,
+    paddingHorizontal: 40,
+    paddingVertical: 32,
   },
   content: {
     flex: 1,
     justifyContent: 'center',
+    maxWidth: 500,
+    alignSelf: 'center',
+    width: '100%',
   },
-  card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 20,
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
+  headerSection: {
+    marginBottom: 32,
+    paddingHorizontal: 8,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '700',
-    color: '#2C3E50',
+    color: '#FFFFFF',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 16,
+    textShadowColor: 'rgba(0, 0, 0, 0.4)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
+    letterSpacing: 0.5,
   },
   subtitle: {
     fontSize: 16,
-    color: '#7F8C8D',
+    color: '#FFFFFF',
     textAlign: 'center',
-    marginBottom: 24,
     lineHeight: 22,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+    fontWeight: '500',
+    opacity: 0.95,
+  },
+  mainCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    marginBottom: 16,
+  },
+  cardContent: {
+    padding: 32,
+  },
+  usersSection: {
+    width: '100%',
+  },
+  usersList: {
+    gap: 12,
+  },
+  userCard: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  selectedUserCard: {
+    borderColor: '#4CAF50',
+    backgroundColor: '#F1F8E9',
+    elevation: 4,
+  },
+  userTouchable: {
+    borderRadius: 16,
+  },
+  userItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 20,
+  },
+  userInfo: {
+    flex: 1,
+  },
+  userName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#2C3E50',
+    marginBottom: 4,
+  },
+  selectedUserName: {
+    color: '#2E7D32',
+  },
+  selectedIconContainer: {
+    marginLeft: 16,
+    backgroundColor: '#E8F5E8',
+    borderRadius: 20,
+    padding: 8,
+  },
+  actionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+  },
+  actionCardContent: {
+    padding: 24,
+  },
+  confirmButton: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 16,
+    elevation: 4,
+  },
+  confirmButtonContent: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+  confirmButtonLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 20,
+    margin: 40,
+    padding: 40,
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#666',
+    color: '#2C3E50',
+    fontWeight: '500',
   },
-  emptyContainer: {
+  emptyStateCard: {
     padding: 40,
     alignItems: 'center',
+    backgroundColor: '#F8F9FA',
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#E9ECEF',
+    borderStyle: 'dashed',
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
-    color: '#666',
-    marginBottom: 8,
+    color: '#6C757D',
+    marginBottom: 12,
   },
   emptySubtext: {
-    fontSize: 14,
-    color: '#999',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  usersList: {
-    marginBottom: 24,
-  },
-  userItem: {
-    borderRadius: 12,
-    marginBottom: 8,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    backgroundColor: '#F8F9FA',
-  },
-  selectedUserItem: {
-    borderColor: '#4CAF50',
-    backgroundColor: '#E8F5E8',
-  },
-  userItemContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    position: 'relative',
-  },
-  userName: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    color: '#ADB5BD',
     textAlign: 'center',
-    flex: 1,
-  },
-  selectedUserName: {
-    color: '#2E7D32',
-  },
-  selectedIcon: {
-    position: 'absolute',
-    right: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  confirmButton: {
-    backgroundColor: '#4CAF50',
-    borderRadius: 12,
-  },
-  confirmButtonContent: {
-    paddingVertical: 8,
+    lineHeight: 24,
   },
 });
