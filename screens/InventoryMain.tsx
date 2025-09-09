@@ -12,7 +12,7 @@ import UserBadge from '../components/UserBadge';
 import { useSession } from '../context/SessionContext';
 import { InventoryMutations, UserNotAuthenticatedError } from '../utils/inventoryMutations';
 import CustomIconButton from '../components/CustomIconButton';
-import { EraserIcon, AddIcon, DeleteIcon, DropdownIcon, CollapseIcon, FilterIcon, CheckIcon } from '../components/CustomIcons';
+import { EraserIcon, AddIcon, DropdownIcon, CollapseIcon, FilterIcon, CheckIcon } from '../components/CustomIcons';
 
 const typeFilters = [
   'Assortment', 'Candle', 'Firecracker', 'Rocket', 'Smoke', 'Sparkler', 'Toy', 'Mortar', 'Missile', 
@@ -51,11 +51,9 @@ export default function InventoryMain() {
   const [manageVisible, setManageVisible] = useState(false);
   const [newCode, setNewCode] = useState('');
   const [newName, setNewName] = useState('');
-  const [deleteQuery, setDeleteQuery] = useState('');
   const [showTypeFilters, setShowTypeFilters] = useState(false);
   const [filtersVisible, setFiltersVisible] = useState(true);
   const [addExpanded, setAddExpanded] = useState(false);
-  const [deleteExpanded, setDeleteExpanded] = useState(false);
   const [clearLocationExpanded, setClearLocationExpanded] = useState(false);
   const [confirmClearVisible, setConfirmClearVisible] = useState(false);
   const [locationToClear, setLocationToClear] = useState<'warehouse' | 'showroom' | 'storage' | null>(null);
@@ -119,32 +117,6 @@ export default function InventoryMain() {
   };
 
 
-  const handleDeleteItem = (code) => {
-    const item = originalInventory.find(item => item.code === code);
-    Alert.alert(
-      'Confirm Delete',
-      `Are you sure you want to delete item ${code}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
-          style: 'destructive', 
-          onPress: async () => {
-            try {
-              await InventoryMutations.deleteItem(activeUser, code, item?.name);
-            } catch (error) {
-              if (error instanceof UserNotAuthenticatedError) {
-                navigation.navigate('UserSelection' as never);
-              } else {
-                Alert.alert('Error', 'Failed to delete item');
-                console.error(error);
-              }
-            }
-          }
-        }
-      ]
-    );
-  };
 
   const toggleTypeFilter = (type: string) => {
     setMultiTypeFilters(prev =>
@@ -153,15 +125,6 @@ export default function InventoryMain() {
     setFilterType(''); // Clear single filter usage
   };
 
-  const filteredForDelete = deleteQuery.trim().length > 0 ? originalInventory.filter(item => {
-    const query = deleteQuery.toLowerCase();
-    return (
-      item.code.toLowerCase().includes(query) ||
-      item.name.toLowerCase().includes(query) ||
-      item.type?.toLowerCase().includes(query) ||
-      ['showroom', 'warehouse', 'storage', 'closet'].some(loc => item[loc] > 0 && loc.includes(query))
-    );
-  }) : [];
 
 
   const handleClearLocation = async (location: 'warehouse' | 'showroom' | 'storage') => {
@@ -499,112 +462,6 @@ export default function InventoryMain() {
           </List.Accordion>
 
 
-          <List.Accordion
-            title="Delete Item"
-            left={props => <DeleteIcon size={24} color="#333333" />}
-            style={{
-              marginBottom: 16,
-              backgroundColor: '#FFFFFF',
-              borderRadius: 12,
-              borderWidth: 1,
-              borderColor: '#E5E5E5',
-            }}
-            titleStyle={{
-              fontSize: 16,
-              fontWeight: '600',
-              color: '#333333',
-            }}
-          >
-            <View style={{
-              padding: 20,
-              backgroundColor: '#FAFAFA',
-              borderBottomLeftRadius: 12,
-              borderBottomRightRadius: 12,
-              marginTop: -1,
-            }}>
-              <TextInput
-                label="Search by code, name, type, or location"
-                value={deleteQuery}
-                onChangeText={setDeleteQuery}
-                mode="outlined"
-                style={[styles.input, { marginBottom: 20 }]}
-                outlineStyle={{
-                  borderColor: '#E5E5E5',
-                  borderRadius: 8,
-                }}
-                returnKeyType="search"
-              />
-              {filteredForDelete.length > 0 && (
-                <View style={{
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: 8,
-                  padding: 16,
-                  marginBottom: 16,
-                  borderWidth: 1,
-                  borderColor: '#E5E5E5',
-                }}>
-                  <Text style={{
-                    fontSize: 16,
-                    fontWeight: '600',
-                    color: '#333333',
-                    marginBottom: 16,
-                    textAlign: 'center',
-                  }}>Found {filteredForDelete.length} item(s)</Text>
-                  {filteredForDelete.map(item => (
-                    <View key={item.code} style={{
-                      backgroundColor: '#F8F9FA',
-                      borderRadius: 8,
-                      padding: 16,
-                      marginBottom: 12,
-                      borderWidth: 1,
-                      borderColor: '#E9ECEF',
-                    }}>
-                      <Text style={{
-                        fontSize: 15,
-                        fontWeight: '600',
-                        color: '#333333',
-                        marginBottom: 8,
-                      }}>{item.code} — {item.name}</Text>
-                      <Button
-                        mode="contained"
-                        icon={() => <DeleteIcon size={18} color="#FFFFFF" />}
-                        onPress={() => handleDeleteItem(item.code)}
-                        style={{
-                          backgroundColor: '#FF6B6B',
-                          borderRadius: 8,
-                        }}
-                        contentStyle={{
-                          paddingVertical: 8,
-                        }}
-                        labelStyle={{
-                          fontSize: 14,
-                          fontWeight: '600',
-                          color: '#FFFFFF',
-                        }}
-                      >
-                        Delete Item
-                      </Button>
-                    </View>
-                  ))}
-                </View>
-              )}
-              {deleteQuery.trim().length > 0 && filteredForDelete.length === 0 && (
-                <View style={{
-                  backgroundColor: '#FFF3CD',
-                  borderRadius: 8,
-                  padding: 16,
-                  borderWidth: 1,
-                  borderColor: '#FFEAA7',
-                }}>
-                  <Text style={{
-                    fontSize: 15,
-                    color: '#856404',
-                    textAlign: 'center',
-                  }}>No items found matching your search</Text>
-                </View>
-              )}
-            </View>
-          </List.Accordion>
 
           <List.Accordion
             title="Clear Locations"
