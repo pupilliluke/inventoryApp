@@ -1,9 +1,9 @@
 import React from 'react';
 import { TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
-import { LogIcon, UsersIcon, AddIcon, DeleteIcon, EraserIcon, BackIcon, DropdownIcon, CollapseIcon, ViewIcon, EditIcon, FilterIcon, RefreshIcon, CheckIcon, CloseIcon, SearchIcon, AccountIcon, SwitchIcon, SuccessIcon, ChartIcon } from './CustomIcons';
+import { LogIcon, UsersIcon, AddIcon, DeleteIcon, EraserIcon, BackIcon, DropdownIcon, CollapseIcon, ViewIcon, EditIcon, FilterIcon, RefreshIcon, CheckIcon, CloseIcon, SearchIcon, AccountIcon, SwitchIcon, SuccessIcon, ChartIcon, CountIcon, MenuIcon } from './CustomIcons';
 
 interface CustomIconButtonProps {
-  iconType: 'log' | 'users' | 'add' | 'delete' | 'eraser' | 'back' | 'dropdown' | 'collapse' | 'view' | 'edit' | 'filter' | 'refresh' | 'check' | 'close' | 'search' | 'account' | 'switch' | 'success' | 'chart';
+  iconType: 'log' | 'users' | 'add' | 'delete' | 'eraser' | 'back' | 'dropdown' | 'collapse' | 'view' | 'edit' | 'filter' | 'refresh' | 'check' | 'close' | 'search' | 'account' | 'switch' | 'success' | 'chart' | 'count' | 'menu';
   size?: number;
   color?: string;
   onPress: () => void;
@@ -59,6 +59,10 @@ const CustomIconButton: React.FC<CustomIconButtonProps> = ({
         return <SuccessIcon size={size} color={color} />;
       case 'chart':
         return <ChartIcon size={size} color={color} />;
+      case 'count':
+        return <CountIcon size={size} color={color} />;
+      case 'menu':
+        return <MenuIcon size={size} color={color} />;
       default:
         return <AddIcon size={size} color={color} />;
     }

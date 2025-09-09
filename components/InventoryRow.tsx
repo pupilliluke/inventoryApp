@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { Modal, Portal, Button as PaperButton, List } from 'react-native-paper';
 import { Picker } from '@react-native-picker/picker';
 import { InventoryItem } from '../types/inventoryItem';
@@ -25,6 +25,7 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
   const [editingLocation, setEditingLocation] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [editingNote, setEditingNote] = useState(false);
+  const [savingLocation, setSavingLocation] = useState(false);
   
   // Modal form state
   const [modalName, setModalName] = useState(item.name);
@@ -89,16 +90,16 @@ useEffect(() => {
 
 
 
-  const handleSaveLocation = async () => {
+  const handleSaveLocation = useCallback(async () => {
     const optimisticUpdate = { ...localItem };
     const oldItem = { ...item }; // Store original for potential rollback
     
-    // Optimistic update - UI responds immediately
-    setEditingLocation(false);
+    setSavingLocation(true);
     
     try {
       // Background database update
       await InventoryMutations.updateItem(activeUser, item, optimisticUpdate);
+      setEditingLocation(false);
     } catch (error) {
       if (error instanceof UserNotAuthenticatedError) {
         navigation.navigate('UserSelection' as never);
@@ -107,10 +108,27 @@ useEffect(() => {
         console.error(error);
         // Revert on error
         setLocalItem(oldItem);
-        setEditingLocation(true);
       }
+    } finally {
+      setSavingLocation(false);
     }
-  };
+  }, [localItem, item, activeUser, navigation]);
+
+  // Add Enter key listener for saving location quantities
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.key === 'Enter' && editingLocation) {
+        event.preventDefault();
+        event.stopPropagation();
+        handleSaveLocation();
+      }
+    };
+
+    if (editingLocation) {
+      window.addEventListener('keydown', handleKeyPress, true);
+      return () => window.removeEventListener('keydown', handleKeyPress, true);
+    }
+  }, [editingLocation, handleSaveLocation]);
 
   const handleCheckboxToggle = async () => {
     const newCheckedState = !localItem.checked;
@@ -217,7 +235,7 @@ useEffect(() => {
                 <Text style={styles.label}>{loc}:</Text>
                 {editingLocation ? (
                   <TextInput
-                    style={styles.input}
+                    style={styles.numericInput}
                     keyboardType="numeric"
                     value={String(localItem[loc])}
                     onChangeText={(val) => handleChange(loc, val)}
@@ -225,12 +243,7 @@ useEffect(() => {
                     returnKeyType="done"
                   />
                 ) : (
-                  <Text style={{ 
-                    fontSize: 16, 
-                    fontWeight: '600', 
-                    color: '#495057',
-                    minWidth: 30 
-                  }}>{localItem[loc]}</Text>
+                  <Text style={styles.numericDisplay}>{localItem[loc]}</Text>
                 )}
               </View>
             ) : null
@@ -289,6 +302,8 @@ useEffect(() => {
             compact
             style={styles.actionButton}
             contentStyle={styles.buttonContent}
+            loading={savingLocation}
+            disabled={savingLocation}
           >
             {editingLocation ? 'Save' : 'Move'}
           </PaperButton>
@@ -509,6 +524,34 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+  },
+  numericInput: {
+    borderWidth: 2,
+    borderColor: '#E8E8E8',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    marginVertical: 4,
+    marginLeft: 8,
+    fontSize: 16,
+    backgroundColor: '#F8F9FA',
+    width: 80,
+    textAlign: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  numericDisplay: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#495057',
+    marginLeft: 8,
+    paddingVertical: 12,
   },
   pickerContainer: {
     height: 40,

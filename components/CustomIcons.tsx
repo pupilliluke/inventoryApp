@@ -178,3 +178,33 @@ export const ChartIcon: React.FC<IconProps> = ({ size = 24, color = "currentColo
     </Svg>
   </View>
 );
+
+export const CountIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
+  <View style={{ width: size, height: size }}>
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M9 12l2 2 4-4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c2.12 0 4.07.74 5.61 1.98" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M16 8h6" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  </View>
+);
+
+export const ResetIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
+  <View style={{ width: size, height: size }}>
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M1 4v6h6" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M23 20v-6h-6" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  </View>
+);
+
+export const MenuIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
+  <View style={{ width: size, height: size }}>
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M3 12h18" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M3 6h18" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M3 18h18" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  </View>
+);
