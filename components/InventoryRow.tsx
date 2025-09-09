@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView } from 'react-native';
 import { Modal, Portal, Button as PaperButton, List } from 'react-native-paper';
 import { Picker } from '@react-native-picker/picker';
 import { InventoryItem } from '../types/inventoryItem';
@@ -16,21 +16,27 @@ const typeOptions = [
 
 const InventoryRow = ({ item }: { item: InventoryItem }) => {
   const [typeModalVisible, setTypeModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
 
   const { calculateTotal, updateItem } = useInventory();
   const { activeUser } = useSession();
   const navigation = useNavigation();
   const [localItem, setLocalItem] = useState(item);
-  const [editingInfo, setEditingInfo] = useState(false);
   const [editingLocation, setEditingLocation] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [editingNote, setEditingNote] = useState(false);
+  
+  // Modal form state
+  const [modalName, setModalName] = useState(item.name);
+  const [modalType, setModalType] = useState(item.type || 'Other');
 
 useEffect(() => {
   setLocalItem({
     ...item,
     type: item.type || 'Other', // ensure default fallback
   });
+  setModalName(item.name);
+  setModalType(item.type || 'Other');
 }, [item]);
 
 
@@ -45,25 +51,24 @@ useEffect(() => {
     }));
   };
 
-  const handleSaveInfo = async () => {
-    const trimmedCode = localItem.code?.trim();
-    const trimmedName = localItem.name?.trim();
+  const handleSaveFromModal = async () => {
+    const trimmedName = modalName?.trim();
 
-    if (!trimmedCode || !trimmedName) {
-      Alert.alert("Error", "Both code and name are required.");
+    if (!trimmedName) {
+      Alert.alert("Error", "Name is required.");
       return;
     }
 
     const optimisticUpdate = { 
       ...localItem, 
-      code: trimmedCode, 
-      name: trimmedName 
+      name: trimmedName,
+      type: modalType
     };
     const oldItem = { ...item }; // Store original for potential rollback
     
     // Optimistic update - UI responds immediately
     setLocalItem(optimisticUpdate);
-    setEditingInfo(false);
+    setEditModalVisible(false);
     
     try {
       // Background database update
@@ -76,7 +81,8 @@ useEffect(() => {
         console.error(error);
         // Revert on error
         setLocalItem(oldItem);
-        setEditingInfo(true);
+        setModalName(oldItem.name);
+        setModalType(oldItem.type || 'Other');
       }
     }
   };
@@ -181,43 +187,100 @@ useEffect(() => {
 
   return (
     <View style={styles.row}>
-      <View style={styles.headerRow}>
-        <View style={styles.nameSection}>
-          <TouchableOpacity
-            onPress={handleCheckboxToggle}
-            style={styles.customCheckbox}
-          >
-            {localItem.checked ? (
-              <View style={styles.checkedCheckbox}>
-                <CloseIcon size={16} color="#FFFFFF" />
-              </View>
-            ) : (
-              <View style={styles.uncheckedCheckbox} />
-            )}
-          </TouchableOpacity>
-          {editingInfo ? (
-            <TextInput
-              style={[styles.input, { flex: 1, marginLeft: 8 }]}
-              value={localItem.code}
-              onChangeText={(val) => handleChange('code', val)}
-              onSubmitEditing={handleSaveInfo}
-              returnKeyType="done"
-            />
-          ) : (
+      <View style={styles.mainRow}>
+        <View style={styles.contentSection}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity
+              onPress={handleCheckboxToggle}
+              style={styles.customCheckbox}
+            >
+              {localItem.checked ? (
+                <View style={styles.checkedCheckbox}>
+                  <CloseIcon size={16} color="#FFFFFF" />
+                </View>
+              ) : (
+                <View style={styles.uncheckedCheckbox} />
+              )}
+            </TouchableOpacity>
             <Text style={[styles.header, { marginLeft: 8 }]}>
-              {item.code} — {item.name}
+              {localItem.code} — {localItem.name}
             </Text>
+          </View>
+
+          <Text style={{ marginBottom: 8, fontSize: 15, color: '#6C757D', fontWeight: '500' }}>
+            Type: {localItem.type}
+          </Text>
+
+          {(['showroom', 'warehouse', 'storage', 'closet'] as const).map((loc) =>
+            shouldShow(loc) ? (
+              <View key={loc} style={styles.inputRow}>
+                <Text style={styles.label}>{loc}:</Text>
+                {editingLocation ? (
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="numeric"
+                    value={String(localItem[loc])}
+                    onChangeText={(val) => handleChange(loc, val)}
+                    onSubmitEditing={handleSaveLocation}
+                    returnKeyType="done"
+                  />
+                ) : (
+                  <Text style={{ 
+                    fontSize: 16, 
+                    fontWeight: '600', 
+                    color: '#495057',
+                    minWidth: 30 
+                  }}>{localItem[loc]}</Text>
+                )}
+              </View>
+            ) : null
           )}
+
+          
+          {showNotes && (
+            <View style={styles.notesSection}>
+              <View style={styles.noteHeader}>
+                <Text style={styles.noteLabel}>Note:</Text>
+                <PaperButton
+                  mode="text"
+                  onPress={editingNote ? handleSaveNote : () => setEditingNote(true)}
+                  compact
+                >
+                  {editingNote ? 'Save' : 'Edit'}
+                </PaperButton>
+              </View>
+              {editingNote ? (
+                <TextInput
+                  style={styles.noteInput}
+                  multiline
+                  numberOfLines={3}
+                  value={localItem.note || ''}
+                  onChangeText={(val) => handleChange('note', val)}
+                  placeholder="Add a note for this item..."
+                  returnKeyType="done"
+                  onSubmitEditing={handleSaveNote}
+                />
+              ) : (
+                <Text style={[
+                  styles.noteText, 
+                  { fontStyle: (localItem.note && localItem.note.trim()) ? 'normal' : 'italic' }
+                ]}>
+                  {localItem.note || 'No note added'}
+                </Text>
+              )}
+            </View>
+          )}
+
         </View>
         <View style={styles.buttonGroup}>
          <PaperButton
             mode="contained"
-            onPress={editingInfo ? handleSaveInfo : () => setEditingInfo(true)}
+            onPress={() => setEditModalVisible(true)}
             compact
             style={styles.actionButton}
             contentStyle={styles.buttonContent}
           >
-            {editingInfo ? 'Save' : 'Edit'}
+            Edit
           </PaperButton>
 
           <PaperButton
@@ -245,122 +308,95 @@ useEffect(() => {
             Note
           </PaperButton>
 
-          {editingInfo && (
-            <PaperButton
-              mode="contained"
-              onPress={handleDelete}
-              compact
-              style={[styles.actionButton, styles.deleteButton]}
-              contentStyle={styles.buttonContent}
-              icon={() => <DeleteIcon size={16} color="#FFFFFF" />}
-            >
-              Delete
-            </PaperButton>
-          )}
-
         </View>
       </View>
 
-      {editingInfo && (
-        <TextInput
-          style={styles.input}
-          value={localItem.name}
-          onChangeText={(val) => handleChange('name', val)}
-          onSubmitEditing={handleSaveInfo}
-          returnKeyType="done"
-        />
-      )}
-
-      {editingInfo ? (
-        <View>
-          <PaperButton mode="outlined" onPress={() => setTypeModalVisible(true)}>
-            {localItem.type || 'Select Type'}
+      {/* Edit Modal */}
+      <Portal>
+        <Modal 
+          visible={editModalVisible} 
+          onDismiss={() => setEditModalVisible(false)} 
+          contentContainerStyle={styles.editModal}
+          dismissable={true}
+        >
+          <Text style={styles.modalTitle}>Edit Item</Text>
+          
+          <Text style={styles.modalLabel}>Code:</Text>
+          <Text style={styles.readOnlyText}>{localItem.code}</Text>
+          
+          <Text style={styles.modalLabel}>Name:</Text>
+          <TextInput
+            style={styles.modalInput}
+            value={modalName}
+            onChangeText={setModalName}
+            placeholder="Enter item name"
+            returnKeyType="next"
+          />
+          
+          <Text style={styles.modalLabel}>Type:</Text>
+          <PaperButton 
+            mode="outlined" 
+            onPress={() => setTypeModalVisible(true)}
+            style={styles.typeSelectButton}
+          >
+            {modalType}
           </PaperButton>
-
-          <Portal>
-            <Modal 
-              visible={typeModalVisible} 
-              onDismiss={() => setTypeModalVisible(false)} 
-              contentContainerStyle={styles.modal}
-              dismissable={true}
-              style={{ backgroundColor: 'transparent' }}
+          
+          <View style={styles.modalActions}>
+            <TouchableOpacity
+              onPress={() => setEditModalVisible(false)}
+              style={styles.cancelButton}
+              activeOpacity={0.8}
             >
-              {typeOptions.map((type) => (
-                <List.Item
-                  key={type}
-                  title={type}
-                  onPress={() => {
-                    handleChange('type', type);
-                    setTypeModalVisible(false);
-                  }}
-                />
-              ))}
-            </Modal>
-          </Portal>
-        </View>
-      ) : (
-        <Text style={{ marginBottom: 8, fontSize: 15, color: '#6C757D', fontWeight: '500' }}>Type: {item.type}</Text>
-      )}
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              onPress={handleSaveFromModal}
+              style={styles.saveButton}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.saveButtonText}>Save</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              onPress={handleDelete}
+              style={styles.deleteButtonNew}
+              activeOpacity={0.8}
+            >
+              <DeleteIcon size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        </Modal>
+      </Portal>
 
-      {(['showroom', 'warehouse', 'storage', 'closet'] as const).map((loc) =>
-        shouldShow(loc) ? (
-          <View key={loc} style={styles.inputRow}>
-            <Text style={styles.label}>{loc}:</Text>
-            {editingLocation ? (
-              <TextInput
-                style={styles.input}
-                keyboardType="numeric"
-                value={String(localItem[loc])}
-                onChangeText={(val) => handleChange(loc, val)}
-                onSubmitEditing={handleSaveLocation}
-                returnKeyType="done"
+      {/* Type Selection Modal */}
+      <Portal>
+        <Modal 
+          visible={typeModalVisible} 
+          onDismiss={() => setTypeModalVisible(false)} 
+          contentContainerStyle={styles.typeModal}
+          dismissable={true}
+        >
+          <Text style={styles.modalTitle}>Select Type</Text>
+          <ScrollView 
+            style={styles.typeListContainer}
+            showsVerticalScrollIndicator={true}
+          >
+            {typeOptions.map((type) => (
+              <List.Item
+                key={type}
+                title={type}
+                onPress={() => {
+                  setModalType(type);
+                  setTypeModalVisible(false);
+                }}
+                style={modalType === type ? styles.selectedTypeItem : styles.typeItem}
               />
-            ) : (
-              <Text style={{ 
-                fontSize: 16, 
-                fontWeight: '600', 
-                color: '#495057',
-                minWidth: 30 
-              }}>{localItem[loc]}</Text>
-            )}
-          </View>
-        ) : null
-      )}
-
-      {showNotes && (
-        <View style={styles.notesSection}>
-          <View style={styles.noteHeader}>
-            <Text style={styles.noteLabel}>Note:</Text>
-            <PaperButton
-              mode="text"
-              onPress={editingNote ? handleSaveNote : () => setEditingNote(true)}
-              compact
-            >
-              {editingNote ? 'Save' : 'Edit'}
-            </PaperButton>
-          </View>
-          {editingNote ? (
-            <TextInput
-              style={styles.noteInput}
-              multiline
-              numberOfLines={3}
-              value={localItem.note || ''}
-              onChangeText={(val) => handleChange('note', val)}
-              placeholder="Add a note for this item..."
-              returnKeyType="done"
-              onSubmitEditing={handleSaveNote}
-            />
-          ) : (
-            <Text style={[
-              styles.noteText, 
-              { fontStyle: (localItem.note && localItem.note.trim()) ? 'normal' : 'italic' }
-            ]}>
-              {localItem.note || 'No note added'}
-            </Text>
-          )}
-        </View>
-      )}
-
+            ))}
+          </ScrollView>
+        </Modal>
+      </Portal>
     </View>
   );
 };
@@ -399,11 +435,19 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#F8F9FA',
   },
+  mainRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    minHeight: 80,
+  },
+  contentSection: {
+    flex: 1,
+    paddingRight: 12,
+  },
   headerRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
   },
   nameSection: {
     flexDirection: 'row',
@@ -420,7 +464,10 @@ const styles = StyleSheet.create({
   buttonGroup: {
     flexDirection: 'column',
     alignItems: 'stretch',
+    justifyContent: 'center',
     gap: 6,
+    minWidth: 80,
+    paddingVertical: 8,
   },
   actionButton: {
     minWidth: 0,
@@ -536,6 +583,151 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     backgroundColor: '#E74C3C',
+  },
+  editModal: {
+    backgroundColor: '#FFFFFF',
+    margin: 20,
+    borderRadius: 20,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 10,
+    minWidth: 350,
+    maxWidth: '90%',
+    alignSelf: 'center',
+    maxHeight: '80%',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#2C3E50',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  modalLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2C3E50',
+    marginBottom: 8,
+    marginTop: 12,
+  },
+  readOnlyText: {
+    fontSize: 16,
+    color: '#6C757D',
+    backgroundColor: '#F8F9FA',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#E9ECEF',
+  },
+  modalInput: {
+    borderWidth: 2,
+    borderColor: '#E8E8E8',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    backgroundColor: '#FFFFFF',
+    marginBottom: 8,
+  },
+  typeSelectButton: {
+    marginBottom: 20,
+    borderColor: '#E8E8E8',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 24,
+    gap: 12,
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6C757D',
+  },
+  saveButton: {
+    flex: 1,
+    backgroundColor: '#4CAF50',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  saveButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  deleteButtonNew: {
+    backgroundColor: '#E74C3C',
+    borderRadius: 12,
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#E74C3C',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  selectedTypeItem: {
+    backgroundColor: '#E3F2FD',
+  },
+  typeModal: {
+    backgroundColor: '#FFFFFF',
+    margin: 20,
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 10,
+    maxWidth: '90%',
+    alignSelf: 'center',
+    maxHeight: '70%',
+    minHeight: 300,
+  },
+  typeListContainer: {
+    maxHeight: 400,
+    flexGrow: 0,
+  },
+  typeItem: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
 });
 
