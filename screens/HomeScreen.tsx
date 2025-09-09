@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TextInput, SafeAreaView, Keyboard, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSession } from '../context/SessionContext';
@@ -23,13 +23,16 @@ export default function ProtectedInventoryApp() {
     }, [isSessionLoaded, activeUser, authenticated, navigation])
   );
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
+    console.log('handleSubmit called, enteredPassword:', enteredPassword, 'PASSWORD:', PASSWORD);
     Keyboard.dismiss();
     setLoading(true);
     setError('');
     
     // Simulate loading for better UX
     await new Promise(resolve => setTimeout(resolve, 800));
+    
+    console.log('After timeout, comparing:', enteredPassword, '===', PASSWORD, '?', enteredPassword === PASSWORD);
     
     if (enteredPassword === PASSWORD) {
       setAuthenticated(true);
@@ -38,7 +41,7 @@ export default function ProtectedInventoryApp() {
     }
     
     setLoading(false);
-  };
+  }, [enteredPassword]);
 
   // Add keyboard event listener for Enter key
   useEffect(() => {
@@ -53,7 +56,7 @@ export default function ProtectedInventoryApp() {
 
     window.addEventListener('keydown', handleKeyPress, true); // Use capture phase
     return () => window.removeEventListener('keydown', handleKeyPress, true);
-  }, [loading]);
+  }, [loading, handleSubmit]);
 
   if (authenticated) return <ActualInventoryApp />;
 

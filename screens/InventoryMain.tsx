@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useInventory } from '../context/InventoryContext';
 import FilterBar from '../components/FilterBar';
 import InventoryRow from '../components/InventoryRow';
@@ -118,12 +118,15 @@ export default function InventoryMain() {
 
 
 
-  const toggleTypeFilter = (type: string) => {
+  const toggleTypeFilter = useCallback((type: string) => {
     setMultiTypeFilters(prev =>
       (prev || []).includes(type) ? prev.filter(t => t !== type) : [...prev, type]
     );
     setFilterType(''); // Clear single filter usage
-  };
+  }, [setMultiTypeFilters, setFilterType]);
+
+  // Memoize the selected type filters to avoid recalculating on every render
+  const selectedTypeFilters = useMemo(() => new Set(multiTypeFilters || []), [multiTypeFilters]);
 
 
 
@@ -257,17 +260,20 @@ export default function InventoryMain() {
             )}
             >
             <View style={styles.typeFilterContainer}>
-                {typeFilters.map(type => (
-                <Chip
-                    key={type}
-                    selected={(multiTypeFilters || []).includes(type)}
-                    onPress={() => toggleTypeFilter(type)}
-                    style={styles.chip}
-                    icon={(multiTypeFilters || []).includes(type) ? () => <CheckIcon size={16} color="#4CAF50" /> : undefined}
-                >
-                    {type}
-                </Chip>
-                ))}
+                {typeFilters.map(type => {
+                  const isSelected = selectedTypeFilters.has(type);
+                  return (
+                    <Chip
+                        key={type}
+                        selected={isSelected}
+                        onPress={() => toggleTypeFilter(type)}
+                        style={styles.chip}
+                        icon={isSelected ? () => <CheckIcon size={16} color="#4CAF50" /> : undefined}
+                    >
+                        {type}
+                    </Chip>
+                  );
+                })}
             </View>
             </List.Accordion>
         </View>
