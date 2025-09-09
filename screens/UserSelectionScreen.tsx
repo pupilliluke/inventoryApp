@@ -67,6 +67,21 @@ export default function UserSelectionScreen() {
     }
   };
 
+  // Add keyboard event listener for Enter key to trigger continue button
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.key === 'Enter' && selectedUserId && !confirming) {
+        console.log('Enter key pressed, triggering handleConfirmSelection');
+        event.preventDefault();
+        event.stopPropagation();
+        handleConfirmSelection();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress, true); // Use capture phase
+    return () => window.removeEventListener('keydown', handleKeyPress, true);
+  }, [selectedUserId, confirming]);
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -141,21 +156,19 @@ export default function UserSelectionScreen() {
 
           {/* Continue Button Section */}
           {selectedUserId && (
-            <Card style={styles.actionCard}>
-              <Card.Content style={styles.actionCardContent}>
-                <Button
-                  mode="contained"
-                  onPress={handleConfirmSelection}
-                  loading={confirming}
-                  disabled={confirming}
-                  style={styles.confirmButton}
-                  contentStyle={styles.confirmButtonContent}
-                  labelStyle={styles.confirmButtonLabel}
-                >
-                  {confirming ? 'Setting up...' : 'Continue as ' + users.find(u => u.id === selectedUserId)?.name}
-                </Button>
-              </Card.Content>
-            </Card>
+            <View style={styles.actionContainer}>
+              <Button
+                mode="contained"
+                onPress={handleConfirmSelection}
+                loading={confirming}
+                disabled={confirming}
+                style={styles.confirmButton}
+                contentStyle={styles.confirmButtonContent}
+                labelStyle={styles.confirmButtonLabel}
+              >
+                {confirming ? 'Setting up...' : 'Continue as ' + users.find(u => u.id === selectedUserId)?.name}
+              </Button>
+            </View>
           )}
         </View>
       </SafeAreaView>
@@ -270,17 +283,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 8,
   },
-  actionCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-  },
-  actionCardContent: {
-    padding: 24,
+  actionContainer: {
+    paddingTop: 16,
   },
   confirmButton: {
     backgroundColor: '#4CAF50',

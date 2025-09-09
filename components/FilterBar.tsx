@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { useInventory } from '../context/InventoryContext';
-import { CloseIcon } from './CustomIcons';
+import { CloseIcon, CheckIcon } from './CustomIcons';
 
 const FilterBar = ({ editable = true }) => {
   const { 
@@ -62,9 +62,12 @@ const FilterBar = ({ editable = true }) => {
                 filterChecked === 'checked' ? '' : 'checked'
               )}
             >
-              <Text style={[
-                { color: '#FFFFFF', fontWeight: '600', fontSize: 14 }
-              ]}>✓ Checked</Text>
+              <View style={styles.checkboxButtonContent}>
+                <CheckIcon size={16} color="#FFFFFF" />
+                <Text style={[
+                  { color: '#FFFFFF', fontWeight: '600', fontSize: 14, marginLeft: 6 }
+                ]}>Checked</Text>
+              </View>
             </TouchableOpacity>
             <TouchableOpacity 
               style={[
@@ -75,9 +78,12 @@ const FilterBar = ({ editable = true }) => {
                 filterChecked === 'unchecked' ? '' : 'unchecked'
               )}
             >
-              <Text style={[
-                { color: '#FFFFFF', fontWeight: '600', fontSize: 14 }
-              ]}>☐ Unchecked</Text>
+              <View style={styles.checkboxButtonContent}>
+                <View style={styles.uncheckedBox} />
+                <Text style={[
+                  { color: '#FFFFFF', fontWeight: '600', fontSize: 14, marginLeft: 6 }
+                ]}>Unchecked</Text>
+              </View>
             </TouchableOpacity>
           </View>
           
@@ -249,6 +255,18 @@ const styles = StyleSheet.create({
   activeCheckboxButton: {
     backgroundColor: '#5B21B6',
     borderColor: '#5B21B6',
+  },
+  checkboxButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  uncheckedBox: {
+    width: 16,
+    height: 16,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    borderRadius: 3,
+    backgroundColor: 'transparent',
   },
   readOnlyContainer: {
     padding: 16,

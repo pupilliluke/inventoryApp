@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, SafeAreaView, Keyboard, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TextInput, SafeAreaView, Keyboard, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSession } from '../context/SessionContext';
 import ActualInventoryApp from './InventoryMain';
@@ -10,6 +10,7 @@ export default function ProtectedInventoryApp() {
   const [enteredPassword, setEnteredPassword] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const { activeUser, isSessionLoaded } = useSession();
   const navigation = useNavigation();
 
@@ -22,15 +23,37 @@ export default function ProtectedInventoryApp() {
     }, [isSessionLoaded, activeUser, authenticated, navigation])
   );
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     Keyboard.dismiss();
+    setLoading(true);
+    setError('');
+    
+    // Simulate loading for better UX
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
     if (enteredPassword === PASSWORD) {
       setAuthenticated(true);
-      setError('');
     } else {
       setError('Incorrect password');
     }
+    
+    setLoading(false);
   };
+
+  // Add keyboard event listener for Enter key
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.key === 'Enter' && !loading) {
+        console.log('Enter key pressed on auth screen, triggering handleSubmit');
+        event.preventDefault();
+        event.stopPropagation();
+        handleSubmit();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress, true); // Use capture phase
+    return () => window.removeEventListener('keydown', handleKeyPress, true);
+  }, [loading]);
 
   if (authenticated) return <ActualInventoryApp />;
 
@@ -59,11 +82,19 @@ export default function ProtectedInventoryApp() {
         
         <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={styles.button}
+            style={[styles.button, loading && styles.buttonDisabled]}
             onPress={handleSubmit}
             activeOpacity={0.8}
+            disabled={loading}
           >
-            <Text style={styles.buttonText}>Authenticate</Text>
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color="#FFFFFF" />
+                <Text style={[styles.buttonText, { marginLeft: 8 }]}>Authenticating...</Text>
+              </View>
+            ) : (
+              <Text style={styles.buttonText}>Authenticate</Text>
+            )}
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -128,6 +159,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
+  },
+  buttonDisabled: {
+    backgroundColor: '#95A5A6',
+    shadowColor: '#95A5A6',
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonText: {
     color: '#FFFFFF',

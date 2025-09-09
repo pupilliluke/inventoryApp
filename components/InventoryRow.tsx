@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, Alert } from 'react-native';
-import { Modal, Portal, Button as PaperButton, List, Checkbox } from 'react-native-paper';
+import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { Modal, Portal, Button as PaperButton, List } from 'react-native-paper';
 import { Picker } from '@react-native-picker/picker';
 import { InventoryItem } from '../types/inventoryItem';
 import { useInventory } from '../context/InventoryContext';
 import { useSession } from '../context/SessionContext';
 import { InventoryMutations, UserNotAuthenticatedError } from '../utils/inventoryMutations';
 import { useNavigation } from '@react-navigation/native';
+import { CloseIcon, DeleteIcon } from './CustomIcons';
 
 const typeOptions = [
   'Assortment', 'Candle', 'Firecracker', 'Rocket', 'Smoke', 'Sparkler', 'Toy', 
@@ -150,6 +151,31 @@ useEffect(() => {
     }
   };
 
+  const handleDelete = async () => {
+    console.log('Delete button pressed for item:', localItem.name, localItem.code);
+    
+    // Use window.confirm for web compatibility
+    const confirmed = window.confirm(`Are you sure you want to delete "${localItem.name}" (${localItem.code})?`);
+    
+    if (confirmed) {
+      try {
+        console.log('Delete confirmed, calling InventoryMutations.deleteItem');
+        await InventoryMutations.deleteItem(activeUser, localItem.code, localItem.name);
+        console.log('Delete successful');
+        // The item will be automatically removed from the list by the context
+      } catch (error) {
+        console.error('Delete failed:', error);
+        if (error instanceof UserNotAuthenticatedError) {
+          navigation.navigate('UserSelection' as never);
+        } else {
+          alert('Error: Failed to delete item');
+        }
+      }
+    } else {
+      console.log('Delete cancelled');
+    }
+  };
+
   const shouldShow = (key: keyof InventoryItem) =>
     editingLocation || localItem[key] > 0;
 
@@ -157,11 +183,18 @@ useEffect(() => {
     <View style={styles.row}>
       <View style={styles.headerRow}>
         <View style={styles.nameSection}>
-          <Checkbox
-            status={localItem.checked ? 'checked' : 'unchecked'}
+          <TouchableOpacity
             onPress={handleCheckboxToggle}
-            color="#4CAF50"
-          />
+            style={styles.customCheckbox}
+          >
+            {localItem.checked ? (
+              <View style={styles.checkedCheckbox}>
+                <CloseIcon size={16} color="#FFFFFF" />
+              </View>
+            ) : (
+              <View style={styles.uncheckedCheckbox} />
+            )}
+          </TouchableOpacity>
           {editingInfo ? (
             <TextInput
               style={[styles.input, { flex: 1, marginLeft: 8 }]}
@@ -180,28 +213,50 @@ useEffect(() => {
          <PaperButton
             mode="contained"
             onPress={editingInfo ? handleSaveInfo : () => setEditingInfo(true)}
+            compact
+            style={styles.actionButton}
+            contentStyle={styles.buttonContent}
           >
             {editingInfo ? 'Save' : 'Edit'}
           </PaperButton>
 
-          <View style={{ width: 8 }} />
           <PaperButton
-  mode="contained"
-  onPress={editingLocation ? handleSaveLocation : () => setEditingLocation(true)}
->
-  {editingLocation ? 'Save' : 'Move'}
-</PaperButton>
+            mode="contained"
+            onPress={editingLocation ? handleSaveLocation : () => setEditingLocation(true)}
+            compact
+            style={styles.actionButton}
+            contentStyle={styles.buttonContent}
+          >
+            {editingLocation ? 'Save' : 'Move'}
+          </PaperButton>
 
-          <View style={{ width: 8 }} />
           <PaperButton
             mode="contained"
             onPress={() => setShowNotes(!showNotes)}
-            style={{
-              backgroundColor: (localItem.note && localItem.note.trim()) ? '#FF9800' : '#6C757D'
-            }}
+            compact
+            style={[
+              styles.actionButton,
+              {
+                backgroundColor: (localItem.note && localItem.note.trim()) ? '#FF9800' : '#6C757D'
+              }
+            ]}
+            contentStyle={styles.buttonContent}
           >
             Note
           </PaperButton>
+
+          {editingInfo && (
+            <PaperButton
+              mode="contained"
+              onPress={handleDelete}
+              compact
+              style={[styles.actionButton, styles.deleteButton]}
+              contentStyle={styles.buttonContent}
+              icon={() => <DeleteIcon size={16} color="#FFFFFF" />}
+            >
+              Delete
+            </PaperButton>
+          )}
 
         </View>
       </View>
@@ -363,9 +418,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   buttonGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    gap: 6,
+  },
+  actionButton: {
+    minWidth: 0,
+    paddingHorizontal: 8,
+  },
+  buttonContent: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   inputRow: {
     flexDirection: 'row',
@@ -449,6 +512,30 @@ const styles = StyleSheet.create({
     color: '#495057',
     lineHeight: 20,
     minHeight: 60,
+  },
+  customCheckbox: {
+    marginRight: 8,
+  },
+  checkedCheckbox: {
+    width: 24,
+    height: 24,
+    backgroundColor: '#4CAF50',
+    borderRadius: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#4CAF50',
+  },
+  uncheckedCheckbox: {
+    width: 24,
+    height: 24,
+    backgroundColor: 'transparent',
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: '#CCCCCC',
+  },
+  deleteButton: {
+    backgroundColor: '#E74C3C',
   },
 });
 
