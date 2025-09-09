@@ -24,15 +24,12 @@ export default function ProtectedInventoryApp() {
   );
 
   const handleSubmit = useCallback(async () => {
-    console.log('handleSubmit called, enteredPassword:', enteredPassword, 'PASSWORD:', PASSWORD);
     Keyboard.dismiss();
     setLoading(true);
     setError('');
     
     // Simulate loading for better UX
     await new Promise(resolve => setTimeout(resolve, 800));
-    
-    console.log('After timeout, comparing:', enteredPassword, '===', PASSWORD, '?', enteredPassword === PASSWORD);
     
     if (enteredPassword === PASSWORD) {
       setAuthenticated(true);
@@ -47,7 +44,6 @@ export default function ProtectedInventoryApp() {
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (event.key === 'Enter' && !loading) {
-        console.log('Enter key pressed on auth screen, triggering handleSubmit');
         event.preventDefault();
         event.stopPropagation();
         handleSubmit();

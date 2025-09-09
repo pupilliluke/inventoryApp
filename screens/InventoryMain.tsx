@@ -12,7 +12,7 @@ import UserBadge from '../components/UserBadge';
 import { useSession } from '../context/SessionContext';
 import { InventoryMutations, UserNotAuthenticatedError } from '../utils/inventoryMutations';
 import CustomIconButton from '../components/CustomIconButton';
-import { EraserIcon, AddIcon, DropdownIcon, CollapseIcon, FilterIcon, CheckIcon } from '../components/CustomIcons';
+import { EraserIcon, AddIcon, DropdownIcon, CollapseIcon, FilterIcon, CheckIcon, LogIcon, UsersIcon, CountIcon } from '../components/CustomIcons';
 
 const typeFilters = [
   'Assortment', 'Candle', 'Firecracker', 'Rocket', 'Smoke', 'Sparkler', 'Toy', 'Mortar', 'Missile', 
@@ -58,6 +58,7 @@ export default function InventoryMain() {
   const [confirmClearVisible, setConfirmClearVisible] = useState(false);
   const [locationToClear, setLocationToClear] = useState<'warehouse' | 'showroom' | 'storage' | null>(null);
   const [clearLocationStats, setClearLocationStats] = useState<{itemCount: number, totalQuantity: number}>({ itemCount: 0, totalQuantity: 0 });
+  const [navigationMenuVisible, setNavigationMenuVisible] = useState(false);
   useEffect(() => {
     const patchMissingFields = () => {
       originalInventory.forEach((item) => {
@@ -209,16 +210,8 @@ export default function InventoryMain() {
           color={filtersVisible ? '#2196F3' : '#666666'}
         />
         <CustomIconButton
-          iconType="log"
-          onPress={() => navigation.navigate('LogPage')}
-        />
-        <CustomIconButton
-          iconType="users"
-          onPress={() => navigation.navigate('UserListPage')}
-        />
-        <CustomIconButton
-          iconType="add"
-          onPress={() => setManageVisible(true)}
+          iconType="menu"
+          onPress={() => setNavigationMenuVisible(true)}
         />
       </Appbar.Header>
 
@@ -615,6 +608,83 @@ export default function InventoryMain() {
               </Button>
             </Dialog.Actions>
           </Dialog>
+        </Portal>
+
+        {/* Navigation Menu Modal */}
+        <Portal>
+          <Modal
+            visible={navigationMenuVisible}
+            onDismiss={() => setNavigationMenuVisible(false)}
+            contentContainerStyle={styles.navigationModal}
+            dismissable={true}
+          >
+            <View style={styles.navigationModalHeader}>
+              <Text style={styles.navigationModalTitle}>Navigation</Text>
+              <CustomIconButton
+                iconType="close"
+                onPress={() => setNavigationMenuVisible(false)}
+                size={24}
+              />
+            </View>
+            
+            <View style={styles.navigationMenuItems}>
+              <Button
+                mode="contained"
+                icon={() => <LogIcon size={20} color="#FFFFFF" />}
+                onPress={() => {
+                  setNavigationMenuVisible(false);
+                  navigation.navigate('LogPage');
+                }}
+                style={[styles.navigationMenuItem, { backgroundColor: '#9C27B0' }]}
+                contentStyle={styles.navigationMenuItemContent}
+                labelStyle={styles.navigationMenuItemLabel}
+              >
+                Activity Log
+              </Button>
+              
+              <Button
+                mode="contained"
+                icon={() => <UsersIcon size={20} color="#FFFFFF" />}
+                onPress={() => {
+                  setNavigationMenuVisible(false);
+                  navigation.navigate('UserListPage');
+                }}
+                style={[styles.navigationMenuItem, { backgroundColor: '#9C27B0' }]}
+                contentStyle={styles.navigationMenuItemContent}
+                labelStyle={styles.navigationMenuItemLabel}
+              >
+                User Management
+              </Button>
+              
+              <Button
+                mode="contained"
+                icon={() => <CountIcon size={20} color="#FFFFFF" />}
+                onPress={() => {
+                  setNavigationMenuVisible(false);
+                  navigation.navigate('RecountPage');
+                }}
+                style={[styles.navigationMenuItem, { backgroundColor: '#9C27B0' }]}
+                contentStyle={styles.navigationMenuItemContent}
+                labelStyle={styles.navigationMenuItemLabel}
+              >
+                Recount
+              </Button>
+              
+              <Button
+                mode="contained"
+                icon={() => <AddIcon size={20} color="#FFFFFF" />}
+                onPress={() => {
+                  setNavigationMenuVisible(false);
+                  setManageVisible(true);
+                }}
+                style={[styles.navigationMenuItem, { backgroundColor: '#9C27B0' }]}
+                contentStyle={styles.navigationMenuItemContent}
+                labelStyle={styles.navigationMenuItemLabel}
+              >
+                Manage Inventory
+              </Button>
+            </View>
+          </Modal>
         </Portal>              
     </SafeAreaView>
     
@@ -716,5 +786,61 @@ const styles = StyleSheet.create({
     backgroundColor: '#E8E8E8',
     borderRadius: 4,
     width: '40%',
+  },
+  navigationModal: {
+    backgroundColor: '#FFFFFF',
+    margin: 20,
+    borderRadius: 20,
+    padding: 0,
+    maxHeight: '70%',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 15,
+  },
+  navigationModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
+    backgroundColor: '#F8F9FA',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  navigationModalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#2C3E50',
+  },
+  navigationMenuItems: {
+    padding: 24,
+    gap: 16,
+  },
+  navigationMenuItem: {
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  navigationMenuItemContent: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+  },
+  navigationMenuItemLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

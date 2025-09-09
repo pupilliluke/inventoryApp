@@ -10,6 +10,8 @@ import InventoryMain from './screens/HomeScreen';
 import UserListPage from './screens/UserListPage';
 import UserSelectionScreen from './screens/UserSelectionScreen';
 import LogPage from './screens/LogPage';
+import RecountPage from './screens/RecountPage';
+import ReportPage from './screens/ReportPage';
 
 const Stack = createNativeStackNavigator();
 
@@ -36,6 +38,8 @@ export default function App() {
               <Stack.Screen name="Inventory" component={InventoryMain} />
               <Stack.Screen name="UserListPage" component={UserListPage} />
               <Stack.Screen name="LogPage" component={LogPage} />
+              <Stack.Screen name="RecountPage" component={RecountPage} />
+              <Stack.Screen name="ReportPage" component={ReportPage} />
             </Stack.Navigator>
           </NavigationContainer>
         </InventoryProvider>

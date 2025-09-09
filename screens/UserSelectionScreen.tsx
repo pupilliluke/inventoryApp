@@ -71,7 +71,6 @@ export default function UserSelectionScreen() {
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (event.key === 'Enter' && selectedUserId && !confirming) {
-        console.log('Enter key pressed, triggering handleConfirmSelection');
         event.preventDefault();
         event.stopPropagation();
         handleConfirmSelection();
