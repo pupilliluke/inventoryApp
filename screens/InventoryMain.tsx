@@ -2,8 +2,9 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useInventory } from '../context/InventoryContext';
 import FilterBar from '../components/FilterBar';
 import InventoryRow, { COL } from '../components/InventoryRow';
+import { InventoryItem } from '../types/inventoryItem';
 import { Modal, Portal } from 'react-native-paper';
-import { Keyboard, SafeAreaView, View, Text, StyleSheet, Alert, ScrollView, TextInput, TouchableOpacity } from 'react-native';
+import { Keyboard, SafeAreaView, View, Text, StyleSheet, Alert, ScrollView, TextInput, TouchableOpacity, FlatList, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ref, update } from 'firebase/database';
 import { db } from '../firebaseConfig';
@@ -142,6 +143,9 @@ export default function InventoryMain() {
     { label: 'Manage Inventory', icon: AddIcon, onPress: () => { setNavigationMenuVisible(false); setManageVisible(true); } },
   ];
 
+  const renderRow = useCallback(({ item }: { item: InventoryItem }) => <InventoryRow item={item} />, []);
+  const keyExtractor = useCallback((item: InventoryItem) => item.code, []);
+
   return (
     <SafeAreaView style={styles.screen}>
       {/* Command bar */}
@@ -163,95 +167,104 @@ export default function InventoryMain() {
         />
       </View>
 
-      <ScrollView style={styles.body} contentContainerStyle={{ paddingBottom: space.xl }}>
-        {filtersVisible && (
-          <View style={styles.filterPanel}>
-            <FilterBar />
+      <FlatList
+        style={styles.body}
+        contentContainerStyle={{ paddingBottom: space.xl }}
+        data={loading ? [] : inventory}
+        renderItem={renderRow}
+        keyExtractor={keyExtractor}
+        keyboardShouldPersistTaps="handled"
+        initialNumToRender={12}
+        maxToRenderPerBatch={12}
+        windowSize={11}
+        removeClippedSubviews={Platform.OS !== 'web'}
+        ListHeaderComponent={
+          <View>
+            {filtersVisible && (
+              <View style={styles.filterPanel}>
+                <FilterBar />
 
-            <View style={styles.typeToolbar}>
-              <TouchableOpacity
-                style={styles.typeToggle}
-                onPress={() => setShowTypeFilters(!showTypeFilters)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.typeToggleText}>
-                  Filter by Type{selectedTypeFilters.size > 0 ? ` (${selectedTypeFilters.size})` : ''}
-                </Text>
-                {showTypeFilters
-                  ? <CollapseIcon size={18} color={color.textSecondary} />
-                  : <DropdownIcon size={18} color={color.textSecondary} />}
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.resetBtn} onPress={resetFilters} activeOpacity={0.7}>
-                <Text style={styles.resetBtnText}>Reset</Text>
-              </TouchableOpacity>
-            </View>
+                <View style={styles.typeToolbar}>
+                  <TouchableOpacity
+                    style={styles.typeToggle}
+                    onPress={() => setShowTypeFilters(!showTypeFilters)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.typeToggleText}>
+                      Filter by Type{selectedTypeFilters.size > 0 ? ` (${selectedTypeFilters.size})` : ''}
+                    </Text>
+                    {showTypeFilters
+                      ? <CollapseIcon size={18} color={color.textSecondary} />
+                      : <DropdownIcon size={18} color={color.textSecondary} />}
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.resetBtn} onPress={resetFilters} activeOpacity={0.7}>
+                    <Text style={styles.resetBtnText}>Reset</Text>
+                  </TouchableOpacity>
+                </View>
 
-            {showTypeFilters && (
-              <View style={styles.typeTagWrap}>
-                {typeFilters.map(type => {
-                  const isSelected = selectedTypeFilters.has(type);
-                  return (
-                    <TouchableOpacity
-                      key={type}
-                      onPress={() => toggleTypeFilter(type)}
-                      style={[styles.filterTag, isSelected && styles.filterTagOn]}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={[styles.filterTagText, isSelected && styles.filterTagTextOn]}>
-                        {isSelected ? '✓ ' : ''}{type}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
+                {showTypeFilters && (
+                  <View style={styles.typeTagWrap}>
+                    {typeFilters.map(type => {
+                      const isSelected = selectedTypeFilters.has(type);
+                      return (
+                        <TouchableOpacity
+                          key={type}
+                          onPress={() => toggleTypeFilter(type)}
+                          style={[styles.filterTag, isSelected && styles.filterTagOn]}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={[styles.filterTagText, isSelected && styles.filterTagTextOn]}>
+                            {isSelected ? '✓ ' : ''}{type}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                )}
               </View>
             )}
-          </View>
-        )}
 
-        {/* Count strip */}
-        <View style={styles.countStrip}>
-          <Text style={styles.countText}>
-            {inventory.length} {inventory.length === 1 ? 'item' : 'items'}
-          </Text>
-          {originalInventory.length > 0 && inventory.length !== originalInventory.length && (
-            <Text style={styles.countSub}>of {originalInventory.length}</Text>
-          )}
-        </View>
+            {/* Count strip */}
+            <View style={styles.countStrip}>
+              <Text style={styles.countText}>
+                {inventory.length} {inventory.length === 1 ? 'item' : 'items'}
+              </Text>
+              {originalInventory.length > 0 && inventory.length !== originalInventory.length && (
+                <Text style={styles.countSub}>of {originalInventory.length}</Text>
+              )}
+            </View>
 
-        {/* Table column header */}
-        <View style={styles.tableHeader}>
-          <Text style={[styles.thItem]}>Item</Text>
-          <View style={styles.thQtyGroup}>
-            <Text style={[styles.th, { width: COL.qty }]}>Show</Text>
-            <Text style={[styles.th, { width: COL.qty }]}>Whse</Text>
-            <Text style={[styles.th, { width: COL.cont }]}>Cont</Text>
-            <Text style={[styles.th, { width: COL.qty }]}>Clst</Text>
-          </View>
-          <View style={{ width: COL.actions }} />
-        </View>
-
-        {loading ? (
-          <View>
-            {[1, 2, 3, 4, 5].map(i => (
-              <View key={i} style={styles.skeletonRow}>
-                <View style={styles.skeletonItem} />
-                <View style={styles.skeletonNums} />
+            {/* Table column header */}
+            <View style={styles.tableHeader}>
+              <Text style={[styles.thItem]}>Item</Text>
+              <View style={styles.thQtyGroup}>
+                <Text style={[styles.th, { width: COL.qty }]}>Show</Text>
+                <Text style={[styles.th, { width: COL.qty }]}>Whse</Text>
+                <Text style={[styles.th, { width: COL.cont }]}>Cont</Text>
+                <Text style={[styles.th, { width: COL.qty }]}>Clst</Text>
               </View>
-            ))}
+              <View style={{ width: COL.actions }} />
+            </View>
           </View>
-        ) : inventory.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>No items</Text>
-            <Text style={styles.emptySub}>Adjust filters or add inventory from the menu.</Text>
-          </View>
-        ) : (
-          <View style={styles.tableBody}>
-            {inventory.map((item) => (
-              <InventoryRow key={item.code} item={item} />
-            ))}
-          </View>
-        )}
-      </ScrollView>
+        }
+        ListEmptyComponent={
+          loading ? (
+            <View style={styles.tableBody}>
+              {[1, 2, 3, 4, 5].map(i => (
+                <View key={i} style={styles.skeletonRow}>
+                  <View style={styles.skeletonItem} />
+                  <View style={styles.skeletonNums} />
+                </View>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyTitle}>No items</Text>
+              <Text style={styles.emptySub}>Adjust filters or add inventory from the menu.</Text>
+            </View>
+          )
+        }
+      />
 
       {/* Manage Inventory modal */}
       <Portal>

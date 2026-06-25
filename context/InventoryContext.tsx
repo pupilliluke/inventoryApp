@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
 import { getDatabase, ref, onValue, set, remove } from 'firebase/database';
 import { InventoryItem } from '../types/inventoryItem';
 import { db } from '../firebaseConfig';
@@ -80,47 +80,55 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     });
   }, [inventory, multiTypeFilters, filterType, filterLocation, searchQuery, filterChecked]);
 
-  const calculateTotal = (item: InventoryItem) => {
+  // Stable identities so memoized consumers (InventoryRow) don't re-render
+  // every time the provider updates (e.g. on each search keystroke).
+  const calculateTotal = useCallback((item: InventoryItem) => {
     // Containers (C1–C4) are tracked separately and not included in the item total
     return item.showroom + item.warehouse + item.closet;
-  };
+  }, []);
 
-  const updateItem = (item: InventoryItem) => {
+  const updateItem = useCallback((item: InventoryItem) => {
     set(ref(db, `inventory/${item.code}`), item);
-  };
+  }, []);
 
-  const removeItem = (code: string) => {
+  const removeItem = useCallback((code: string) => {
     remove(ref(db, `inventory/${code}`));
-  };
+  }, []);
 
-  const resetFilters = () => {
+  const resetFilters = useCallback(() => {
     setFilterType('');
     setMultiTypeFilters([]);
     setFilterLocation('');
     setFilterChecked('');
     setSearchQuery('');
-  };
+  }, []);
+
+  const value = useMemo(() => ({
+    inventory: filtered,
+    originalInventory,
+    loading,
+    setFilterType,
+    setMultiTypeFilters,
+    filterType,
+    multiTypeFilters,
+    setFilterLocation,
+    filterLocation,
+    setFilterChecked,
+    filterChecked,
+    updateItem,
+    removeItem,
+    resetFilters,
+    searchQuery,
+    setSearchQuery,
+    calculateTotal,
+  }), [
+    filtered, originalInventory, loading,
+    filterType, multiTypeFilters, filterLocation, filterChecked, searchQuery,
+    updateItem, removeItem, resetFilters, calculateTotal,
+  ]);
 
   return (
-    <InventoryContext.Provider value={{
-      inventory: filtered,
-      originalInventory,
-      loading,
-      setFilterType,
-      setMultiTypeFilters,
-      filterType,
-      multiTypeFilters,
-      setFilterLocation,
-      filterLocation,
-      setFilterChecked,
-      filterChecked,
-      updateItem,
-      removeItem,
-      resetFilters,
-      searchQuery,
-      setSearchQuery,
-      calculateTotal
-    }}>
+    <InventoryContext.Provider value={value}>
       {children}
     </InventoryContext.Provider>
   );

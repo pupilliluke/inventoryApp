@@ -365,7 +365,8 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
         </View>
       )}
 
-      {/* Edit Modal */}
+      {/* Edit Modal — only mounted while open to avoid hundreds of idle portals */}
+      {editModalVisible && (
       <Portal>
         <Modal
           visible={editModalVisible}
@@ -407,8 +408,10 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
           </View>
         </Modal>
       </Portal>
+      )}
 
       {/* Type Selection Modal */}
+      {typeModalVisible && (
       <Portal>
         <Modal
           visible={typeModalVisible}
@@ -435,8 +438,10 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
           </ScrollView>
         </Modal>
       </Portal>
+      )}
 
       {/* Container Selection Modal */}
+      {containerModalVisible && (
       <Portal>
         <Modal
           visible={containerModalVisible}
@@ -463,6 +468,7 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
           })}
         </Modal>
       </Portal>
+      )}
     </View>
   );
 };
@@ -472,6 +478,10 @@ const styles = StyleSheet.create({
     backgroundColor: color.surface,
     borderBottomWidth: 1,
     borderBottomColor: color.border,
+    borderLeftWidth: 1,
+    borderLeftColor: color.border,
+    borderRightWidth: 1,
+    borderRightColor: color.border,
     paddingVertical: space.sm,
     paddingHorizontal: space.sm,
   },
@@ -830,4 +840,6 @@ const styles = StyleSheet.create({
   },
 });
 
-export default InventoryRow;
+// Memoized so unchanged rows skip re-render when the provider updates
+// (e.g. typing in search only re-renders rows whose item actually changed).
+export default React.memo(InventoryRow);
