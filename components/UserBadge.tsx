@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Chip, Menu, IconButton, Text, Portal, Dialog, Button } from 'react-native-paper';
-import { UsersIcon, SwitchIcon } from './CustomIcons';
+import { UsersIcon, SwitchIcon, CloseIcon } from './CustomIcons';
 import { useSession } from '../context/SessionContext';
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '@clerk/expo';
 
 interface UserBadgeProps {
   style?: any;
@@ -11,6 +12,7 @@ interface UserBadgeProps {
 
 export default function UserBadge({ style }: UserBadgeProps) {
   const { activeUser, clearSession } = useSession();
+  const { signOut } = useAuth();
   const navigation = useNavigation();
   const [menuVisible, setMenuVisible] = useState(false);
   const [confirmSwitchVisible, setConfirmSwitchVisible] = useState(false);
@@ -34,6 +36,17 @@ export default function UserBadge({ style }: UserBadgeProps) {
     setConfirmSwitchVisible(false);
   };
 
+  const handleSignOut = async () => {
+    setMenuVisible(false);
+    clearSession();
+    try {
+      await signOut();
+      // AuthGate will detect the signed-out state and show the sign-in screen.
+    } catch (error) {
+      console.error('Failed to sign out:', error);
+    }
+  };
+
   return (
     <View style={[styles.container, style]}>
       <Menu
@@ -55,6 +68,11 @@ export default function UserBadge({ style }: UserBadgeProps) {
           onPress={handleSwitchUser}
           title="Switch User"
           leadingIcon={() => <SwitchIcon size={20} color="#666666" />}
+        />
+        <Menu.Item
+          onPress={handleSignOut}
+          title="Sign Out"
+          leadingIcon={() => <CloseIcon size={20} color="#E74C3C" />}
         />
       </Menu>
 

@@ -2,12 +2,17 @@
   "expo": {
     "name": "inventoryApp",
     "slug": "inventoryApp",
+    "scheme": "inventoryapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/1024.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "platforms": ["ios", "android", "web"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "splash": {
       "image": "./assets/1024.png",
       "resizeMode": "contain",
@@ -34,6 +39,10 @@
       "eas": {
         "projectId": "0d07f774-8388-4e93-abfe-2bce0852957c"
       }
-    }
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-web-browser"
+    ]
   }
 }
