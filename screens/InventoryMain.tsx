@@ -56,7 +56,7 @@ export default function InventoryMain() {
   const [addExpanded, setAddExpanded] = useState(false);
   const [clearLocationExpanded, setClearLocationExpanded] = useState(false);
   const [confirmClearVisible, setConfirmClearVisible] = useState(false);
-  const [locationToClear, setLocationToClear] = useState<'warehouse' | 'showroom' | 'storage' | null>(null);
+  const [locationToClear, setLocationToClear] = useState<'warehouse' | 'showroom' | 'containers' | null>(null);
   const [clearLocationStats, setClearLocationStats] = useState<{itemCount: number, totalQuantity: number}>({ itemCount: 0, totalQuantity: 0 });
   const [navigationMenuVisible, setNavigationMenuVisible] = useState(false);
   useEffect(() => {
@@ -98,7 +98,7 @@ export default function InventoryMain() {
         type: 'Other',
         showroom: 0,
         warehouse: 0,
-        storage: 0,
+        containers: 0,
         closet: 0,
         checked: false,
         note: '',
@@ -131,7 +131,7 @@ export default function InventoryMain() {
 
 
 
-  const handleClearLocation = async (location: 'warehouse' | 'showroom' | 'storage') => {
+  const handleClearLocation = async (location: 'warehouse' | 'showroom' | 'containers') => {
     console.log(`Clear location button clicked for: ${location}`);
     
     const itemsWithQuantity = originalInventory.filter(item => item[location] > 0);
@@ -498,7 +498,7 @@ export default function InventoryMain() {
               </Text>
               
               <View style={{ gap: 12 }}>
-                {(['showroom', 'warehouse', 'storage'] as const).map((location) => (
+                {(['showroom', 'warehouse', 'containers'] as const).map((location) => (
                   <Button
                     key={location}
                     mode="contained"

@@ -44,7 +44,7 @@ useEffect(() => {
   const handleChange = (key: keyof InventoryItem, value: string | boolean) => {
     setLocalItem(prev => ({
       ...prev,
-      [key]: key === 'showroom' || key === 'warehouse' || key === 'storage' || key === 'closet'
+      [key]: key === 'showroom' || key === 'warehouse' || key === 'containers' || key === 'closet'
         ? parseInt(value as string) || 0
         : key === 'checked'
         ? value
@@ -229,7 +229,7 @@ useEffect(() => {
             Type: {localItem.type}
           </Text>
 
-          {(['showroom', 'warehouse', 'storage', 'closet'] as const).map((loc) =>
+          {(['showroom', 'warehouse', 'containers', 'closet'] as const).map((loc) =>
             shouldShow(loc) ? (
               <View key={loc} style={styles.inputRow}>
                 <Text style={styles.label}>{loc}:</Text>
