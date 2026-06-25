@@ -15,16 +15,36 @@ import UserSelectionScreen from './screens/UserSelectionScreen';
 import LogPage from './screens/LogPage';
 import RecountPage from './screens/RecountPage';
 import ReportPage from './screens/ReportPage';
+import { color } from './theme/tokens';
 
 const Stack = createNativeStackNavigator();
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
+// Industrial steel-blue Paper theme; functional, low-chroma.
 const theme = {
   ...DefaultTheme,
+  roundness: 2,
   colors: {
     ...DefaultTheme.colors,
-    backdrop: 'rgba(255, 255, 255, 0.1)',
+    primary: color.accent,
+    accent: color.accent,
+    background: color.appBg,
+    surface: color.surface,
+    text: color.text,
+    backdrop: 'rgba(15, 23, 42, 0.55)',
+  },
+};
+
+const navTheme = {
+  dark: false,
+  colors: {
+    primary: color.accent,
+    background: color.appBg,
+    card: color.surface,
+    text: color.text,
+    border: color.border,
+    notification: color.accent,
   },
 };
 
@@ -40,8 +60,8 @@ export default function App() {
         <AuthGate>
           <SessionProvider>
             <InventoryProvider>
-              <NavigationContainer>
-                <Stack.Navigator screenOptions={{ headerShown: false }}>
+              <NavigationContainer theme={navTheme as any}>
+                <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.appBg } }}>
                   <Stack.Screen name="UserSelection" component={UserSelectionScreen} />
                   <Stack.Screen name="Inventory" component={InventoryMain} />
                   <Stack.Screen name="UserListPage" component={UserListPage} />

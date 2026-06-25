@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, View, StyleSheet, FlatList, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { Text, TextInput, Button, Appbar, List, IconButton, Card, Title, Paragraph, Chip, Divider, FAB, Portal, Modal, Dialog } from 'react-native-paper';
+import { SafeAreaView, View, StyleSheet, FlatList, Alert, ScrollView, KeyboardAvoidingView, Platform, TextInput, TouchableOpacity } from 'react-native';
+import { Text, Portal, Modal } from 'react-native-paper';
 import { ref, onValue } from 'firebase/database';
 import { db } from '../firebaseConfig';
 import { useNavigation } from '@react-navigation/native';
 import { useSession } from '../context/SessionContext';
 import { UserMutations, UserNotAuthenticatedError } from '../utils/inventoryMutations';
-import { AddIcon, DeleteIcon, UsersIcon, EditIcon, ViewIcon, CheckIcon, CloseIcon, SearchIcon } from '../components/CustomIcons';
+import { AddIcon, DeleteIcon, EditIcon, ViewIcon, CheckIcon, CloseIcon, SearchIcon } from '../components/CustomIcons';
+import ScreenHeader from '../components/ScreenHeader';
 import CustomIconButton from '../components/CustomIconButton';
+import { color, space, radius, font, mono } from '../theme/tokens';
 
 export default function UserListPage() {
   const navigation = useNavigation();
@@ -26,14 +28,12 @@ export default function UserListPage() {
   const [userToEdit, setUserToEdit] = useState({ oldName: '', newName: '' });
 
   useEffect(() => {
-    // Load inventory data
     const invRef = ref(db, 'inventory');
     const inventoryUnsubscribe = onValue(invRef, snapshot => {
       const data = snapshot.val() || {};
       setInventory(Object.values(data));
     });
 
-    // Load users data
     const usersRef = ref(db, 'users');
     const usersUnsubscribe = onValue(usersRef, snapshot => {
       setUsers(snapshot.val() || {});
@@ -50,12 +50,10 @@ export default function UserListPage() {
       Alert.alert('Error', 'Please enter a username');
       return;
     }
-    
     if (users[username]) {
       Alert.alert('Error', 'User already exists');
       return;
     }
-
     try {
       await UserMutations.createUser(activeUser, username);
       setUsername('');
@@ -79,9 +77,7 @@ export default function UserListPage() {
   const confirmDeleteUser = async () => {
     try {
       await UserMutations.deleteUser(activeUser, userToDelete);
-      if (selectedUser === userToDelete) {
-        setSelectedUser(null);
-      }
+      if (selectedUser === userToDelete) setSelectedUser(null);
       setDeleteConfirmVisible(false);
       setUserToDelete(null);
       Alert.alert('Success', 'User deleted successfully');
@@ -106,12 +102,10 @@ export default function UserListPage() {
       setNewUserName('');
       return;
     }
-
     if (users[newName]) {
       Alert.alert('Error', 'A user with that name already exists');
       return;
     }
-
     setUserToEdit({ oldName, newName });
     setEditConfirmVisible(true);
   };
@@ -120,13 +114,8 @@ export default function UserListPage() {
     try {
       const { oldName, newName } = userToEdit;
       const userData = users[oldName];
-      
       await UserMutations.renameUser(activeUser, oldName, newName, userData);
-      
-      if (selectedUser === oldName) {
-        setSelectedUser(newName);
-      }
-      
+      if (selectedUser === oldName) setSelectedUser(newName);
       setEditingUser(null);
       setNewUserName('');
       setEditConfirmVisible(false);
@@ -149,12 +138,9 @@ export default function UserListPage() {
     setNewUserName('');
   };
 
-  const loadUserList = (userKey) => {
-    setSelectedUser(userKey);
-  };
+  const loadUserList = (userKey) => setSelectedUser(userKey);
 
-
-  const filteredInventory = inventory.filter(item => 
+  const filteredInventory = inventory.filter(item =>
     searchQuery && (
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -162,504 +148,383 @@ export default function UserListPage() {
     )
   );
 
-
-  const renderUserCard = ({ item: userKey }) => {
+  const renderUserRow = ({ item: userKey, index }) => {
     const user = users[userKey];
     const isSelected = selectedUser === userKey;
     const isEditing = editingUser === userKey;
 
     return (
-      <Card style={[styles.userCard, isSelected && styles.selectedUserCard]}>
-        <Card.Content>
-          <View style={styles.userHeader}>
-            {isEditing ? (
-              <TextInput
-                value={newUserName}
-                onChangeText={setNewUserName}
-                style={styles.editInput}
-                mode="outlined"
-                dense
-                placeholder="Enter new name"
-                onSubmitEditing={() => handleRenameUser(userKey, newUserName)}
-                autoFocus
-              />
-            ) : (
-              <View style={{ flex: 1 }}>
-                <Title style={styles.userName}>{user.name}</Title>
-              </View>
-            )}
-            
-            <View style={styles.userActions}>
-              {isEditing ? (
-                <>
-                  <IconButton
-                    icon={() => <CheckIcon size={18} color="#4CAF50" />}
-                    size={20}
-                    onPress={() => handleRenameUser(userKey, newUserName)}
-                  />
-                  <IconButton
-                    icon={() => <CloseIcon size={18} color="#FF5722" />}
-                    size={20}
-                    onPress={() => {
-                      setEditingUser(null);
-                      setNewUserName('');
-                    }}
-                  />
-                </>
-              ) : (
-                <>
-                  <IconButton
-                    icon={() => <ViewIcon size={18} color="#2196F3" />}
-                    size={20}
-                    onPress={() => loadUserList(userKey)}
-                  />
-                  <IconButton
-                    icon={() => <EditIcon size={18} color="#FF9800" />}
-                    size={20}
-                    onPress={() => {
-                      setEditingUser(userKey);
-                      setNewUserName(user.name);
-                    }}
-                  />
-                  <IconButton
-                    icon={() => <DeleteIcon size={18} color="#F44336" />}
-                    size={20}
-                    onPress={() => handleDeleteUser(userKey)}
-                  />
-                </>
-              )}
-            </View>
-          </View>
-          
-        </Card.Content>
-      </Card>
+      <View style={[styles.userRow, isSelected && styles.userRowSelected]}>
+        {isEditing ? (
+          <TextInput
+            value={newUserName}
+            onChangeText={setNewUserName}
+            style={styles.inlineInput}
+            placeholder="Enter new name"
+            placeholderTextColor={color.textMuted}
+            onSubmitEditing={() => handleRenameUser(userKey, newUserName)}
+            autoFocus
+          />
+        ) : (
+          <Text style={styles.userName}>{user.name}</Text>
+        )}
+
+        <View style={styles.userActions}>
+          {isEditing ? (
+            <>
+              <CustomIconButton iconType="check" size={18} color={color.positive} onPress={() => handleRenameUser(userKey, newUserName)} />
+              <CustomIconButton iconType="close" size={18} color={color.negative} onPress={() => { setEditingUser(null); setNewUserName(''); }} />
+            </>
+          ) : (
+            <>
+              <CustomIconButton iconType="view" size={18} color={color.accent} onPress={() => loadUserList(userKey)} />
+              <CustomIconButton iconType="edit" size={18} color={color.warning} onPress={() => { setEditingUser(userKey); setNewUserName(user.name); }} />
+              <CustomIconButton iconType="delete" size={18} color={color.negative} onPress={() => handleDeleteUser(userKey)} />
+            </>
+          )}
+        </View>
+      </View>
     );
   };
 
-  const renderInventoryItem = ({ item }) => (
-    <Card style={styles.inventoryItemCard}>
-      <Card.Content>
-        <View style={styles.itemInfo}>
-          <Text style={styles.itemCode}>{item.code}</Text>
-          <Text style={styles.itemName}>{item.name}</Text>
-          <Chip mode="outlined" compact style={styles.typeChip}>
-            {item.type}
-          </Chip>
-        </View>
-      </Card.Content>
-    </Card>
+  const renderInventoryRow = ({ item }) => (
+    <View style={styles.invRow}>
+      <Text style={styles.invCode}>{item.code}</Text>
+      <Text style={styles.invName} numberOfLines={1}>{item.name}</Text>
+      <Text style={styles.invType}>{item.type}</Text>
+    </View>
   );
+
+  const userKeys = Object.keys(users);
 
   return (
     <SafeAreaView style={styles.container}>
-      <Appbar.Header style={styles.header}>
-        <CustomIconButton
-          iconType="back"
-          onPress={() => navigation.goBack()}
-        />
-        <Appbar.Content 
-          title="User Management" 
-          titleStyle={styles.headerTitle}
-        />
-        <CustomIconButton
-          iconType="add"
-          onPress={() => setShowAddUser(true)}
-        />
-      </Appbar.Header>
+      <ScreenHeader
+        title="User Management"
+        onBack={() => navigation.goBack()}
+        right={<CustomIconButton iconType="add" onPress={() => setShowAddUser(true)} color={color.onChrome} />}
+      />
 
-      <KeyboardAvoidingView 
-        style={styles.content}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <ScrollView style={styles.scrollView}>
-          {/* Add User Section */}
+      <KeyboardAvoidingView style={styles.content} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView contentContainerStyle={{ padding: space.md }}>
           {showAddUser && (
-            <Card style={styles.addUserCard}>
-              <Card.Content>
-                <Title style={styles.sectionTitle}>Add New User</Title>
-                <TextInput
-                  label="Username"
-                  value={username}
-                  onChangeText={setUsername}
-                  style={styles.addUserInput}
-                  mode="outlined"
-                  onSubmitEditing={handleAddUser}
-                  right={
-                    <TextInput.Icon 
-                      icon={() => <AddIcon size={18} color="#666666" />} 
-                      onPress={handleAddUser}
-                    />
-                  }
-                />
-                <View style={styles.addUserActions}>
-                  <Button 
-                    mode="contained" 
-                    onPress={handleAddUser}
-                    style={styles.addButton}
-                  >
-                    Add User
-                  </Button>
-                  <Button 
-                    mode="text" 
-                    onPress={() => {
-                      setShowAddUser(false);
-                      setUsername('');
-                    }}
-                    style={styles.cancelButton}
-                  >
-                    Cancel
-                  </Button>
-                </View>
-              </Card.Content>
-            </Card>
+            <View style={styles.panel}>
+              <Text style={styles.sectionLabel}>Add New User</Text>
+              <TextInput
+                value={username}
+                onChangeText={setUsername}
+                style={styles.field}
+                placeholder="Username"
+                placeholderTextColor={color.textMuted}
+                onSubmitEditing={handleAddUser}
+              />
+              <View style={styles.formActions}>
+                <TouchableOpacity style={styles.btnGhost} onPress={() => { setShowAddUser(false); setUsername(''); }} activeOpacity={0.8}>
+                  <Text style={styles.btnGhostText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.btnPrimary} onPress={handleAddUser} activeOpacity={0.8}>
+                  <Text style={styles.btnPrimaryText}>Add User</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           )}
 
-          {/* Users List */}
-          <View style={styles.section}>
-            <Title style={styles.sectionTitle}>
-              All Users ({Object.keys(users).length})
-            </Title>
-            {Object.keys(users).length === 0 ? (
-              <Card style={styles.emptyCard}>
-                <Card.Content>
-                  <Text style={styles.emptyText}>No users yet</Text>
-                  <Text style={styles.emptySubtext}>
-                    Add your first user to get started
-                  </Text>
-                </Card.Content>
-              </Card>
-            ) : (
+          <Text style={styles.heading}>All Users · {userKeys.length}</Text>
+          {userKeys.length === 0 ? (
+            <View style={styles.emptyPanel}>
+              <Text style={styles.emptyText}>No users yet</Text>
+              <Text style={styles.emptySubtext}>Add your first user to get started.</Text>
+            </View>
+          ) : (
+            <View style={styles.table}>
               <FlatList
-                data={Object.keys(users)}
-                renderItem={renderUserCard}
+                data={userKeys}
+                renderItem={renderUserRow}
                 keyExtractor={(item) => item}
-                showsVerticalScrollIndicator={false}
                 scrollEnabled={false}
+                showsVerticalScrollIndicator={false}
               />
-            )}
-          </View>
+            </View>
+          )}
 
-          {/* Selected User's Items */}
           {selectedUser && (
-            <View style={styles.section}>
-              <Title style={styles.sectionTitle}>
-                {users[selectedUser]?.name}'s Checklist
-              </Title>
-              
-              <TextInput
-                label="Search items..."
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                style={styles.searchInput}
-                mode="outlined"
-                left={<TextInput.Icon icon={() => <SearchIcon size={18} color="#666666" />} />}
-                right={
-                  searchQuery ? (
-                    <TextInput.Icon 
-                      icon={() => <CloseIcon size={18} color="#666666" />}
-                      onPress={() => setSearchQuery('')}
-                    />
-                  ) : null
-                }
-              />
+            <View style={{ marginTop: space.xl }}>
+              <Text style={styles.heading}>{users[selectedUser]?.name}'s Checklist</Text>
+
+              <View style={styles.searchContainer}>
+                <SearchIcon size={16} color={color.textMuted} />
+                <TextInput
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  style={styles.searchInput}
+                  placeholder="Search items…"
+                  placeholderTextColor={color.textMuted}
+                />
+                {searchQuery ? (
+                  <TouchableOpacity onPress={() => setSearchQuery('')}>
+                    <CloseIcon size={16} color={color.textMuted} />
+                  </TouchableOpacity>
+                ) : null}
+              </View>
 
               {!searchQuery ? (
-                <Card style={styles.emptyCard}>
-                  <Card.Content>
-                    <Text style={styles.emptyText}>Search for items to manage user lists</Text>
-                  </Card.Content>
-                </Card>
+                <View style={styles.emptyPanel}>
+                  <Text style={styles.emptyText}>Search for items to manage user lists</Text>
+                </View>
               ) : filteredInventory.length === 0 ? (
-                <Card style={styles.emptyCard}>
-                  <Card.Content>
-                    <Text style={styles.emptyText}>No items found matching your search</Text>
-                  </Card.Content>
-                </Card>
+                <View style={styles.emptyPanel}>
+                  <Text style={styles.emptyText}>No items found</Text>
+                </View>
               ) : (
-                <FlatList
-                  data={filteredInventory}
-                  renderItem={renderInventoryItem}
-                  keyExtractor={(item) => item.code}
-                  showsVerticalScrollIndicator={false}
-                  scrollEnabled={false}
-                />
+                <View style={styles.table}>
+                  <FlatList
+                    data={filteredInventory}
+                    renderItem={renderInventoryRow}
+                    keyExtractor={(item) => item.code}
+                    scrollEnabled={false}
+                    showsVerticalScrollIndicator={false}
+                  />
+                </View>
               )}
             </View>
           )}
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {!showAddUser && (
-        <FAB
-          icon={() => <AddIcon size={20} color="#FFFFFF" />}
-          style={styles.fab}
-          onPress={() => setShowAddUser(true)}
-          label="Add User"
-        />
-      )}
-
-      {/* Delete Confirmation Modal */}
+      {/* Delete confirmation */}
       <Portal>
-        <Dialog 
-          visible={deleteConfirmVisible} 
-          onDismiss={cancelDeleteUser}
-          style={styles.confirmModal}
-          theme={{
-            colors: { backdrop: 'rgba(0, 0, 0, 0.5)' }
-          }}
-        >
-          <Dialog.Icon icon={() => <DeleteIcon size={48} color="#F44336" />} />
-          <Dialog.Title style={styles.modalTitle}>Delete User</Dialog.Title>
-          <Dialog.Content>
-            <Paragraph style={styles.modalText}>
-              Are you sure you want to delete "{userToDelete}" and all their data?
-            </Paragraph>
-            <Paragraph style={styles.modalWarning}>
-              This action cannot be undone.
-            </Paragraph>
-          </Dialog.Content>
-          <Dialog.Actions style={styles.modalActions}>
-            <Button 
-              mode="text" 
-              onPress={cancelDeleteUser}
-              textColor="#666666"
-            >
-              Cancel
-            </Button>
-            <Button 
-              mode="contained" 
-              onPress={confirmDeleteUser}
-              buttonColor="#F44336"
-              style={styles.deleteButton}
-            >
-              Delete User
-            </Button>
-          </Dialog.Actions>
-        </Dialog>
+        <Modal visible={deleteConfirmVisible} onDismiss={cancelDeleteUser} contentContainerStyle={styles.dialog} dismissable>
+          <Text style={styles.dialogTitle}>Delete User</Text>
+          <Text style={styles.dialogBody}>
+            Delete "{userToDelete}" and all their data? <Text style={styles.dialogDanger}>This cannot be undone.</Text>
+          </Text>
+          <View style={styles.dialogActions}>
+            <TouchableOpacity style={styles.btnGhost} onPress={cancelDeleteUser} activeOpacity={0.8}>
+              <Text style={styles.btnGhostText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.btnDanger} onPress={confirmDeleteUser} activeOpacity={0.8}>
+              <Text style={styles.btnPrimaryText}>Delete User</Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
       </Portal>
 
-      {/* Edit Confirmation Modal */}
+      {/* Rename confirmation */}
       <Portal>
-        <Dialog 
-          visible={editConfirmVisible} 
-          onDismiss={cancelRenameUser}
-          style={styles.confirmModal}
-          theme={{
-            colors: { backdrop: 'rgba(0, 0, 0, 0.5)' }
-          }}
-        >
-          <Dialog.Icon icon={() => <EditIcon size={48} color="#FF9800" />} />
-          <Dialog.Title style={styles.modalTitle}>Confirm Rename</Dialog.Title>
-          <Dialog.Content>
-            <Paragraph style={styles.modalText}>
-              Rename user from "{userToEdit.oldName}" to "{userToEdit.newName}"?
-            </Paragraph>
-            <Paragraph style={styles.modalSubtext}>
-              This will update the user's name everywhere in the app.
-            </Paragraph>
-          </Dialog.Content>
-          <Dialog.Actions style={styles.modalActions}>
-            <Button 
-              mode="text" 
-              onPress={cancelRenameUser}
-              textColor="#666666"
-            >
-              Cancel
-            </Button>
-            <Button 
-              mode="contained" 
-              onPress={confirmRenameUser}
-              buttonColor="#FF9800"
-              style={styles.confirmButton}
-            >
-              Rename User
-            </Button>
-          </Dialog.Actions>
-        </Dialog>
+        <Modal visible={editConfirmVisible} onDismiss={cancelRenameUser} contentContainerStyle={styles.dialog} dismissable>
+          <Text style={styles.dialogTitle}>Confirm Rename</Text>
+          <Text style={styles.dialogBody}>
+            Rename "{userToEdit.oldName}" to "{userToEdit.newName}"? This updates the name everywhere.
+          </Text>
+          <View style={styles.dialogActions}>
+            <TouchableOpacity style={styles.btnGhost} onPress={cancelRenameUser} activeOpacity={0.8}>
+              <Text style={styles.btnGhostText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.btnWarning} onPress={confirmRenameUser} activeOpacity={0.8}>
+              <Text style={styles.btnPrimaryText}>Rename User</Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
       </Portal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F5F7FA',
+  container: { flex: 1, backgroundColor: color.appBg },
+  content: { flex: 1 },
+
+  panel: {
+    backgroundColor: color.surface,
+    borderWidth: 1,
+    borderColor: color.border,
+    borderRadius: radius.sm,
+    padding: space.md,
+    marginBottom: space.lg,
   },
-  header: {
-    backgroundColor: '#FFFFFF',
-    elevation: 4,
+  sectionLabel: { ...font.label, marginBottom: space.sm },
+  field: {
+    borderWidth: 1,
+    borderColor: color.border,
+    borderRadius: radius.sm,
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+    fontSize: 14,
+    backgroundColor: color.surface,
+    color: color.text,
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#1A1A1A',
-  },
-  content: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-    padding: 16,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    marginBottom: 12,
-  },
-  addUserCard: {
-    marginBottom: 24,
-    elevation: 2,
-  },
-  addUserInput: {
-    marginBottom: 16,
-    backgroundColor: '#FFFFFF',
-  },
-  addUserActions: {
+  formActions: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 8,
+    gap: space.sm,
+    marginTop: space.md,
   },
-  addButton: {
-    backgroundColor: '#4CAF50',
+  heading: {
+    ...font.label,
+    fontSize: 12,
+    marginBottom: space.sm,
   },
-  cancelButton: {
-    // Default styling
+  table: {
+    borderWidth: 1,
+    borderColor: color.border,
+    borderRadius: radius.sm,
+    backgroundColor: color.surface,
+    overflow: 'hidden',
   },
-  userCard: {
-    marginBottom: 12,
-    elevation: 2,
-    backgroundColor: '#FFFFFF',
-  },
-  selectedUserCard: {
-    borderLeftWidth: 4,
-    borderLeftColor: '#2196F3',
-  },
-  userHeader: {
+  userRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingVertical: space.sm,
+    paddingLeft: space.md,
+    paddingRight: space.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: color.border,
+  },
+  userRowSelected: {
+    backgroundColor: color.accentBg,
+    borderLeftWidth: 3,
+    borderLeftColor: color.accent,
   },
   userName: {
-    fontSize: 16,
+    flex: 1,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#1A1A1A',
-    marginBottom: 4,
+    color: color.text,
+  },
+  inlineInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: color.borderFocus,
+    borderRadius: radius.sm,
+    paddingHorizontal: space.sm,
+    paddingVertical: space.xs,
+    fontSize: 14,
+    color: color.text,
+    marginRight: space.sm,
   },
   userActions: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  editInput: {
+  invRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: space.sm,
+    paddingHorizontal: space.md,
+    borderBottomWidth: 1,
+    borderBottomColor: color.border,
+    gap: space.sm,
+  },
+  invCode: {
+    fontFamily: mono,
+    fontSize: 13,
+    fontWeight: '700',
+    color: color.accent,
+    width: 72,
+  },
+  invName: {
     flex: 1,
-    marginRight: 8,
-    backgroundColor: '#FFFFFF',
+    fontSize: 14,
+    color: color.text,
+  },
+  invType: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+    color: color.textSecondary,
+    borderWidth: 1,
+    borderColor: color.border,
+    borderRadius: radius.sm,
+    paddingHorizontal: space.xs,
+    paddingVertical: 1,
+    backgroundColor: color.surfaceAlt,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+    backgroundColor: color.surface,
+    borderWidth: 1,
+    borderColor: color.border,
+    borderRadius: radius.sm,
+    paddingHorizontal: space.md,
+    marginBottom: space.md,
   },
   searchInput: {
-    marginBottom: 16,
-    backgroundColor: '#FFFFFF',
-  },
-  inventoryItemCard: {
-    marginBottom: 8,
-    elevation: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  itemInfo: {
     flex: 1,
-  },
-  itemCode: {
+    height: 42,
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1A1A1A',
-    marginBottom: 2,
+    color: color.text,
   },
-  itemName: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 4,
-  },
-  typeChip: {
-    alignSelf: 'flex-start',
-  },
-  emptyCard: {
-    elevation: 1,
-    backgroundColor: '#FFFFFF',
+  emptyPanel: {
+    backgroundColor: color.surface,
+    borderWidth: 1,
+    borderColor: color.border,
+    borderRadius: radius.sm,
+    padding: space.xl,
+    alignItems: 'center',
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#666666',
+    color: color.textSecondary,
     textAlign: 'center',
-    marginBottom: 4,
   },
   emptySubtext: {
-    fontSize: 14,
-    color: '#999999',
+    fontSize: 13,
+    color: color.textMuted,
     textAlign: 'center',
+    marginTop: space.xs,
   },
-  fab: {
-    position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#4CAF50',
+
+  // Buttons
+  btnGhost: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: color.border,
+    borderRadius: radius.sm,
+    paddingVertical: space.md,
+    alignItems: 'center',
   },
-  confirmModal: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    elevation: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    zIndex: 9999,
-    margin: 16,
-    maxWidth: '90%',
+  btnGhostText: { fontSize: 14, fontWeight: '700', color: color.textSecondary },
+  btnPrimary: {
+    flex: 1,
+    backgroundColor: color.accent,
+    borderRadius: radius.sm,
+    paddingVertical: space.md,
+    alignItems: 'center',
+  },
+  btnPrimaryText: { fontSize: 14, fontWeight: '700', color: color.textInverse },
+  btnDanger: {
+    flex: 1,
+    backgroundColor: color.negative,
+    borderRadius: radius.sm,
+    paddingVertical: space.md,
+    alignItems: 'center',
+  },
+  btnWarning: {
+    flex: 1,
+    backgroundColor: color.warning,
+    borderRadius: radius.sm,
+    paddingVertical: space.md,
+    alignItems: 'center',
+  },
+
+  // Dialog
+  dialog: {
+    backgroundColor: color.surface,
+    marginHorizontal: space.lg,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: color.borderStrong,
+    padding: space.xl,
+    maxWidth: 420,
+    width: '88%',
     alignSelf: 'center',
   },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  modalText: {
-    fontSize: 16,
-    color: '#333333',
-    textAlign: 'center',
-    marginBottom: 12,
-    lineHeight: 22,
-  },
-  modalWarning: {
-    fontSize: 14,
-    color: '#F44336',
-    textAlign: 'center',
-    fontWeight: '600',
-    marginTop: 8,
-  },
-  modalSubtext: {
-    fontSize: 14,
-    color: '#666666',
-    textAlign: 'center',
-    marginTop: 8,
-  },
-  modalActions: {
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 20,
-  },
-  deleteButton: {
-    minWidth: 120,
-  },
-  confirmButton: {
-    minWidth: 120,
-  },
+  dialogTitle: { ...font.title, fontSize: 16, marginBottom: space.sm },
+  dialogBody: { fontSize: 14, color: color.textSecondary, lineHeight: 21 },
+  dialogDanger: { color: color.negative, fontWeight: '700' },
+  dialogActions: { flexDirection: 'row', gap: space.sm, marginTop: space.xl },
 });

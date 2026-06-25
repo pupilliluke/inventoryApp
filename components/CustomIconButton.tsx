@@ -88,12 +88,12 @@ const CustomIconButton: React.FC<CustomIconButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    minWidth: 48,
-    minHeight: 48,
+    minWidth: 44,
+    minHeight: 44,
     marginHorizontal: 2,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 24,
+    borderRadius: 2,
   },
 });
 

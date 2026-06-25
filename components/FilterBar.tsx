@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { useInventory } from '../context/InventoryContext';
-import { CloseIcon, CheckIcon } from './CustomIcons';
+import { CloseIcon, SearchIcon } from './CustomIcons';
+import { color, space, radius, font, mono } from '../theme/tokens';
 
 const FilterBar = ({ editable = true }) => {
-  const { 
-    setFilterType, 
+  const {
+    setFilterType,
     setFilterLocation,
     setFilterChecked,
     searchQuery,
@@ -27,257 +28,158 @@ const FilterBar = ({ editable = true }) => {
     return () => clearTimeout(debounceTimer);
   }, [localSearchQuery, setSearchQuery]);
 
+  const locations: { key: string; label: string }[] = [
+    { key: 'showroom', label: 'Showroom' },
+    { key: 'warehouse', label: 'Warehouse' },
+    { key: 'containers', label: 'Containers' },
+    { key: 'closet', label: 'Closet' },
+  ];
+
+  if (!editable) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.readOnlyContainer}>
+          {searchQuery ? <Text style={styles.readOnlyText}>Search: "{searchQuery}"</Text> : null}
+          {filterLocation ? <Text style={styles.readOnlyText}>Location: {filterLocation}</Text> : null}
+          {!searchQuery && !filterLocation ? <Text style={styles.readOnlyText}>No active filters</Text> : null}
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      {editable ? (
-        <>
-          <View style={styles.searchContainer}>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search by name, type, or code"
-              value={localSearchQuery}
-              onChangeText={setLocalSearchQuery}
-              returnKeyType="search"
-            />
-            {localSearchQuery ? (
-              <TouchableOpacity 
-                style={styles.clearButton}
-                onPress={() => {
-                  setLocalSearchQuery('');
-                  setSearchQuery('');
-                }}
-              >
-                <CloseIcon size={18} color="#666666" />
-              </TouchableOpacity>
-            ) : null}
-          </View>
-
-          <View style={styles.checkboxFilters}>
-            <TouchableOpacity 
-              style={[
-                styles.checkboxButton,
-                filterChecked === 'checked' && styles.activeCheckboxButton
-              ]}
-              onPress={() => setFilterChecked(
-                filterChecked === 'checked' ? '' : 'checked'
-              )}
-            >
-              <View style={styles.checkboxButtonContent}>
-                <CheckIcon size={16} color="#FFFFFF" />
-                <Text style={[
-                  { color: '#FFFFFF', fontWeight: '600', fontSize: 14, marginLeft: 6 }
-                ]}>Checked</Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[
-                styles.checkboxButton,
-                filterChecked === 'unchecked' && styles.activeCheckboxButton
-              ]}
-              onPress={() => setFilterChecked(
-                filterChecked === 'unchecked' ? '' : 'unchecked'
-              )}
-            >
-              <View style={styles.checkboxButtonContent}>
-                <View style={styles.uncheckedBox} />
-                <Text style={[
-                  { color: '#FFFFFF', fontWeight: '600', fontSize: 14, marginLeft: 6 }
-                ]}>Unchecked</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-          
-          <View style={styles.locationFilters}>
-            <TouchableOpacity 
-              style={[
-                styles.locationButton,
-                filterLocation === 'showroom' && styles.activeLocationButton
-              ]}
-              onPress={() => setFilterLocation(
-                filterLocation === 'showroom' ? '' : 'showroom'
-              )}
-            >
-              <Text style={[
-                { color: '#FFFFFF', fontWeight: '600' }
-              ]}>Showroom</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[
-                styles.locationButton,
-                filterLocation === 'warehouse' && styles.activeLocationButton
-              ]}
-              onPress={() => setFilterLocation(
-                filterLocation === 'warehouse' ? '' : 'warehouse'
-              )}
-            >
-              <Text style={[
-                { color: '#FFFFFF', fontWeight: '600' }
-              ]}>Warehouse</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[
-                styles.locationButton,
-                filterLocation === 'containers' && styles.activeLocationButton
-              ]}
-              onPress={() => setFilterLocation(
-                filterLocation === 'containers' ? '' : 'containers'
-              )}
-            >
-              <Text style={[
-                { color: '#FFFFFF', fontWeight: '600' }
-              ]}>Containers</Text>
-            </TouchableOpacity>
-            <TouchableOpacity   
-              style={[
-                styles.locationButton,
-                filterLocation === 'closet' && styles.activeLocationButton
-              ]}
-              onPress={() => setFilterLocation(
-                filterLocation === 'closet' ? '' : 'closet'
-              )}
-            >
-              <Text style={[
-                { color: '#FFFFFF', fontWeight: '600' }
-              ]}>Closet</Text>
-            </TouchableOpacity>
-
-          </View>
-        </>
-      ) : (
-        <View style={styles.readOnlyContainer}>
-          {searchQuery && (
-            <Text style={styles.readOnlyText}>
-              Search: "{searchQuery}"
-            </Text>
-          )}
-          {filterLocation && (
-            <Text style={styles.readOnlyText}>
-              Location: {filterLocation}
-            </Text>
-          )}
-          {!searchQuery && !filterLocation && (
-            <Text style={styles.readOnlyText}>
-              No active filters
-            </Text>
-          )}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchIcon}>
+          <SearchIcon size={16} color={color.textMuted} />
         </View>
-      )}
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search by name, type, or code"
+          placeholderTextColor={color.textMuted}
+          value={localSearchQuery}
+          onChangeText={setLocalSearchQuery}
+          returnKeyType="search"
+        />
+        {localSearchQuery ? (
+          <TouchableOpacity
+            style={styles.clearButton}
+            onPress={() => { setLocalSearchQuery(''); setSearchQuery(''); }}
+          >
+            <CloseIcon size={16} color={color.textMuted} />
+          </TouchableOpacity>
+        ) : null}
+      </View>
+
+      <Text style={styles.groupLabel}>Status</Text>
+      <View style={styles.segmentRow}>
+        {(['checked', 'unchecked'] as const).map((state) => {
+          const active = filterChecked === state;
+          return (
+            <TouchableOpacity
+              key={state}
+              style={[styles.segment, active && styles.segmentActive]}
+              onPress={() => setFilterChecked(filterChecked === state ? '' : state)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
+                {state === 'checked' ? 'Checked' : 'Unchecked'}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      <Text style={styles.groupLabel}>Location</Text>
+      <View style={styles.segmentRow}>
+        {locations.map(({ key, label }) => {
+          const active = filterLocation === key;
+          return (
+            <TouchableOpacity
+              key={key}
+              style={[styles.segment, styles.segmentFlex, active && styles.segmentActive]}
+              onPress={() => setFilterLocation(filterLocation === key ? '' : key)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
-    marginTop: 20,
-    paddingHorizontal: 4,
+    marginBottom: space.md,
   },
   searchContainer: {
-    position: 'relative',
-    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: color.surface,
+    borderWidth: 1,
+    borderColor: color.border,
+    borderRadius: radius.sm,
+    paddingHorizontal: space.md,
+    marginBottom: space.md,
+  },
+  searchIcon: {
+    marginRight: space.sm,
   },
   searchInput: {
-    height: 48,
-    borderColor: '#FFFFFF',
-    borderWidth: 2,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingRight: 50,
-    fontSize: 16,
-    backgroundColor: '#FFFFFF',
-    color: '#333333',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    flex: 1,
+    height: 42,
+    fontSize: 14,
+    color: color.text,
   },
   clearButton: {
-    position: 'absolute',
-    right: 12,
-    top: 15,
-    padding: 4,
-    borderRadius: 12,
+    padding: space.xs,
   },
-  locationFilters: {
+  groupLabel: {
+    ...font.label,
+    marginBottom: space.xs,
+  },
+  segmentRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 8,
+    gap: space.xs,
+    marginBottom: space.md,
   },
-  locationButton: {
+  segment: {
+    paddingVertical: space.sm,
+    paddingHorizontal: space.md,
+    backgroundColor: color.surface,
+    borderWidth: 1,
+    borderColor: color.border,
+    borderRadius: radius.sm,
+    alignItems: 'center',
+  },
+  segmentFlex: {
     flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    backgroundColor: '#8B5CF6',
-    borderRadius: 8,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#8B5CF6',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    paddingHorizontal: space.xs,
   },
-  activeLocationButton: {
-    backgroundColor: '#5B21B6',
-    borderColor: '#5B21B6',
+  segmentActive: {
+    backgroundColor: color.accent,
+    borderColor: color.accent,
   },
-  checkboxFilters: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 12,
-    marginBottom: 16,
+  segmentText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: color.textSecondary,
   },
-  checkboxButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: '#8B5CF6',
-    borderRadius: 20,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#8B5CF6',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  activeCheckboxButton: {
-    backgroundColor: '#5B21B6',
-    borderColor: '#5B21B6',
-  },
-  checkboxButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  uncheckedBox: {
-    width: 16,
-    height: 16,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-    borderRadius: 3,
-    backgroundColor: 'transparent',
+  segmentTextActive: {
+    color: color.textInverse,
   },
   readOnlyContainer: {
-    padding: 16,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
+    padding: space.md,
+    backgroundColor: color.surfaceAlt,
+    borderRadius: radius.sm,
     borderWidth: 1,
-    borderColor: '#E9ECEF',
+    borderColor: color.border,
   },
   readOnlyText: {
-    fontSize: 15,
-    color: '#495057',
+    fontSize: 13,
+    color: color.textSecondary,
     marginVertical: 2,
     fontWeight: '500',
   },

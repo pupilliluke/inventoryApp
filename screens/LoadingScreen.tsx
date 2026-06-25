@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, Image } from 'react-native';
 import { Text, ActivityIndicator } from 'react-native-paper';
+import { color, space } from '../theme/tokens';
 
 interface LoadingScreenProps {
   message?: string;
@@ -16,7 +17,7 @@ export default function LoadingScreen({ message = 'Loading...' }: LoadingScreenP
           resizeMode="contain"
         />
         <Text style={styles.title}>Phantom Warehouse</Text>
-        <ActivityIndicator size="large" color="#FFFFFF" animating style={styles.spinner} />
+        <ActivityIndicator size="large" color={color.onChrome} animating style={styles.spinner} />
         <Text style={styles.message}>{message}</Text>
       </View>
     </View>
@@ -26,7 +27,7 @@ export default function LoadingScreen({ message = 'Loading...' }: LoadingScreenP
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    backgroundColor: '#5B21B6',
+    backgroundColor: color.chromeAlt,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -35,25 +36,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   logo: {
-    width: 96,
-    height: 96,
-    borderRadius: 20,
+    width: 88,
+    height: 88,
+    borderRadius: 4,
     marginBottom: 24,
   },
   title: {
-    fontSize: 26,
+    fontSize: 14,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: color.onChrome,
     marginBottom: 32,
-    letterSpacing: 0.5,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
   },
   spinner: {
-    marginBottom: 16,
+    marginBottom: space.lg,
   },
   message: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    opacity: 0.9,
+    fontSize: 14,
+    color: color.onChromeMuted,
     fontWeight: '500',
   },
 });

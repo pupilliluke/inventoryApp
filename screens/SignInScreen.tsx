@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, StyleSheet, Image, Platform } from 'react-native';
-import { Text, Title, Card, Button } from 'react-native-paper';
+import { View, StyleSheet, Image, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Text } from 'react-native-paper';
 import { useSSO, useSignIn } from '@clerk/expo';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import { GoogleIcon } from '../components/CustomIcons';
+import { color, space, radius } from '../theme/tokens';
 
 // Ensures the browser-based auth session can complete (native redirects).
 WebBrowser.maybeCompleteAuthSession();
@@ -76,27 +77,29 @@ export default function SignInScreen() {
           style={styles.logo}
           resizeMode="contain"
         />
-        <Title style={styles.title}>Phantom Warehouse</Title>
+        <Text style={styles.eyebrow}>Inventory System</Text>
+        <Text style={styles.title}>Phantom Warehouse</Text>
         <Text style={styles.subtitle}>Sign in to access the inventory system</Text>
 
-        <Card style={styles.card}>
-          <Card.Content style={styles.cardContent}>
-            <Button
-              mode="contained"
-              onPress={handleGoogleSignIn}
-              loading={loading}
-              disabled={loading}
-              icon={() => <GoogleIcon size={20} />}
-              style={styles.googleButton}
-              contentStyle={styles.googleButtonContent}
-              labelStyle={styles.googleButtonLabel}
-            >
-              {loading ? 'Signing in...' : 'Continue with Google'}
-            </Button>
+        <View style={styles.card}>
+          <TouchableOpacity
+            onPress={handleGoogleSignIn}
+            disabled={loading}
+            style={styles.googleButton}
+            activeOpacity={0.8}
+          >
+            {loading ? (
+              <ActivityIndicator size="small" color={color.textSecondary} />
+            ) : (
+              <GoogleIcon size={18} />
+            )}
+            <Text style={styles.googleButtonLabel}>
+              {loading ? 'Signing in…' : 'Continue with Google'}
+            </Text>
+          </TouchableOpacity>
 
-            {error ? <Text style={styles.error}>{error}</Text> : null}
-          </Card.Content>
-        </Card>
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+        </View>
       </View>
     </View>
   );
@@ -105,66 +108,73 @@ export default function SignInScreen() {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    backgroundColor: '#5B21B6',
+    backgroundColor: color.chromeAlt,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
   },
   content: {
     width: '100%',
-    maxWidth: 420,
+    maxWidth: 400,
     alignItems: 'center',
   },
   logo: {
-    width: 88,
-    height: 88,
-    borderRadius: 20,
+    width: 80,
+    height: 80,
+    borderRadius: 4,
     marginBottom: 20,
   },
-  title: {
-    fontSize: 28,
+  eyebrow: {
+    fontSize: 11,
     fontWeight: '700',
-    color: '#FFFFFF',
+    letterSpacing: 1.6,
+    textTransform: 'uppercase',
+    color: color.onChromeMuted,
+    marginBottom: space.xs,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: color.onChrome,
     textAlign: 'center',
-    marginBottom: 8,
-    letterSpacing: 0.5,
+    marginBottom: space.sm,
+    letterSpacing: 0.3,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    opacity: 0.92,
+    fontSize: 14,
+    color: color.onChromeMuted,
     textAlign: 'center',
-    marginBottom: 28,
+    marginBottom: space.xl,
     fontWeight: '500',
   },
   card: {
     width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    elevation: 8,
-  },
-  cardContent: {
-    padding: 24,
+    backgroundColor: color.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: color.borderStrong,
+    padding: space.xl,
   },
   googleButton: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#DADCE0',
-  },
-  googleButtonContent: {
-    paddingVertical: 8,
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space.sm,
+    backgroundColor: color.surface,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: color.border,
+    paddingVertical: space.md,
   },
   googleButtonLabel: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#3C4043',
+    color: color.text,
   },
   error: {
-    color: '#E74C3C',
-    marginTop: 16,
-    fontSize: 14,
+    color: color.negative,
+    marginTop: space.lg,
+    fontSize: 13,
     fontWeight: '500',
     textAlign: 'center',
   },

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView, View, StyleSheet, FlatList, RefreshControl } from 'react-native';
-import { Text, Card, Appbar, Chip, ActivityIndicator, Title } from 'react-native-paper';
-import { getDatabase, ref, query, orderByChild, limitToLast, onValue } from 'firebase/database';
+import { Text, ActivityIndicator } from 'react-native-paper';
+import { getDatabase, ref, onValue } from 'firebase/database';
 import { LogEntry } from '../types/session';
 import { useNavigation } from '@react-navigation/native';
 import CustomIconButton from '../components/CustomIconButton';
-import { SuccessIcon, CloseIcon, RefreshIcon, EditIcon, ChartIcon } from '../components/CustomIcons';
+import ScreenHeader from '../components/ScreenHeader';
+import { ChartIcon } from '../components/CustomIcons';
+import { color, space, radius, font, mono } from '../theme/tokens';
 
 export default function LogPage() {
   const navigation = useNavigation();
@@ -19,7 +21,6 @@ export default function LogPage() {
 
     const unsubscribe = onValue(logsRef, (snapshot) => {
       const data = snapshot.val();
-      
       if (data) {
         const logsList: LogEntry[] = Object.entries(data)
           .filter(([logId, logData]: [string, any]) => typeof logData === 'object' && logData.message)
@@ -30,8 +31,6 @@ export default function LogPage() {
             userName: logData.userName || 'Unknown User',
             ts: logData.ts || Date.now(),
           }));
-        
-        // Sort newest first (reverse order since we got them oldest first)
         logsList.sort((a, b) => b.ts - a.ts);
         setLogs(logsList);
       } else {
@@ -48,11 +47,7 @@ export default function LogPage() {
     return unsubscribe;
   }, []);
 
-  const handleRefresh = () => {
-    setRefreshing(true);
-    // The real-time listener will automatically refresh the data
-  };
-
+  const handleRefresh = () => setRefreshing(true);
 
   const formatTimestamp = (timestamp: number): string => {
     const date = new Date(timestamp);
@@ -62,106 +57,68 @@ export default function LogPage() {
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffMins < 1) {
-      return 'Just now';
-    } else if (diffMins < 60) {
-      return `${diffMins} min ago`;
-    } else if (diffHours < 24) {
-      return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-    } else if (diffDays < 7) {
-      return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-    } else {
-      return date.toLocaleDateString();
-    }
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
   };
 
   const getActionColor = (message: string | undefined): string => {
-    if (!message) return '#666666';
-    if (message.includes('created')) return '#4CAF50';
-    if (message.includes('deleted')) return '#F44336';
-    if (message.includes('updated') || message.includes('moved')) return '#FF9800';
-    if (message.includes('renamed')) return '#2196F3';
-    return '#666666';
+    if (!message) return color.neutral;
+    if (message.includes('created')) return color.positive;
+    if (message.includes('deleted')) return color.negative;
+    if (message.includes('updated') || message.includes('moved')) return color.warning;
+    if (message.includes('renamed')) return color.accent;
+    return color.neutral;
   };
 
-  const getActionIcon = (message: string | undefined) => {
-    if (!message) return <View style={styles.dotIcon}><Text>•</Text></View>;
-    if (message.includes('created')) return <SuccessIcon size={16} color="#4CAF50" />;
-    if (message.includes('deleted')) return <CloseIcon size={16} color="#F44336" />;
-    if (message.includes('updated') || message.includes('moved')) return <RefreshIcon size={16} color="#FF9800" />;
-    if (message.includes('renamed')) return <EditIcon size={16} color="#2196F3" />;
-    return <View style={styles.dotIcon}><Text>•</Text></View>;
-  };
-
-  const renderLogItem = ({ item }: { item: LogEntry }) => (
-    <Card style={styles.logCard}>
-      <Card.Content>
-        <View style={styles.logHeader}>
-          <View style={styles.logUser}>
-            <View style={styles.actionIcon}>
-              {getActionIcon(item.message)}
-            </View>
-            <Chip
-              style={[styles.userChip, { borderColor: getActionColor(item.message) }]}
-              textStyle={[styles.userChipText, { color: getActionColor(item.message) }]}
-              compact
-            >
+  const renderLogItem = ({ item }: { item: LogEntry }) => {
+    const accent = getActionColor(item.message);
+    return (
+      <View style={styles.logRow}>
+        <View style={[styles.rail, { backgroundColor: accent }]} />
+        <View style={styles.logContent}>
+          <View style={styles.logHeader}>
+            <Text style={[styles.userName, { color: accent }]} numberOfLines={1}>
               {item.userName || 'Unknown User'}
-            </Chip>
+            </Text>
+            <Text style={styles.timestamp}>{item.ts ? formatTimestamp(item.ts) : '—'}</Text>
           </View>
-          <Text style={styles.timestamp}>
-            {item.ts ? formatTimestamp(item.ts) : 'Unknown time'}
-          </Text>
+          <Text style={styles.logMessage}>{item.message || 'Unknown action'}</Text>
         </View>
-        <Text style={styles.logMessage}>{item.message || 'Unknown action'}</Text>
-      </Card.Content>
-    </Card>
-  );
+      </View>
+    );
+  };
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <View style={styles.emptyIcon}>
-        <ChartIcon size={48} color="#9E9E9E" />
-      </View>
-      <Title style={styles.emptyTitle}>No Activity Yet</Title>
-      <Text style={styles.emptySubtitle}>
-        Inventory changes and user actions will appear here in real-time
-      </Text>
+      <ChartIcon size={40} color={color.textMuted} />
+      <Text style={styles.emptyTitle}>No Activity Yet</Text>
+      <Text style={styles.emptySubtitle}>Inventory changes and user actions appear here in real time.</Text>
     </View>
   );
 
   return (
     <SafeAreaView style={styles.container}>
-      <Appbar.Header style={styles.header}>
-        <CustomIconButton
-          iconType="back"
-          onPress={() => navigation.goBack()}
-        />
-        <Appbar.Content
-          title="Activity Log"
-          titleStyle={styles.headerTitle}
-        />
-        <CustomIconButton
-          iconType="refresh"
-          onPress={handleRefresh}
-          disabled={refreshing}
-        />
-      </Appbar.Header>
+      <ScreenHeader
+        title="Activity Log"
+        onBack={() => navigation.goBack()}
+        right={<CustomIconButton iconType="refresh" onPress={handleRefresh} disabled={refreshing} color={color.onChrome} />}
+      />
 
       <View style={styles.content}>
-        <View style={styles.statsContainer}>
+        <View style={styles.statsBar}>
           <Text style={styles.statsText}>
-            {logs.length} recent {logs.length === 1 ? 'activity' : 'activities'}
+            {logs.length} recent {logs.length === 1 ? 'entry' : 'entries'}
           </Text>
-          {refreshing && (
-            <ActivityIndicator size="small" style={styles.refreshIndicator} />
-          )}
+          {refreshing && <ActivityIndicator size="small" color={color.accent} />}
         </View>
 
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" animating={true} />
-            <Text style={styles.loadingText}>Loading activity log...</Text>
+            <ActivityIndicator size="large" animating color={color.accent} />
+            <Text style={styles.loadingText}>Loading activity log…</Text>
           </View>
         ) : (
           <FlatList
@@ -169,14 +126,11 @@ export default function LogPage() {
             renderItem={renderLogItem}
             keyExtractor={(item) => item.logId || `${item.userId}-${item.ts}`}
             ListEmptyComponent={renderEmptyState}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-              />
-            }
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={color.accent} />}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={logs.length === 0 ? styles.emptyListContainer : undefined}
+            style={styles.list}
+            contentContainerStyle={logs.length === 0 ? styles.emptyListContainer : styles.listContent}
           />
         )}
       </View>
@@ -185,119 +139,43 @@ export default function LogPage() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F5F7FA',
-  },
-  header: {
-    backgroundColor: '#FFFFFF',
-    elevation: 4,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#1A1A1A',
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  statsContainer: {
+  container: { flex: 1, backgroundColor: color.appBg },
+  content: { flex: 1, padding: space.md },
+  statsBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
-    paddingHorizontal: 4,
+    marginBottom: space.sm,
+    paddingHorizontal: space.xs,
   },
-  statsText: {
-    fontSize: 14,
-    color: '#666666',
-    fontWeight: '500',
+  statsText: { ...font.label },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  loadingText: { marginTop: space.md, fontSize: 14, color: color.textMuted },
+  list: {
+    borderWidth: 1,
+    borderColor: color.border,
+    borderRadius: radius.sm,
+    backgroundColor: color.surface,
   },
-  refreshIndicator: {
-    marginLeft: 8,
+  listContent: {},
+  separator: { height: 1, backgroundColor: color.border },
+  logRow: {
+    flexDirection: 'row',
+    backgroundColor: color.surface,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#666666',
-  },
-  logCard: {
-    marginBottom: 12,
-    elevation: 2,
-    backgroundColor: '#FFFFFF',
-  },
+  rail: { width: 3 },
+  logContent: { flex: 1, paddingVertical: space.sm, paddingHorizontal: space.md },
   logHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 2,
   },
-  logUser: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  actionIcon: {
-    marginRight: 8,
-    width: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dotIcon: {
-    width: 16,
-    height: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  userChip: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    height: 28,
-  },
-  userChipText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  timestamp: {
-    fontSize: 12,
-    color: '#999999',
-    fontWeight: '500',
-  },
-  logMessage: {
-    fontSize: 15,
-    color: '#333333',
-    lineHeight: 20,
-  },
-  emptyListContainer: {
-    flexGrow: 1,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-  },
-  emptyIcon: {
-    marginBottom: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#333333',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  emptySubtitle: {
-    fontSize: 16,
-    color: '#666666',
-    textAlign: 'center',
-    lineHeight: 22,
-  },
+  userName: { fontSize: 13, fontWeight: '700', letterSpacing: 0.2, flex: 1, marginRight: space.sm },
+  timestamp: { fontFamily: mono, fontSize: 11, color: color.textMuted },
+  logMessage: { fontSize: 14, color: color.text, lineHeight: 19 },
+  emptyListContainer: { flexGrow: 1, justifyContent: 'center' },
+  emptyContainer: { alignItems: 'center', paddingHorizontal: space.xl, paddingVertical: space.xxl },
+  emptyTitle: { ...font.title, marginTop: space.md, marginBottom: space.xs },
+  emptySubtitle: { fontSize: 13, color: color.textMuted, textAlign: 'center', lineHeight: 19 },
 });
