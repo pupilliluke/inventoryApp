@@ -239,7 +239,7 @@ export const InventoryMutations = {
   async clearLocation(
     user: ActiveUser | null,
     inventoryItems: InventoryItem[],
-    location: keyof Pick<InventoryItem, 'showroom' | 'warehouse' | 'containers'>
+    location: keyof Pick<InventoryItem, 'showroom' | 'warehouse'>
   ): Promise<void> {
     ensureUserAuthenticated(user);
     
@@ -249,22 +249,9 @@ export const InventoryMutations = {
     
     // Collect all items that need clearing
     inventoryItems.forEach(item => {
-      if (location === 'containers') {
-        const c = item.containers;
-        const sum = c.C1 + c.C2 + c.C3 + c.C4;
-        if (sum > 0) {
-          updates[`inventory/${item.code}/containers/C1`] = 0;
-          updates[`inventory/${item.code}/containers/C2`] = 0;
-          updates[`inventory/${item.code}/containers/C3`] = 0;
-          updates[`inventory/${item.code}/containers/C4`] = 0;
-          itemsToUpdate.push({ code: item.code, oldQty: sum });
-        }
-      } else {
-        const qty = item[location] as number;
-        if (qty > 0) {
-          updates[`inventory/${item.code}/${location}`] = 0;
-          itemsToUpdate.push({ code: item.code, oldQty: qty });
-        }
+      if (item[location] > 0) {
+        updates[`inventory/${item.code}/${location}`] = 0;
+        itemsToUpdate.push({ code: item.code, oldQty: item[location] });
       }
     });
 

@@ -107,15 +107,11 @@ export function generateQuantityChanges(
     }
   }
 
-  // Container sub-categories (C1–C4) are nested under `containers`
-  const containerKeys = ['C1', 'C2', 'C3', 'C4'];
-  for (const ck of containerKeys) {
-    const oldQty = (oldItem.containers && oldItem.containers[ck]) || 0;
-    const newQty = (newItem.containers && newItem.containers[ck]) || 0;
-
-    if (oldQty !== newQty) {
-      changes.push(`containers.${ck}: ${oldQty} → ${newQty}`);
-    }
+  // Container assignment (single category tag, e.g. C:2)
+  const oldC = oldItem.containers || 0;
+  const newC = newItem.containers || 0;
+  if (oldC !== newC) {
+    changes.push(`container: ${oldC ? 'C:' + oldC : 'none'} → ${newC ? 'C:' + newC : 'none'}`);
   }
   
   return changes.length > 0 ? changes.join(', ') : 'no quantity changes';
