@@ -107,11 +107,16 @@ export function generateQuantityChanges(
     }
   }
 
-  // Container assignment (single category tag, e.g. C:2)
-  const oldC = oldItem.containers || 0;
-  const newC = newItem.containers || 0;
-  if (oldC !== newC) {
-    changes.push(`container: ${oldC ? 'C:' + oldC : 'none'} → ${newC ? 'C:' + newC : 'none'}`);
+  // Container assignment: category tag (e.g. C:2) + quantity
+  const oldCat = (oldItem.containers && oldItem.containers.category) || 0;
+  const newCat = (newItem.containers && newItem.containers.category) || 0;
+  if (oldCat !== newCat) {
+    changes.push(`container: ${oldCat ? 'C:' + oldCat : 'none'} → ${newCat ? 'C:' + newCat : 'none'}`);
+  }
+  const oldCQty = (oldItem.containers && oldItem.containers.quantity) || 0;
+  const newCQty = (newItem.containers && newItem.containers.quantity) || 0;
+  if (oldCQty !== newCQty) {
+    changes.push(`container qty: ${oldCQty} → ${newCQty}`);
   }
   
   return changes.length > 0 ? changes.join(', ') : 'no quantity changes';

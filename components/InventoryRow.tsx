@@ -53,9 +53,16 @@ useEffect(() => {
     }));
   };
 
+  const handleContainerQty = (value: string) => {
+    setLocalItem(prev => ({
+      ...prev,
+      containers: { ...prev.containers, quantity: parseInt(value) || 0 },
+    }));
+  };
+
   const handleSelectContainer = async (n: number) => {
     setContainerModalVisible(false);
-    const optimisticUpdate = { ...localItem, containers: n };
+    const optimisticUpdate = { ...localItem, containers: { ...localItem.containers, category: n } };
     const oldItem = { ...item };
 
     // Optimistic update - UI responds immediately
@@ -275,12 +282,24 @@ useEffect(() => {
             <Text style={styles.label}>containers:</Text>
             <TouchableOpacity
               onPress={() => setContainerModalVisible(true)}
-              style={[styles.containerTag, localItem.containers === 0 && styles.containerTagEmpty]}
+              style={[styles.containerTag, localItem.containers.category === 0 && styles.containerTagEmpty]}
             >
-              <Text style={[styles.containerTagText, localItem.containers === 0 && styles.containerTagTextEmpty]}>
-                {localItem.containers > 0 ? `C:${localItem.containers}` : 'Select'}
+              <Text style={[styles.containerTagText, localItem.containers.category === 0 && styles.containerTagTextEmpty]}>
+                {localItem.containers.category > 0 ? `C:${localItem.containers.category}` : 'Select'}
               </Text>
             </TouchableOpacity>
+            {editingLocation ? (
+              <TextInput
+                style={styles.numericInput}
+                keyboardType="numeric"
+                value={String(localItem.containers.quantity)}
+                onChangeText={handleContainerQty}
+                onSubmitEditing={handleSaveLocation}
+                returnKeyType="done"
+              />
+            ) : (
+              <Text style={styles.numericDisplay}>{localItem.containers.quantity}</Text>
+            )}
           </View>
 
           {shouldShow('closet') ? (
@@ -479,14 +498,14 @@ useEffect(() => {
               key={n}
               title={`C:${n}`}
               onPress={() => handleSelectContainer(n)}
-              style={localItem.containers === n ? styles.selectedTypeItem : styles.typeItem}
+              style={localItem.containers.category === n ? styles.selectedTypeItem : styles.typeItem}
             />
           ))}
           <List.Item
             key={0}
             title="None"
             onPress={() => handleSelectContainer(0)}
-            style={localItem.containers === 0 ? styles.selectedTypeItem : styles.typeItem}
+            style={localItem.containers.category === 0 ? styles.selectedTypeItem : styles.typeItem}
           />
         </Modal>
       </Portal>

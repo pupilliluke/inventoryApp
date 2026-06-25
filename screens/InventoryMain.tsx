@@ -98,7 +98,7 @@ export default function InventoryMain() {
         type: 'Other',
         showroom: 0,
         warehouse: 0,
-        containers: 0,
+        containers: { category: 0, quantity: 0 },
         closet: 0,
         checked: false,
         note: '',
