@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
-  SafeAreaView, View, StyleSheet, FlatList, TextInput, TouchableOpacity, Alert, Platform,
+  SafeAreaView, View, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, Platform,
 } from 'react-native';
 import { Text, ActivityIndicator } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -131,8 +131,8 @@ export default function PullListDetailPage() {
     }
   };
 
-  const renderSelected = ({ item }: { item: PullListItem }) => (
-    <View style={styles.itemRow}>
+  const renderItemRow = (item: PullListItem) => (
+    <View key={item.code} style={styles.itemRow}>
       <View style={styles.itemInfo}>
         <Text style={styles.itemCode}>{item.code}</Text>
         <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
@@ -266,22 +266,22 @@ export default function PullListDetailPage() {
         }
       />
 
-      <FlatList
+      <ScrollView
         style={styles.content}
         contentContainerStyle={{ padding: space.md, paddingBottom: space.xxl }}
-        data={displayItems}
-        keyExtractor={(it) => it.code}
-        renderItem={renderSelected}
-        ListHeaderComponent={header}
         keyboardShouldPersistTaps="handled"
-        ListEmptyComponent={
+      >
+        {header}
+        {displayItems.length === 0 ? (
           <View style={styles.emptyItems}>
             <Text style={styles.emptySubtitle}>
               {isOwner ? 'Search above to add fireworks to this list.' : 'This pull list has no items yet.'}
             </Text>
           </View>
-        }
-      />
+        ) : (
+          displayItems.map(renderItemRow)
+        )}
+      </ScrollView>
 
       {isOwner && (
         <TouchableOpacity style={styles.deleteListBtn} onPress={handleDelete} activeOpacity={0.85}>
