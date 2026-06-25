@@ -511,7 +511,7 @@ const styles = StyleSheet.create({
   },
   thItem: {
     flex: 1,
-    minWidth: 120,
+    minWidth: COL.item,
     paddingLeft: 28,
     ...font.label,
   },

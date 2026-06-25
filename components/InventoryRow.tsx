@@ -15,10 +15,13 @@ const typeOptions = [
 ];
 
 // Shared column geometry so the table header in InventoryMain stays aligned.
+// Sized so the full row fits the narrowest iPhone (~335px usable):
+// itemCell(100) + 3×qty(38) + cont(50) + actions(60) = 324px.
 export const COL = {
-  qty: 48,
-  cont: 60,
-  actions: 70,
+  item: 100,
+  qty: 38,
+  cont: 50,
+  actions: 60,
 } as const;
 
 const InventoryRow = ({ item }: { item: InventoryItem }) => {
@@ -481,7 +484,7 @@ const styles = StyleSheet.create({
   },
   itemCell: {
     flex: 1,
-    minWidth: 120,
+    minWidth: COL.item,
     flexDirection: 'row',
     paddingRight: space.sm,
   },
@@ -679,13 +682,13 @@ const styles = StyleSheet.create({
   // Modals
   editModal: {
     backgroundColor: color.surface,
-    margin: space.lg,
+    marginHorizontal: space.lg,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: color.borderStrong,
     padding: space.xl,
-    minWidth: 320,
-    maxWidth: '92%',
+    width: '92%',
+    maxWidth: 440,
     alignSelf: 'center',
     maxHeight: '85%',
   },
