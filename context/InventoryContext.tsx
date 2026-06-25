@@ -28,7 +28,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         ...item,
         showroom: Number(item.showroom) || 0,
         warehouse: Number(item.warehouse) || 0,
-        storage: Number(item.storage) || 0,
+        containers: Number(item.containers) || 0,
         closet: Number(item.closet) || 0,
         checked: Boolean(item.checked) || false,
         note: String(item.note || ''),
@@ -61,7 +61,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const locationMatch = !filterLocation ||
         (filterLocation === 'showroom' && item.showroom > 0) ||
         (filterLocation === 'warehouse' && item.warehouse > 0) ||
-        (filterLocation === 'storage' && item.storage > 0) ||
+        (filterLocation === 'containers' && item.containers > 0) ||
         (filterLocation === 'closet' && item.closet > 0);
 
       const searchMatch = !searchQuery ||
@@ -78,7 +78,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [inventory, multiTypeFilters, filterType, filterLocation, searchQuery, filterChecked]);
 
   const calculateTotal = (item: InventoryItem) => {
-    return item.showroom + item.warehouse + item.storage + item.closet;
+    return item.showroom + item.warehouse + item.containers + item.closet;
   };
 
   const updateItem = (item: InventoryItem) => {

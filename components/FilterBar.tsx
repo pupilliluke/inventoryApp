@@ -117,15 +117,15 @@ const FilterBar = ({ editable = true }) => {
             <TouchableOpacity 
               style={[
                 styles.locationButton,
-                filterLocation === 'storage' && styles.activeLocationButton
+                filterLocation === 'containers' && styles.activeLocationButton
               ]}
               onPress={() => setFilterLocation(
-                filterLocation === 'storage' ? '' : 'storage'
+                filterLocation === 'containers' ? '' : 'containers'
               )}
             >
               <Text style={[
                 { color: '#FFFFFF', fontWeight: '600' }
-              ]}>Storage</Text>
+              ]}>Containers</Text>
             </TouchableOpacity>
             <TouchableOpacity   
               style={[
