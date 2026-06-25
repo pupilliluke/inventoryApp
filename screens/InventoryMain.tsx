@@ -56,7 +56,7 @@ export default function InventoryMain() {
   const [addExpanded, setAddExpanded] = useState(false);
   const [clearLocationExpanded, setClearLocationExpanded] = useState(false);
   const [confirmClearVisible, setConfirmClearVisible] = useState(false);
-  const [locationToClear, setLocationToClear] = useState<'warehouse' | 'showroom' | 'containers' | null>(null);
+  const [locationToClear, setLocationToClear] = useState<'warehouse' | 'showroom' | null>(null);
   const [clearLocationStats, setClearLocationStats] = useState<{itemCount: number, totalQuantity: number}>({ itemCount: 0, totalQuantity: 0 });
   const [navigationMenuVisible, setNavigationMenuVisible] = useState(false);
   useEffect(() => {
@@ -98,7 +98,7 @@ export default function InventoryMain() {
         type: 'Other',
         showroom: 0,
         warehouse: 0,
-        containers: { C1: 0, C2: 0, C3: 0, C4: 0 },
+        containers: 0,
         closet: 0,
         checked: false,
         note: '',
@@ -131,15 +131,11 @@ export default function InventoryMain() {
 
 
 
-  const handleClearLocation = async (location: 'warehouse' | 'showroom' | 'containers') => {
+  const handleClearLocation = async (location: 'warehouse' | 'showroom') => {
     console.log(`Clear location button clicked for: ${location}`);
-    
-    const qtyOf = (item: typeof originalInventory[number]) =>
-      location === 'containers'
-        ? item.containers.C1 + item.containers.C2 + item.containers.C3 + item.containers.C4
-        : (item[location] as number);
-    const itemsWithQuantity = originalInventory.filter(item => qtyOf(item) > 0);
-    const totalQuantity = itemsWithQuantity.reduce((sum, item) => sum + qtyOf(item), 0);
+
+    const itemsWithQuantity = originalInventory.filter(item => item[location] > 0);
+    const totalQuantity = itemsWithQuantity.reduce((sum, item) => sum + item[location], 0);
     
     console.log(`Items with quantity in ${location}:`, itemsWithQuantity.length, 'Total quantity:', totalQuantity);
     
@@ -502,7 +498,7 @@ export default function InventoryMain() {
               </Text>
               
               <View style={{ gap: 12 }}>
-                {(['showroom', 'warehouse', 'containers'] as const).map((location) => (
+                {(['showroom', 'warehouse'] as const).map((location) => (
                   <Button
                     key={location}
                     mode="contained"

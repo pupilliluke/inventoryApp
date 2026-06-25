@@ -17,6 +17,7 @@ const typeOptions = [
 const InventoryRow = ({ item }: { item: InventoryItem }) => {
   const [typeModalVisible, setTypeModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [containerModalVisible, setContainerModalVisible] = useState(false);
 
   const { calculateTotal, updateItem } = useInventory();
   const { activeUser } = useSession();
@@ -52,15 +53,26 @@ useEffect(() => {
     }));
   };
 
-  const handleContainerChange = (sub: 'C1' | 'C2' | 'C3' | 'C4', value: string) => {
-    setLocalItem(prev => ({
-      ...prev,
-      containers: { ...prev.containers, [sub]: parseInt(value) || 0 },
-    }));
-  };
+  const handleSelectContainer = async (n: number) => {
+    setContainerModalVisible(false);
+    const optimisticUpdate = { ...localItem, containers: n };
+    const oldItem = { ...item };
 
-  const containersTotal = (it: InventoryItem) =>
-    it.containers.C1 + it.containers.C2 + it.containers.C3 + it.containers.C4;
+    // Optimistic update - UI responds immediately
+    setLocalItem(optimisticUpdate);
+
+    try {
+      await InventoryMutations.updateItem(activeUser, item, optimisticUpdate);
+    } catch (error) {
+      if (error instanceof UserNotAuthenticatedError) {
+        navigation.navigate('UserSelection' as never);
+      } else {
+        Alert.alert('Error', 'Failed to update container');
+        console.error(error);
+        setLocalItem(oldItem);
+      }
+    }
+  };
 
   const handleSaveFromModal = async () => {
     const trimmedName = modalName?.trim();
@@ -259,30 +271,17 @@ useEffect(() => {
             ) : null
           )}
 
-          {(editingLocation || containersTotal(localItem) > 0) ? (
-            <View style={styles.containersSection}>
-              <Text style={styles.containersHeader}>containers:</Text>
-              {(['C1', 'C2', 'C3', 'C4'] as const).map((sub) =>
-                (editingLocation || localItem.containers[sub] > 0) ? (
-                  <View key={sub} style={[styles.inputRow, styles.containerSubRow]}>
-                    <Text style={styles.label}>{sub}:</Text>
-                    {editingLocation ? (
-                      <TextInput
-                        style={styles.numericInput}
-                        keyboardType="numeric"
-                        value={String(localItem.containers[sub])}
-                        onChangeText={(val) => handleContainerChange(sub, val)}
-                        onSubmitEditing={handleSaveLocation}
-                        returnKeyType="done"
-                      />
-                    ) : (
-                      <Text style={styles.numericDisplay}>{localItem.containers[sub]}</Text>
-                    )}
-                  </View>
-                ) : null
-              )}
-            </View>
-          ) : null}
+          <View style={styles.inputRow}>
+            <Text style={styles.label}>containers:</Text>
+            <TouchableOpacity
+              onPress={() => setContainerModalVisible(true)}
+              style={[styles.containerTag, localItem.containers === 0 && styles.containerTagEmpty]}
+            >
+              <Text style={[styles.containerTagText, localItem.containers === 0 && styles.containerTagTextEmpty]}>
+                {localItem.containers > 0 ? `C:${localItem.containers}` : 'Select'}
+              </Text>
+            </TouchableOpacity>
+          </View>
 
           {shouldShow('closet') ? (
             <View style={styles.inputRow}>
@@ -465,6 +464,32 @@ useEffect(() => {
           </ScrollView>
         </Modal>
       </Portal>
+
+      {/* Container Selection Modal */}
+      <Portal>
+        <Modal
+          visible={containerModalVisible}
+          onDismiss={() => setContainerModalVisible(false)}
+          contentContainerStyle={styles.typeModal}
+          dismissable={true}
+        >
+          <Text style={styles.modalTitle}>Select Container</Text>
+          {[1, 2, 3, 4].map((n) => (
+            <List.Item
+              key={n}
+              title={`C:${n}`}
+              onPress={() => handleSelectContainer(n)}
+              style={localItem.containers === n ? styles.selectedTypeItem : styles.typeItem}
+            />
+          ))}
+          <List.Item
+            key={0}
+            title="None"
+            onPress={() => handleSelectContainer(0)}
+            style={localItem.containers === 0 ? styles.selectedTypeItem : styles.typeItem}
+          />
+        </Modal>
+      </Portal>
     </View>
   );
 };
@@ -551,19 +576,27 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     paddingVertical: 4,
   },
-  containersSection: {
-    marginBottom: 8,
+  containerTag: {
+    marginLeft: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#E3F2FD',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#90CAF9',
   },
-  containersHeader: {
+  containerTagEmpty: {
+    backgroundColor: '#F8F9FA',
+    borderColor: '#E0E0E0',
+  },
+  containerTagText: {
     fontSize: 15,
-    fontWeight: '600',
-    color: '#2C3E50',
-    textTransform: 'capitalize',
-    marginBottom: 4,
+    fontWeight: '700',
+    color: '#1976D2',
   },
-  containerSubRow: {
-    marginLeft: 16,
-    marginBottom: 4,
+  containerTagTextEmpty: {
+    color: '#6C757D',
+    fontWeight: '600',
   },
   label: {
     width: 90,
