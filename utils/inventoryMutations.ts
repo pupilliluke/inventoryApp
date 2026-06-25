@@ -150,8 +150,8 @@ export const InventoryMutations = {
   async moveQuantity(
     user: ActiveUser | null,
     item: InventoryItem,
-    fromLocation: keyof Pick<InventoryItem, 'showroom' | 'warehouse' | 'containers' | 'closet'>,
-    toLocation: keyof Pick<InventoryItem, 'showroom' | 'warehouse' | 'containers' | 'closet'>,
+    fromLocation: keyof Pick<InventoryItem, 'showroom' | 'warehouse' | 'closet'>,
+    toLocation: keyof Pick<InventoryItem, 'showroom' | 'warehouse' | 'closet'>,
     quantity: number
   ): Promise<void> {
     ensureUserAuthenticated(user);
@@ -197,7 +197,7 @@ export const InventoryMutations = {
   async updateQuantity(
     user: ActiveUser | null,
     item: InventoryItem,
-    location: keyof Pick<InventoryItem, 'showroom' | 'warehouse' | 'containers' | 'closet'>,
+    location: keyof Pick<InventoryItem, 'showroom' | 'warehouse' | 'closet'>,
     newQuantity: number
   ): Promise<void> {
     ensureUserAuthenticated(user);
@@ -249,9 +249,22 @@ export const InventoryMutations = {
     
     // Collect all items that need clearing
     inventoryItems.forEach(item => {
-      if (item[location] > 0) {
-        updates[`inventory/${item.code}/${location}`] = 0;
-        itemsToUpdate.push({ code: item.code, oldQty: item[location] });
+      if (location === 'containers') {
+        const c = item.containers;
+        const sum = c.C1 + c.C2 + c.C3 + c.C4;
+        if (sum > 0) {
+          updates[`inventory/${item.code}/containers/C1`] = 0;
+          updates[`inventory/${item.code}/containers/C2`] = 0;
+          updates[`inventory/${item.code}/containers/C3`] = 0;
+          updates[`inventory/${item.code}/containers/C4`] = 0;
+          itemsToUpdate.push({ code: item.code, oldQty: sum });
+        }
+      } else {
+        const qty = item[location] as number;
+        if (qty > 0) {
+          updates[`inventory/${item.code}/${location}`] = 0;
+          itemsToUpdate.push({ code: item.code, oldQty: qty });
+        }
       }
     });
 

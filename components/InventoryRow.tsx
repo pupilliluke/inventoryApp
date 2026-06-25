@@ -44,13 +44,23 @@ useEffect(() => {
   const handleChange = (key: keyof InventoryItem, value: string | boolean) => {
     setLocalItem(prev => ({
       ...prev,
-      [key]: key === 'showroom' || key === 'warehouse' || key === 'containers' || key === 'closet'
+      [key]: key === 'showroom' || key === 'warehouse' || key === 'closet'
         ? parseInt(value as string) || 0
         : key === 'checked'
         ? value
         : value,
     }));
   };
+
+  const handleContainerChange = (sub: 'C1' | 'C2' | 'C3' | 'C4', value: string) => {
+    setLocalItem(prev => ({
+      ...prev,
+      containers: { ...prev.containers, [sub]: parseInt(value) || 0 },
+    }));
+  };
+
+  const containersTotal = (it: InventoryItem) =>
+    it.containers.C1 + it.containers.C2 + it.containers.C3 + it.containers.C4;
 
   const handleSaveFromModal = async () => {
     const trimmedName = modalName?.trim();
@@ -200,7 +210,7 @@ useEffect(() => {
     }
   };
 
-  const shouldShow = (key: keyof InventoryItem) =>
+  const shouldShow = (key: 'showroom' | 'warehouse' | 'closet') =>
     editingLocation || localItem[key] > 0;
 
   return (
@@ -229,7 +239,7 @@ useEffect(() => {
             Type: {localItem.type}
           </Text>
 
-          {(['showroom', 'warehouse', 'containers', 'closet'] as const).map((loc) =>
+          {(['showroom', 'warehouse'] as const).map((loc) =>
             shouldShow(loc) ? (
               <View key={loc} style={styles.inputRow}>
                 <Text style={styles.label}>{loc}:</Text>
@@ -248,6 +258,49 @@ useEffect(() => {
               </View>
             ) : null
           )}
+
+          {(editingLocation || containersTotal(localItem) > 0) ? (
+            <View style={styles.containersSection}>
+              <Text style={styles.containersHeader}>containers:</Text>
+              {(['C1', 'C2', 'C3', 'C4'] as const).map((sub) =>
+                (editingLocation || localItem.containers[sub] > 0) ? (
+                  <View key={sub} style={[styles.inputRow, styles.containerSubRow]}>
+                    <Text style={styles.label}>{sub}:</Text>
+                    {editingLocation ? (
+                      <TextInput
+                        style={styles.numericInput}
+                        keyboardType="numeric"
+                        value={String(localItem.containers[sub])}
+                        onChangeText={(val) => handleContainerChange(sub, val)}
+                        onSubmitEditing={handleSaveLocation}
+                        returnKeyType="done"
+                      />
+                    ) : (
+                      <Text style={styles.numericDisplay}>{localItem.containers[sub]}</Text>
+                    )}
+                  </View>
+                ) : null
+              )}
+            </View>
+          ) : null}
+
+          {shouldShow('closet') ? (
+            <View style={styles.inputRow}>
+              <Text style={styles.label}>closet:</Text>
+              {editingLocation ? (
+                <TextInput
+                  style={styles.numericInput}
+                  keyboardType="numeric"
+                  value={String(localItem.closet)}
+                  onChangeText={(val) => handleChange('closet', val)}
+                  onSubmitEditing={handleSaveLocation}
+                  returnKeyType="done"
+                />
+              ) : (
+                <Text style={styles.numericDisplay}>{localItem.closet}</Text>
+              )}
+            </View>
+          ) : null}
 
           
           {showNotes && (
@@ -497,6 +550,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
     paddingVertical: 4,
+  },
+  containersSection: {
+    marginBottom: 8,
+  },
+  containersHeader: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#2C3E50',
+    textTransform: 'capitalize',
+    marginBottom: 4,
+  },
+  containerSubRow: {
+    marginLeft: 16,
+    marginBottom: 4,
   },
   label: {
     width: 90,

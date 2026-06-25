@@ -96,14 +96,25 @@ export function generateQuantityChanges(
   newItem: any
 ): string {
   const changes: string[] = [];
-  const locations = ['showroom', 'warehouse', 'containers', 'closet'];
-  
+  const locations = ['showroom', 'warehouse', 'closet'];
+
   for (const location of locations) {
     const oldQty = oldItem[location] || 0;
     const newQty = newItem[location] || 0;
-    
+
     if (oldQty !== newQty) {
       changes.push(`${location}: ${oldQty} → ${newQty}`);
+    }
+  }
+
+  // Container sub-categories (C1–C4) are nested under `containers`
+  const containerKeys = ['C1', 'C2', 'C3', 'C4'];
+  for (const ck of containerKeys) {
+    const oldQty = (oldItem.containers && oldItem.containers[ck]) || 0;
+    const newQty = (newItem.containers && newItem.containers[ck]) || 0;
+
+    if (oldQty !== newQty) {
+      changes.push(`containers.${ck}: ${oldQty} → ${newQty}`);
     }
   }
   
