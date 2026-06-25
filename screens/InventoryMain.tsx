@@ -12,7 +12,7 @@ import UserBadge from '../components/UserBadge';
 import { useSession } from '../context/SessionContext';
 import { InventoryMutations, UserNotAuthenticatedError } from '../utils/inventoryMutations';
 import CustomIconButton from '../components/CustomIconButton';
-import { CollapseIcon, DropdownIcon, LogIcon, UsersIcon, CountIcon, AddIcon, EraserIcon } from '../components/CustomIcons';
+import { CollapseIcon, DropdownIcon, LogIcon, UsersIcon, CountIcon, AddIcon, EraserIcon, PullListIcon } from '../components/CustomIcons';
 import { color, space, radius, font, mono } from '../theme/tokens';
 
 const typeFilters = [
@@ -85,7 +85,7 @@ export default function InventoryMain() {
       setManageVisible(false);
     } catch (error) {
       if (error instanceof UserNotAuthenticatedError) {
-        navigation.navigate('UserSelection' as never);
+        console.warn('No active user — please sign out and sign in again.');
       } else {
         Alert.alert('Error', 'Failed to create item');
         console.error(error);
@@ -123,7 +123,7 @@ export default function InventoryMain() {
       Alert.alert('Success', `All ${locationToClear} quantities cleared`);
     } catch (error) {
       if (error instanceof UserNotAuthenticatedError) {
-        navigation.navigate('UserSelection' as never);
+        console.warn('No active user — please sign out and sign in again.');
       } else {
         Alert.alert('Error', `Failed to clear ${locationToClear} quantities`);
         console.error('Clear location error:', error);
@@ -137,6 +137,7 @@ export default function InventoryMain() {
   };
 
   const navItems = [
+    { label: 'Pull Lists', icon: PullListIcon, onPress: () => { setNavigationMenuVisible(false); navigation.navigate('PullLists' as never); } },
     { label: 'Activity Log', icon: LogIcon, onPress: () => { setNavigationMenuVisible(false); navigation.navigate('LogPage' as never); } },
     { label: 'User Management', icon: UsersIcon, onPress: () => { setNavigationMenuVisible(false); navigation.navigate('UserListPage' as never); } },
     { label: 'Recount', icon: CountIcon, onPress: () => { setNavigationMenuVisible(false); navigation.navigate('RecountPage' as never); } },

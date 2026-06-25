@@ -4,6 +4,7 @@ import { useAuth, useUser } from '@clerk/expo';
 import LoadingScreen from '../screens/LoadingScreen';
 import SignInScreen from '../screens/SignInScreen';
 import SSOCallbackScreen from '../screens/SSOCallbackScreen';
+import { useSession } from '../context/SessionContext';
 import { ensureFirebaseUser } from '../utils/userSync';
 
 // On web, Google OAuth returns to this path so Clerk can complete the handshake.
@@ -23,14 +24,15 @@ interface AuthGateProps {
  * Gates the app behind Clerk authentication:
  *  1. Shows a loading screen while Clerk initializes.
  *  2. Shows the Google sign-in screen when signed out.
- *  3. On sign-in, syncs the user's email into Firebase `users/` so they appear
- *     in the existing user-selection list, then renders the app.
+ *  3. On sign-in, syncs the Google identity into Firebase `users/` and sets it as
+ *     the active session user (the operator-selection screen is gone — the signed-in
+ *     Google name is the active user), then renders the app.
  */
 export default function AuthGate({ children }: AuthGateProps) {
   const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
+  const { setActiveUser, clearSession } = useSession();
   const [synced, setSynced] = useState(false);
-  const [syncError, setSyncError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -41,7 +43,8 @@ export default function AuthGate({ children }: AuthGateProps) {
         user.emailAddresses?.[0]?.emailAddress;
 
       if (!email) {
-        // No email on the account — let them through to user selection anyway.
+        // No email (shouldn't happen with Google) — fall back to the Clerk id/name.
+        setActiveUser({ id: user.id, name: user.fullName ?? 'User' });
         setSynced(true);
         return;
       }
@@ -52,28 +55,34 @@ export default function AuthGate({ children }: AuthGateProps) {
         lastName: user.lastName,
         fullName: user.fullName,
       })
-        .then(() => {
-          if (!cancelled) setSynced(true);
+        .then((syncedUser) => {
+          if (cancelled) return;
+          // The Google name becomes the active operator used for logging/pull lists.
+          setActiveUser({ id: syncedUser.id, name: syncedUser.name });
+          setSynced(true);
         })
         .catch((err) => {
           console.error('Failed to sync Clerk user to Firebase:', err);
-          if (!cancelled) {
-            setSyncError(true);
-            setSynced(true); // don't block the user on a sync hiccup
-          }
+          if (cancelled) return;
+          // Don't block the user on a sync hiccup — use the Clerk identity directly.
+          setActiveUser({
+            id: email,
+            name: user.fullName ?? email,
+          });
+          setSynced(true);
         });
     }
 
-    // Reset sync state when the user signs out.
+    // Reset session state when the user signs out.
     if (!isSignedIn && synced) {
+      clearSession();
       setSynced(false);
-      setSyncError(false);
     }
 
     return () => {
       cancelled = true;
     };
-  }, [isSignedIn, user, synced]);
+  }, [isSignedIn, user, synced, setActiveUser, clearSession]);
 
   if (!isLoaded) {
     return <LoadingScreen message="Starting up..." />;

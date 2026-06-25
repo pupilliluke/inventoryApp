@@ -11,10 +11,11 @@ import { SessionProvider } from './context/SessionContext';
 import AuthGate from './components/AuthGate';
 import InventoryMain from './screens/HomeScreen';
 import UserListPage from './screens/UserListPage';
-import UserSelectionScreen from './screens/UserSelectionScreen';
 import LogPage from './screens/LogPage';
 import RecountPage from './screens/RecountPage';
 import ReportPage from './screens/ReportPage';
+import PullListPage from './screens/PullListPage';
+import PullListDetailPage from './screens/PullListDetailPage';
 import { color } from './theme/tokens';
 
 const Stack = createNativeStackNavigator();
@@ -57,13 +58,14 @@ export default function App() {
   return (
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
       <PaperProvider theme={theme}>
-        <AuthGate>
-          <SessionProvider>
+        <SessionProvider>
+          <AuthGate>
             <InventoryProvider>
               <NavigationContainer theme={navTheme as any}>
                 <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.appBg } }}>
-                  <Stack.Screen name="UserSelection" component={UserSelectionScreen} />
                   <Stack.Screen name="Inventory" component={InventoryMain} />
+                  <Stack.Screen name="PullLists" component={PullListPage} />
+                  <Stack.Screen name="PullListDetail" component={PullListDetailPage} />
                   <Stack.Screen name="UserListPage" component={UserListPage} />
                   <Stack.Screen name="LogPage" component={LogPage} />
                   <Stack.Screen name="RecountPage" component={RecountPage} />
@@ -71,8 +73,8 @@ export default function App() {
                 </Stack.Navigator>
               </NavigationContainer>
             </InventoryProvider>
-          </SessionProvider>
-        </AuthGate>
+          </AuthGate>
+        </SessionProvider>
       </PaperProvider>
     </ClerkProvider>
   );

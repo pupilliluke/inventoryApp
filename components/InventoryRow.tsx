@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView } from 'react-native';
 import { Modal, Portal, List } from 'react-native-paper';
 import { InventoryItem } from '../types/inventoryItem';
@@ -23,6 +23,34 @@ export const COL = {
   cont: 50,
   actions: 60,
 } as const;
+
+// Module-level so the component identity stays stable across renders. When this
+// lived inside InventoryRow it was recreated every render, so React remounted the
+// TextInput on every keystroke (focus loss + lag while typing quantities).
+type QtyCellProps = {
+  value: number;
+  width: number;
+  editing: boolean;
+  onChange?: (v: string) => void;
+  onSubmit?: () => void;
+};
+
+const QtyCell = React.memo(function QtyCell({ value, width, editing, onChange, onSubmit }: QtyCellProps) {
+  if (editing && onChange) {
+    return (
+      <TextInput
+        style={[styles.qtyInput, { width }]}
+        keyboardType="numeric"
+        value={String(value)}
+        onChangeText={onChange}
+        onSubmitEditing={onSubmit}
+        returnKeyType="done"
+        selectTextOnFocus
+      />
+    );
+  }
+  return <Text style={[styles.qtyValue, { width }, value === 0 && styles.qtyZero]}>{value}</Text>;
+});
 
 const InventoryRow = ({ item }: { item: InventoryItem }) => {
   const [typeModalVisible, setTypeModalVisible] = useState(false);
@@ -81,7 +109,7 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
       await InventoryMutations.updateItem(activeUser, item, optimisticUpdate);
     } catch (error) {
       if (error instanceof UserNotAuthenticatedError) {
-        navigation.navigate('UserSelection' as never);
+        console.warn('No active user — please sign out and sign in again.');
       } else {
         Alert.alert('Error', 'Failed to update container');
         console.error(error);
@@ -114,7 +142,7 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
       await InventoryMutations.updateItem(activeUser, item, optimisticUpdate);
     } catch (error) {
       if (error instanceof UserNotAuthenticatedError) {
-        navigation.navigate('UserSelection' as never);
+        console.warn('No active user — please sign out and sign in again.');
       } else {
         Alert.alert('Error', 'Failed to update item');
         console.error(error);
@@ -138,7 +166,7 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
       setEditingLocation(false);
     } catch (error) {
       if (error instanceof UserNotAuthenticatedError) {
-        navigation.navigate('UserSelection' as never);
+        console.warn('No active user — please sign out and sign in again.');
       } else {
         Alert.alert('Error', 'Failed to update item quantities');
         console.error(error);
@@ -150,21 +178,24 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
     }
   }, [localItem, item, activeUser, navigation]);
 
-  // Add Enter key listener for saving location quantities
+  // Keep a stable ref to the latest save handler so the keydown listener below
+  // subscribes once per edit session instead of re-subscribing on every keystroke.
+  const handleSaveLocationRef = useRef(handleSaveLocation);
+  handleSaveLocationRef.current = handleSaveLocation;
+
+  // Add Enter key listener for saving location quantities (web)
   useEffect(() => {
+    if (!editingLocation) return;
     const handleKeyPress = (event: KeyboardEvent) => {
-      if (event.key === 'Enter' && editingLocation) {
+      if (event.key === 'Enter') {
         event.preventDefault();
         event.stopPropagation();
-        handleSaveLocation();
+        handleSaveLocationRef.current();
       }
     };
-
-    if (editingLocation) {
-      window.addEventListener('keydown', handleKeyPress, true);
-      return () => window.removeEventListener('keydown', handleKeyPress, true);
-    }
-  }, [editingLocation, handleSaveLocation]);
+    window.addEventListener('keydown', handleKeyPress, true);
+    return () => window.removeEventListener('keydown', handleKeyPress, true);
+  }, [editingLocation]);
 
   const handleCheckboxToggle = async () => {
     const newCheckedState = !localItem.checked;
@@ -178,7 +209,7 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
       await InventoryMutations.updateItem(activeUser, item, optimisticUpdate);
     } catch (error) {
       if (error instanceof UserNotAuthenticatedError) {
-        navigation.navigate('UserSelection' as never);
+        console.warn('No active user — please sign out and sign in again.');
       } else {
         Alert.alert('Error', 'Failed to update checkbox');
         console.error(error);
@@ -200,7 +231,7 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
       await InventoryMutations.updateItem(activeUser, item, optimisticUpdate);
     } catch (error) {
       if (error instanceof UserNotAuthenticatedError) {
-        navigation.navigate('UserSelection' as never);
+        console.warn('No active user — please sign out and sign in again.');
       } else {
         Alert.alert('Error', 'Failed to update note');
         console.error(error);
@@ -226,7 +257,7 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
       } catch (error) {
         console.error('Delete failed:', error);
         if (error instanceof UserNotAuthenticatedError) {
-          navigation.navigate('UserSelection' as never);
+          console.warn('No active user — please sign out and sign in again.');
         } else {
           alert('Error: Failed to delete item');
         }
@@ -237,23 +268,6 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
   };
 
   const hasNote = !!(localItem.note && localItem.note.trim());
-
-  // Renders a single numeric quantity cell (display or editable input).
-  const QtyCell = ({ value, onChange, width }: { value: number; onChange?: (v: string) => void; width: number }) => (
-    editingLocation && onChange ? (
-      <TextInput
-        style={[styles.qtyInput, { width }]}
-        keyboardType="numeric"
-        value={String(value)}
-        onChangeText={onChange}
-        onSubmitEditing={handleSaveLocation}
-        returnKeyType="done"
-        selectTextOnFocus
-      />
-    ) : (
-      <Text style={[styles.qtyValue, { width }, value === 0 && styles.qtyZero]}>{value}</Text>
-    )
-  );
 
   return (
     <View style={[styles.row, localItem.checked && styles.rowChecked]}>
@@ -280,8 +294,8 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
 
         {/* Quantity columns */}
         <View style={styles.qtyGroup}>
-          <QtyCell value={localItem.showroom} onChange={(v) => handleChange('showroom', v)} width={COL.qty} />
-          <QtyCell value={localItem.warehouse} onChange={(v) => handleChange('warehouse', v)} width={COL.qty} />
+          <QtyCell value={localItem.showroom} onChange={(v) => handleChange('showroom', v)} width={COL.qty} editing={editingLocation} onSubmit={handleSaveLocation} />
+          <QtyCell value={localItem.warehouse} onChange={(v) => handleChange('warehouse', v)} width={COL.qty} editing={editingLocation} onSubmit={handleSaveLocation} />
           <View style={[styles.contCell, { width: COL.cont }]}>
             <TouchableOpacity
               onPress={() => setContainerModalVisible(true)}
@@ -308,7 +322,7 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
               </Text>
             )}
           </View>
-          <QtyCell value={localItem.closet} onChange={(v) => handleChange('closet', v)} width={COL.qty} />
+          <QtyCell value={localItem.closet} onChange={(v) => handleChange('closet', v)} width={COL.qty} editing={editingLocation} onSubmit={handleSaveLocation} />
         </View>
 
         {/* Actions */}

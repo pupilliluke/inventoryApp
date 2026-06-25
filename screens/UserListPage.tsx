@@ -61,7 +61,7 @@ export default function UserListPage() {
       Alert.alert('Success', 'User added successfully');
     } catch (error) {
       if (error instanceof UserNotAuthenticatedError) {
-        navigation.navigate('UserSelection' as never);
+        console.warn('No active user — please sign out and sign in again.');
       } else {
         Alert.alert('Error', 'Failed to add user');
         console.error(error);
@@ -83,7 +83,7 @@ export default function UserListPage() {
       Alert.alert('Success', 'User deleted successfully');
     } catch (error) {
       if (error instanceof UserNotAuthenticatedError) {
-        navigation.navigate('UserSelection' as never);
+        console.warn('No active user — please sign out and sign in again.');
       } else {
         Alert.alert('Error', 'Failed to delete user');
         console.error(error);
@@ -123,7 +123,7 @@ export default function UserListPage() {
       Alert.alert('Success', 'User renamed successfully');
     } catch (error) {
       if (error instanceof UserNotAuthenticatedError) {
-        navigation.navigate('UserSelection' as never);
+        console.warn('No active user — please sign out and sign in again.');
       } else {
         Alert.alert('Error', 'Failed to rename user');
         console.error(error);

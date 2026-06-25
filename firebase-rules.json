@@ -26,12 +26,18 @@
       }
     },
     
-    "users": { 
+    "users": {
       ".read": true,
       ".write": true,
       "$userId": {
         ".validate": "newData.hasChild('name') && newData.child('name').isString()"
       }
+    },
+
+    "pullLists": {
+      ".read": true,
+      ".write": true,
+      ".indexOn": "updatedAt"
     }
   }
 }

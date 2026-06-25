@@ -18,6 +18,16 @@ export const GoogleIcon: React.FC<IconProps> = ({ size = 24 }) => (
   </View>
 );
 
+export const PullListIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
+  <View style={{ width: size, height: size }}>
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect x="5" y="4" width="14" height="17" rx="2" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Rect x="9" y="2.5" width="6" height="3.5" rx="1" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M8.5 11h7M8.5 15h7" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  </View>
+);
+
 export const LogIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
   <View style={{ width: size, height: size }}>
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
