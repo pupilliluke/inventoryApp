@@ -98,7 +98,7 @@ export default function InventoryMain() {
         type: 'Other',
         showroom: 0,
         warehouse: 0,
-        containers: 0,
+        containers: { C1: 0, C2: 0, C3: 0, C4: 0 },
         closet: 0,
         checked: false,
         note: '',
@@ -134,8 +134,12 @@ export default function InventoryMain() {
   const handleClearLocation = async (location: 'warehouse' | 'showroom' | 'containers') => {
     console.log(`Clear location button clicked for: ${location}`);
     
-    const itemsWithQuantity = originalInventory.filter(item => item[location] > 0);
-    const totalQuantity = itemsWithQuantity.reduce((sum, item) => sum + item[location], 0);
+    const qtyOf = (item: typeof originalInventory[number]) =>
+      location === 'containers'
+        ? item.containers.C1 + item.containers.C2 + item.containers.C3 + item.containers.C4
+        : (item[location] as number);
+    const itemsWithQuantity = originalInventory.filter(item => qtyOf(item) > 0);
+    const totalQuantity = itemsWithQuantity.reduce((sum, item) => sum + qtyOf(item), 0);
     
     console.log(`Items with quantity in ${location}:`, itemsWithQuantity.length, 'Total quantity:', totalQuantity);
     
