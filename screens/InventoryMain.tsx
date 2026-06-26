@@ -168,6 +168,9 @@ export default function InventoryMain() {
     <SafeAreaView style={styles.screen}>
       {/* Command bar */}
       <View style={styles.header}>
+        {navigation.canGoBack() && (
+          <CustomIconButton iconType="back" onPress={() => navigation.goBack()} color={color.onChrome} />
+        )}
         <View style={styles.headerTitleBlock}>
           <Text style={styles.headerEyebrow}>Phantom Warehouse</Text>
           <Text style={styles.headerTitle}>Inventory</Text>

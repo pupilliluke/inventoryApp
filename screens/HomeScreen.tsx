@@ -1,8 +1,9 @@
 import React from 'react';
-import ActualInventoryApp from './InventoryMain';
+import DashboardScreen from './DashboardScreen';
 
 // The active user is established by AuthGate from the signed-in Google identity,
-// so this screen simply renders the inventory app (no operator-selection step).
-export default function ProtectedInventoryApp() {
-  return <ActualInventoryApp />;
+// so the home screen is the operations dashboard (tasks, pull lists, container
+// status). The full inventory table lives on its own "InventoryList" route.
+export default function ProtectedHome() {
+  return <DashboardScreen />;
 }
