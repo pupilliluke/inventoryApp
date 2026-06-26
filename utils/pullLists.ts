@@ -10,6 +10,7 @@ export interface PullListItem {
 export interface PullList {
   id: string;
   title: string;
+  notes: string;
   ownerId: string;
   ownerName: string;
   items: Record<string, PullListItem>;
@@ -33,6 +34,7 @@ export async function createPullList(
   await set(listRef, {
     id: listRef.key,
     title: title.trim(),
+    notes: '',
     ownerId: owner.id,
     ownerName: owner.name,
     items,
@@ -47,11 +49,12 @@ export async function createPullList(
  */
 export async function savePullList(
   id: string,
-  patch: { title?: string; items?: Record<string, PullListItem> }
+  patch: { title?: string; notes?: string; items?: Record<string, PullListItem> }
 ): Promise<void> {
   const db = getDatabase();
   await update(ref(db, `${PATH}/${id}`), {
     ...(patch.title !== undefined ? { title: patch.title.trim() } : {}),
+    ...(patch.notes !== undefined ? { notes: patch.notes } : {}),
     ...(patch.items !== undefined ? { items: patch.items } : {}),
     updatedAt: new Date().toISOString(),
   });
@@ -73,6 +76,7 @@ export function subscribePullLists(callback: (lists: PullList[]) => void): () =>
     const lists: PullList[] = Object.entries(data).map(([id, raw]: [string, any]) => ({
       id,
       title: raw?.title ?? 'Untitled',
+      notes: raw?.notes ?? '',
       ownerId: raw?.ownerId ?? '',
       ownerName: raw?.ownerName ?? 'Unknown',
       items: raw?.items ?? {},
@@ -99,6 +103,7 @@ export function subscribePullList(id: string, callback: (list: PullList | null) 
     callback({
       id,
       title: raw.title ?? 'Untitled',
+      notes: raw.notes ?? '',
       ownerId: raw.ownerId ?? '',
       ownerName: raw.ownerName ?? 'Unknown',
       items: raw.items ?? {},

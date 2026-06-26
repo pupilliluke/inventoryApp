@@ -18,6 +18,7 @@ import RecountPage from './screens/RecountPage';
 import ReportPage from './screens/ReportPage';
 import PullListPage from './screens/PullListPage';
 import PullListDetailPage from './screens/PullListDetailPage';
+import AccountPage from './screens/AccountPage';
 import { color } from './theme/tokens';
 
 const Stack = createNativeStackNavigator();
@@ -101,6 +102,7 @@ export default function App() {
                   <Stack.Screen name="LogPage" component={LogPage} />
                   <Stack.Screen name="RecountPage" component={GuardedRecountPage} />
                   <Stack.Screen name="ReportPage" component={ReportPage} />
+                  <Stack.Screen name="AccountPage" component={AccountPage} />
                 </Stack.Navigator>
               </NavigationContainer>
             </InventoryProvider>

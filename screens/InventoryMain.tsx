@@ -13,7 +13,7 @@ import { useSession } from '../context/SessionContext';
 import { InventoryMutations, UserNotAuthenticatedError } from '../utils/inventoryMutations';
 import CustomIconButton from '../components/CustomIconButton';
 import { useIsAdmin } from '../utils/admin';
-import { CollapseIcon, DropdownIcon, LogIcon, UsersIcon, CountIcon, AddIcon, EraserIcon, PullListIcon } from '../components/CustomIcons';
+import { CollapseIcon, DropdownIcon, LogIcon, UsersIcon, CountIcon, AddIcon, EraserIcon, PullListIcon, AccountIcon } from '../components/CustomIcons';
 import { color, space, radius, font, mono } from '../theme/tokens';
 
 const typeFilters = [
@@ -49,6 +49,19 @@ export default function InventoryMain() {
   const [locationToClear, setLocationToClear] = useState<'warehouse' | 'showroom' | null>(null);
   const [clearLocationStats, setClearLocationStats] = useState<{ itemCount: number, totalQuantity: number }>({ itemCount: 0, totalQuantity: 0 });
   const [navigationMenuVisible, setNavigationMenuVisible] = useState(false);
+  const [sortByContainer, setSortByContainer] = useState(false);
+
+  // Optionally order the visible items by container category (C1→C4, then none).
+  const displayInventory = useMemo(() => {
+    if (!sortByContainer) return inventory;
+    const key = (it: InventoryItem) => {
+      const cat = it.containers?.category ?? 0;
+      return cat > 0 ? cat : 99;
+    };
+    return [...inventory].sort(
+      (a, b) => key(a) - key(b) || (a.name || '').localeCompare(b.name || '')
+    );
+  }, [inventory, sortByContainer]);
 
   useEffect(() => {
     const patchMissingFields = () => {
@@ -139,6 +152,7 @@ export default function InventoryMain() {
   const navItems = [
     { label: 'Pull Lists', icon: PullListIcon, onPress: () => { setNavigationMenuVisible(false); navigation.navigate('PullLists' as never); } },
     { label: 'Activity Log', icon: LogIcon, onPress: () => { setNavigationMenuVisible(false); navigation.navigate('LogPage' as never); } },
+    { label: 'Account', icon: AccountIcon, onPress: () => { setNavigationMenuVisible(false); navigation.navigate('AccountPage' as never); } },
     // Admin-only entries.
     ...(isAdmin ? [
       { label: 'User Management', icon: UsersIcon, onPress: () => { setNavigationMenuVisible(false); navigation.navigate('UserListPage' as never); } },
@@ -174,7 +188,7 @@ export default function InventoryMain() {
       <FlatList
         style={styles.body}
         contentContainerStyle={{ paddingBottom: space.xl }}
-        data={loading ? [] : inventory}
+        data={loading ? [] : displayInventory}
         renderItem={renderRow}
         keyExtractor={keyExtractor}
         keyboardShouldPersistTaps="handled"
@@ -230,21 +244,32 @@ export default function InventoryMain() {
 
             {/* Count strip */}
             <View style={styles.countStrip}>
-              <Text style={styles.countText}>
-                {inventory.length} {inventory.length === 1 ? 'item' : 'items'}
-              </Text>
-              {originalInventory.length > 0 && inventory.length !== originalInventory.length && (
-                <Text style={styles.countSub}>of {originalInventory.length}</Text>
-              )}
+              <View style={styles.countLeft}>
+                <Text style={styles.countText}>
+                  {inventory.length} {inventory.length === 1 ? 'item' : 'items'}
+                </Text>
+                {originalInventory.length > 0 && inventory.length !== originalInventory.length && (
+                  <Text style={styles.countSub}>of {originalInventory.length}</Text>
+                )}
+              </View>
+              <TouchableOpacity
+                style={[styles.sortBtn, sortByContainer && styles.sortBtnOn]}
+                onPress={() => setSortByContainer((v) => !v)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.sortBtnText, sortByContainer && styles.sortBtnTextOn]}>
+                  {sortByContainer ? '✓ ' : ''}Sort: Container
+                </Text>
+              </TouchableOpacity>
             </View>
 
             {/* Table column header */}
             <View style={styles.tableHeader}>
               <Text style={[styles.thItem]}>Item</Text>
               <View style={styles.thQtyGroup}>
-                <Text style={[styles.th, { width: COL.qty }]}>Show</Text>
-                <Text style={[styles.th, { width: COL.qty }]}>Whse</Text>
-                <Text style={[styles.th, { width: COL.cont }]}>Cont</Text>
+                <Text style={[styles.th, { width: COL.qty }]}>S</Text>
+                <Text style={[styles.th, { width: COL.qty }]}>W</Text>
+                <Text style={[styles.th, { width: COL.cont }]}>C</Text>
               </View>
               <View style={{ width: COL.actions }} />
             </View>
@@ -316,23 +341,28 @@ export default function InventoryMain() {
               </TouchableOpacity>
             </View>
 
-            <Text style={[styles.sectionLabel, { marginTop: space.xl }]}>Clear Locations</Text>
-            <View style={styles.formBlock}>
-              <Text style={styles.helperText}>
-                Clear all quantities from a location.
-              </Text>
-              {(['showroom', 'warehouse'] as const).map((location) => (
-                <TouchableOpacity
-                  key={location}
-                  style={styles.warningAction}
-                  onPress={() => handleClearLocation(location)}
-                  activeOpacity={0.8}
-                >
-                  <EraserIcon size={18} color={color.warning} />
-                  <Text style={styles.warningActionText}>Clear all {location}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+            {/* Clearing a whole location is destructive and admin-only. */}
+            {isAdmin && (
+              <>
+                <Text style={[styles.sectionLabel, { marginTop: space.xl }]}>Clear Locations</Text>
+                <View style={styles.formBlock}>
+                  <Text style={styles.helperText}>
+                    Clear all quantities from a location.
+                  </Text>
+                  {(['showroom', 'warehouse'] as const).map((location) => (
+                    <TouchableOpacity
+                      key={location}
+                      style={styles.warningAction}
+                      onPress={() => handleClearLocation(location)}
+                      activeOpacity={0.8}
+                    >
+                      <EraserIcon size={18} color={color.warning} />
+                      <Text style={styles.warningActionText}>Clear all {location}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            )}
           </ScrollView>
         </Modal>
       </Portal>
@@ -497,11 +527,36 @@ const styles = StyleSheet.create({
   },
   countStrip: {
     flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: space.xs,
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginTop: space.md,
     marginBottom: space.sm,
     paddingHorizontal: space.xs,
+  },
+  countLeft: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: space.xs,
+  },
+  sortBtn: {
+    borderWidth: 1,
+    borderColor: color.border,
+    borderRadius: radius.sm,
+    backgroundColor: color.surface,
+    paddingHorizontal: space.sm,
+    paddingVertical: space.xs,
+  },
+  sortBtnOn: {
+    backgroundColor: color.accentBg,
+    borderColor: color.accent,
+  },
+  sortBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: color.textSecondary,
+  },
+  sortBtnTextOn: {
+    color: color.accent,
   },
   countText: {
     fontFamily: mono,

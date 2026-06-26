@@ -63,6 +63,7 @@ export default function PullListPage() {
           <View style={styles.titleLine}>
             <Text style={styles.listTitle} numberOfLines={1}>{item.title}</Text>
             {mine && <Text style={styles.mineBadge}>YOU</Text>}
+            {item.notes?.trim() ? <Text style={styles.noteBadge}>NOTE</Text> : null}
           </View>
           <Text style={styles.owner} numberOfLines={1}>by {item.ownerName}</Text>
         </View>
@@ -160,6 +161,19 @@ const styles = StyleSheet.create({
     backgroundColor: color.accentBg,
     borderWidth: 1,
     borderColor: color.accentBorder,
+    borderRadius: radius.sm,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    overflow: 'hidden',
+  },
+  noteBadge: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    color: color.textSecondary,
+    backgroundColor: color.surfaceAlt,
+    borderWidth: 1,
+    borderColor: color.border,
     borderRadius: radius.sm,
     paddingHorizontal: 4,
     paddingVertical: 1,

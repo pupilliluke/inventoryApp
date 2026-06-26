@@ -25,6 +25,7 @@ export default function PullListDetailPage() {
   const [remote, setRemote] = useState<PullList | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [title, setTitle] = useState('');
+  const [notes, setNotes] = useState('');
   const [items, setItems] = useState<Record<string, PullListItem>>({});
   const [search, setSearch] = useState('');
   const [saving, setSaving] = useState(false);
@@ -41,6 +42,7 @@ export default function PullListDetailPage() {
       setLoaded(true);
       if (!initialized.current && l) {
         setTitle(l.title);
+        setNotes(l.notes || '');
         setItems(l.items || {});
         initialized.current = true;
       }
@@ -102,6 +104,7 @@ export default function PullListDetailPage() {
     try {
       await savePullList(listId, {
         title: title.trim() || `${activeUser?.name ?? 'Untitled'} Pull List`,
+        notes,
         items,
       });
       setDirty(false);
@@ -180,6 +183,26 @@ export default function PullListDetailPage() {
           <Text style={styles.viewerOwner}>by {remote?.ownerName} · view only</Text>
         </>
       )}
+
+      {canEdit ? (
+        <>
+          <Text style={[styles.fieldLabel, { marginTop: space.lg }]}>Notes</Text>
+          <TextInput
+            style={styles.notesInput}
+            value={notes}
+            onChangeText={(t) => { setNotes(t); setDirty(true); }}
+            placeholder="Add notes for this pull list…"
+            placeholderTextColor={color.textMuted}
+            multiline
+            textAlignVertical="top"
+          />
+        </>
+      ) : remote?.notes ? (
+        <View style={styles.viewerNotes}>
+          <Text style={styles.viewerNotesLabel}>Notes</Text>
+          <Text style={styles.viewerNotesText}>{remote.notes}</Text>
+        </View>
+      ) : null}
 
       {canEdit && (
         <>
@@ -315,6 +338,28 @@ const styles = StyleSheet.create({
   },
   viewerTitle: { ...font.title, fontSize: 18 },
   viewerOwner: { fontSize: 12, color: color.textMuted, marginTop: 2 },
+  notesInput: {
+    borderWidth: 1,
+    borderColor: color.border,
+    borderRadius: radius.sm,
+    backgroundColor: color.surface,
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+    fontSize: 14,
+    color: color.text,
+    minHeight: 72,
+    lineHeight: 20,
+  },
+  viewerNotes: {
+    marginTop: space.lg,
+    borderWidth: 1,
+    borderColor: color.border,
+    borderRadius: radius.sm,
+    backgroundColor: color.surfaceAlt,
+    padding: space.md,
+  },
+  viewerNotesLabel: { ...font.label, marginBottom: space.xs },
+  viewerNotesText: { fontSize: 14, color: color.text, lineHeight: 20 },
   searchWrap: {
     flexDirection: 'row',
     alignItems: 'center',

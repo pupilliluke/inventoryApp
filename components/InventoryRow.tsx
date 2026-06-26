@@ -15,14 +15,23 @@ const typeOptions = [
 ];
 
 // Shared column geometry so the table header in InventoryMain stays aligned.
-// Sized so the full row fits the narrowest iPhone (~335px usable):
-// itemCell(100) + 3×qty(38) + cont(50) + actions(60) = 324px.
+// Number/container columns are kept tight so item names get the remaining space.
+// itemCell(flex, min 110) + 3×qty(32) + cont(42) + actions(58) leaves the rest
+// for the name on the narrowest iPhone (~335px usable).
 export const COL = {
-  item: 100,
-  qty: 38,
-  cont: 50,
-  actions: 60,
+  item: 110,
+  qty: 32,
+  cont: 42,
+  actions: 58,
 } as const;
+
+// Distinct colors for container categories C1–C4 so they're scannable at a glance.
+export const CONTAINER_COLORS: Record<number, { bg: string; border: string; text: string }> = {
+  1: { bg: '#e4edf5', border: '#9bbada', text: '#1f5d99' }, // steel blue
+  2: { bg: '#e3f1e8', border: '#9ccdb0', text: '#1f7a43' }, // green
+  3: { bg: '#f6ebd9', border: '#d9b878', text: '#9a5b06' }, // amber
+  4: { bg: '#efe1ee', border: '#cf9ec9', text: '#8a2a7d' }, // magenta/purple
+};
 
 // Module-level so the component identity stays stable across renders. When this
 // lived inside InventoryRow it was recreated every render, so React remounted the
@@ -268,6 +277,7 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
   };
 
   const hasNote = !!(localItem.note && localItem.note.trim());
+  const containerColor = CONTAINER_COLORS[localItem.containers.category];
 
   return (
     <View style={[styles.row, localItem.checked && styles.rowChecked]}>
@@ -314,10 +324,19 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
             )}
             <TouchableOpacity
               onPress={() => setContainerModalVisible(true)}
-              style={[styles.contTag, { marginTop: space.xs }, localItem.containers.category === 0 && styles.contTagEmpty]}
+              style={[
+                styles.contTag,
+                { marginTop: space.xs },
+                containerColor
+                  ? { backgroundColor: containerColor.bg, borderColor: containerColor.border }
+                  : styles.contTagEmpty,
+              ]}
               activeOpacity={0.7}
             >
-              <Text style={[styles.contTagText, localItem.containers.category === 0 && styles.contTagTextEmpty]}>
+              <Text style={[
+                styles.contTagText,
+                containerColor ? { color: containerColor.text } : styles.contTagTextEmpty,
+              ]}>
                 {localItem.containers.category > 0 ? `C${localItem.containers.category}` : '—'}
               </Text>
             </TouchableOpacity>
@@ -465,6 +484,7 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
           <Text style={styles.modalTitle}>Select Container</Text>
           {[1, 2, 3, 4, 0].map((n) => {
             const selected = localItem.containers.category === n;
+            const cc = CONTAINER_COLORS[n];
             return (
               <TouchableOpacity
                 key={n}
@@ -472,9 +492,16 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
                 style={[styles.optionItem, selected && styles.optionItemSelected]}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.optionText, selected && styles.optionTextSelected]}>
-                  {n === 0 ? 'None' : `C${n}`}
-                </Text>
+                <View style={styles.optionLabelRow}>
+                  {cc && <View style={[styles.optionSwatch, { backgroundColor: cc.bg, borderColor: cc.border }]} />}
+                  <Text style={[
+                    styles.optionText,
+                    cc && { color: cc.text, fontWeight: '700' },
+                    selected && styles.optionTextSelected,
+                  ]}>
+                    {n === 0 ? 'None' : `C${n}`}
+                  </Text>
+                </View>
                 {selected && <Text style={styles.optionCheck}>✓</Text>}
               </TouchableOpacity>
             );
@@ -836,6 +863,17 @@ const styles = StyleSheet.create({
   },
   optionItemSelected: {
     backgroundColor: color.accentBg,
+  },
+  optionLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+  },
+  optionSwatch: {
+    width: 14,
+    height: 14,
+    borderRadius: radius.sm,
+    borderWidth: 1,
   },
   optionText: {
     fontSize: 14,
