@@ -13,16 +13,7 @@
       ".write": true,
       ".indexOn": "ts",
       "$logId": {
-        ".validate": 
-          "newData.hasChildren(['message','userId','userName','ts']) && " +
-          "newData.child('message').isString() && " +
-          "newData.child('message').val().length > 0 && " +
-          "newData.child('message').val().length <= 500 && " +
-          "newData.child('userId').isString() && " +
-          "newData.child('userId').val().length > 0 && " +
-          "newData.child('userName').isString() && " +
-          "newData.child('userName').val().length > 0 && " +
-          "newData.child('ts').val() == now"
+        ".validate": "newData.hasChildren(['message','userId','userName','ts']) && newData.child('message').isString() && newData.child('message').val().length > 0 && newData.child('message').val().length <= 500 && newData.child('userId').isString() && newData.child('userId').val().length > 0 && newData.child('userName').isString() && newData.child('userName').val().length > 0 && newData.child('ts').val() == now"
       }
     },
     
@@ -35,6 +26,12 @@
     },
 
     "pullLists": {
+      ".read": true,
+      ".write": true,
+      ".indexOn": "updatedAt"
+    },
+
+    "trucks": {
       ".read": true,
       ".write": true,
       ".indexOn": "updatedAt"
