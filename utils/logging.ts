@@ -96,7 +96,7 @@ export function generateQuantityChanges(
   newItem: any
 ): string {
   const changes: string[] = [];
-  const locations = ['showroom', 'warehouse', 'closet'];
+  const locations = ['showroom', 'warehouse'];
 
   for (const location of locations) {
     const oldQty = oldItem[location] || 0;

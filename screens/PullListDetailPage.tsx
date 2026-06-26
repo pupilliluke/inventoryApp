@@ -11,6 +11,7 @@ import { AddIcon, DeleteIcon, SearchIcon, CloseIcon } from '../components/Custom
 import {
   subscribePullList, savePullList, deletePullList, PullList, PullListItem,
 } from '../utils/pullLists';
+import { useIsAdmin } from '../utils/admin';
 import { color, space, radius, font, mono } from '../theme/tokens';
 
 export default function PullListDetailPage() {
@@ -19,6 +20,7 @@ export default function PullListDetailPage() {
   const listId: string | undefined = route.params?.listId;
   const { activeUser } = useSession();
   const { originalInventory } = useInventory();
+  const isAdmin = useIsAdmin();
 
   const [remote, setRemote] = useState<PullList | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -47,12 +49,14 @@ export default function PullListDetailPage() {
   }, [listId]);
 
   const isOwner = !!(remote && activeUser && remote.ownerId === activeUser.id);
+  // Owners edit their own lists; admins can edit/delete anyone's.
+  const canEdit = isOwner || isAdmin;
 
-  // Owner edits the local copy; viewers see the live remote copy (read-only).
+  // Editors edit the local copy; viewers see the live remote copy (read-only).
   const displayItems = useMemo(() => {
-    const source = isOwner ? items : remote?.items || {};
+    const source = canEdit ? items : remote?.items || {};
     return Object.values(source).sort((a, b) => a.name.localeCompare(b.name));
-  }, [isOwner, items, remote]);
+  }, [canEdit, items, remote]);
 
   const results = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -93,7 +97,7 @@ export default function PullListDetailPage() {
   };
 
   const handleSave = async () => {
-    if (!isOwner || !listId) return;
+    if (!canEdit || !listId) return;
     setSaving(true);
     try {
       await savePullList(listId, {
@@ -110,7 +114,7 @@ export default function PullListDetailPage() {
   };
 
   const handleDelete = () => {
-    if (!isOwner || !listId) return;
+    if (!canEdit || !listId) return;
     const doDelete = async () => {
       try {
         await deletePullList(listId);
@@ -137,7 +141,7 @@ export default function PullListDetailPage() {
         <Text style={styles.itemCode}>{item.code}</Text>
         <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
       </View>
-      {isOwner ? (
+      {canEdit ? (
         <>
           <TextInput
             style={styles.qtyInput}
@@ -159,7 +163,7 @@ export default function PullListDetailPage() {
 
   const header = (
     <View>
-      {isOwner ? (
+      {canEdit ? (
         <>
           <Text style={styles.fieldLabel}>List Title</Text>
           <TextInput
@@ -177,7 +181,7 @@ export default function PullListDetailPage() {
         </>
       )}
 
-      {isOwner && (
+      {canEdit && (
         <>
           <Text style={[styles.fieldLabel, { marginTop: space.lg }]}>Add Fireworks</Text>
           <View style={styles.searchWrap}>
@@ -253,7 +257,7 @@ export default function PullListDetailPage() {
         title="Pull List"
         onBack={() => navigation.goBack()}
         right={
-          isOwner ? (
+          canEdit ? (
             <TouchableOpacity
               onPress={handleSave}
               disabled={saving || !dirty}
@@ -275,7 +279,7 @@ export default function PullListDetailPage() {
         {displayItems.length === 0 ? (
           <View style={styles.emptyItems}>
             <Text style={styles.emptySubtitle}>
-              {isOwner ? 'Search above to add fireworks to this list.' : 'This pull list has no items yet.'}
+              {canEdit ? 'Search above to add fireworks to this list.' : 'This pull list has no items yet.'}
             </Text>
           </View>
         ) : (
@@ -283,7 +287,7 @@ export default function PullListDetailPage() {
         )}
       </ScrollView>
 
-      {isOwner && (
+      {canEdit && (
         <TouchableOpacity style={styles.deleteListBtn} onPress={handleDelete} activeOpacity={0.85}>
           <DeleteIcon size={16} color={color.negative} />
           <Text style={styles.deleteListText}>Delete pull list</Text>

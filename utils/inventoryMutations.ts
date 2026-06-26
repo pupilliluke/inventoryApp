@@ -150,8 +150,8 @@ export const InventoryMutations = {
   async moveQuantity(
     user: ActiveUser | null,
     item: InventoryItem,
-    fromLocation: keyof Pick<InventoryItem, 'showroom' | 'warehouse' | 'closet'>,
-    toLocation: keyof Pick<InventoryItem, 'showroom' | 'warehouse' | 'closet'>,
+    fromLocation: keyof Pick<InventoryItem, 'showroom' | 'warehouse'>,
+    toLocation: keyof Pick<InventoryItem, 'showroom' | 'warehouse'>,
     quantity: number
   ): Promise<void> {
     ensureUserAuthenticated(user);
@@ -197,7 +197,7 @@ export const InventoryMutations = {
   async updateQuantity(
     user: ActiveUser | null,
     item: InventoryItem,
-    location: keyof Pick<InventoryItem, 'showroom' | 'warehouse' | 'closet'>,
+    location: keyof Pick<InventoryItem, 'showroom' | 'warehouse'>,
     newQuantity: number
   ): Promise<void> {
     ensureUserAuthenticated(user);
@@ -234,7 +234,7 @@ export const InventoryMutations = {
   },
 
   /**
-   * Clear all quantities from a specific location (excludes closet)
+   * Clear all quantities from a specific location
    */
   async clearLocation(
     user: ActiveUser | null,

@@ -32,7 +32,6 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           category: Number(item.containers?.category) || 0,
           quantity: Number(item.containers?.quantity) || 0,
         },
-        closet: Number(item.closet) || 0,
         checked: Boolean(item.checked) || false,
         note: String(item.note || ''),
       }));
@@ -64,8 +63,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const locationMatch = !filterLocation ||
         (filterLocation === 'showroom' && item.showroom > 0) ||
         (filterLocation === 'warehouse' && item.warehouse > 0) ||
-        (filterLocation === 'containers' && item.containers.category > 0) ||
-        (filterLocation === 'closet' && item.closet > 0);
+        (filterLocation === 'containers' && item.containers.category > 0);
 
       const searchMatch = !searchQuery ||
         itemName.includes(searchQuery.toLowerCase()) ||
@@ -84,7 +82,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // every time the provider updates (e.g. on each search keystroke).
   const calculateTotal = useCallback((item: InventoryItem) => {
     // Containers (C1–C4) are tracked separately and not included in the item total
-    return item.showroom + item.warehouse + item.closet;
+    return item.showroom + item.warehouse;
   }, []);
 
   const updateItem = useCallback((item: InventoryItem) => {

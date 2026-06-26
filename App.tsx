@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Provider as PaperProvider, DefaultTheme } from 'react-native-paper';
@@ -9,6 +10,7 @@ import { auth } from './firebaseConfig';
 import { InventoryProvider } from './context/InventoryContext';
 import { SessionProvider } from './context/SessionContext';
 import AuthGate from './components/AuthGate';
+import AdminGuard from './components/AdminGuard';
 import InventoryMain from './screens/HomeScreen';
 import UserListPage from './screens/UserListPage';
 import LogPage from './screens/LogPage';
@@ -19,6 +21,19 @@ import PullListDetailPage from './screens/PullListDetailPage';
 import { color } from './theme/tokens';
 
 const Stack = createNativeStackNavigator();
+
+// Admin-only screens (User Management, Recount). Defined at module level so the
+// component identity is stable across renders.
+const GuardedUserListPage = () => (
+  <AdminGuard title="User Management">
+    <UserListPage />
+  </AdminGuard>
+);
+const GuardedRecountPage = () => (
+  <AdminGuard title="Recount">
+    <RecountPage />
+  </AdminGuard>
+);
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -55,6 +70,22 @@ export default function App() {
     signInAnonymously(auth).catch((err) => console.error('Auth error:', err));
   }, []);
 
+  useEffect(() => {
+    // Lock the viewport scale on web so iOS Safari doesn't auto-zoom when a
+    // sub-16px input gains focus — the screen stays put while typing.
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    let meta = document.querySelector('meta[name="viewport"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'viewport');
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute(
+      'content',
+      'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover'
+    );
+  }, []);
+
   return (
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
       <PaperProvider theme={theme}>
@@ -66,9 +97,9 @@ export default function App() {
                   <Stack.Screen name="Inventory" component={InventoryMain} />
                   <Stack.Screen name="PullLists" component={PullListPage} />
                   <Stack.Screen name="PullListDetail" component={PullListDetailPage} />
-                  <Stack.Screen name="UserListPage" component={UserListPage} />
+                  <Stack.Screen name="UserListPage" component={GuardedUserListPage} />
                   <Stack.Screen name="LogPage" component={LogPage} />
-                  <Stack.Screen name="RecountPage" component={RecountPage} />
+                  <Stack.Screen name="RecountPage" component={GuardedRecountPage} />
                   <Stack.Screen name="ReportPage" component={ReportPage} />
                 </Stack.Navigator>
               </NavigationContainer>

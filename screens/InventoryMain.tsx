@@ -12,6 +12,7 @@ import UserBadge from '../components/UserBadge';
 import { useSession } from '../context/SessionContext';
 import { InventoryMutations, UserNotAuthenticatedError } from '../utils/inventoryMutations';
 import CustomIconButton from '../components/CustomIconButton';
+import { useIsAdmin } from '../utils/admin';
 import { CollapseIcon, DropdownIcon, LogIcon, UsersIcon, CountIcon, AddIcon, EraserIcon, PullListIcon } from '../components/CustomIcons';
 import { color, space, radius, font, mono } from '../theme/tokens';
 
@@ -23,6 +24,7 @@ const typeFilters = [
 export default function InventoryMain() {
   const navigation = useNavigation();
   const { activeUser } = useSession();
+  const isAdmin = useIsAdmin();
 
   const {
     inventory,
@@ -52,7 +54,6 @@ export default function InventoryMain() {
     const patchMissingFields = () => {
       originalInventory.forEach((item) => {
         const updates: any = {};
-        if (item.closet === undefined) updates.closet = 0;
         if (item.checked === undefined) updates.checked = false;
         if (item.note === undefined) updates.note = '';
         if (Object.keys(updates).length > 0) {
@@ -75,7 +76,6 @@ export default function InventoryMain() {
         showroom: 0,
         warehouse: 0,
         containers: { category: 0, quantity: 0 },
-        closet: 0,
         checked: false,
         note: '',
         editable: false,
@@ -139,8 +139,11 @@ export default function InventoryMain() {
   const navItems = [
     { label: 'Pull Lists', icon: PullListIcon, onPress: () => { setNavigationMenuVisible(false); navigation.navigate('PullLists' as never); } },
     { label: 'Activity Log', icon: LogIcon, onPress: () => { setNavigationMenuVisible(false); navigation.navigate('LogPage' as never); } },
-    { label: 'User Management', icon: UsersIcon, onPress: () => { setNavigationMenuVisible(false); navigation.navigate('UserListPage' as never); } },
-    { label: 'Recount', icon: CountIcon, onPress: () => { setNavigationMenuVisible(false); navigation.navigate('RecountPage' as never); } },
+    // Admin-only entries.
+    ...(isAdmin ? [
+      { label: 'User Management', icon: UsersIcon, onPress: () => { setNavigationMenuVisible(false); navigation.navigate('UserListPage' as never); } },
+      { label: 'Recount', icon: CountIcon, onPress: () => { setNavigationMenuVisible(false); navigation.navigate('RecountPage' as never); } },
+    ] : []),
     { label: 'Manage Inventory', icon: AddIcon, onPress: () => { setNavigationMenuVisible(false); setManageVisible(true); } },
   ];
 
@@ -242,7 +245,6 @@ export default function InventoryMain() {
                 <Text style={[styles.th, { width: COL.qty }]}>Show</Text>
                 <Text style={[styles.th, { width: COL.qty }]}>Whse</Text>
                 <Text style={[styles.th, { width: COL.cont }]}>Cont</Text>
-                <Text style={[styles.th, { width: COL.qty }]}>Clst</Text>
               </View>
               <View style={{ width: COL.actions }} />
             </View>
@@ -317,7 +319,7 @@ export default function InventoryMain() {
             <Text style={[styles.sectionLabel, { marginTop: space.xl }]}>Clear Locations</Text>
             <View style={styles.formBlock}>
               <Text style={styles.helperText}>
-                Clear all quantities from a location. Closet is protected.
+                Clear all quantities from a location.
               </Text>
               {(['showroom', 'warehouse'] as const).map((location) => (
                 <TouchableOpacity

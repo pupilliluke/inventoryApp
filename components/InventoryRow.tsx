@@ -82,7 +82,7 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
   const handleChange = (key: keyof InventoryItem, value: string | boolean) => {
     setLocalItem(prev => ({
       ...prev,
-      [key]: key === 'showroom' || key === 'warehouse' || key === 'closet'
+      [key]: key === 'showroom' || key === 'warehouse'
         ? parseInt(value as string) || 0
         : key === 'checked'
         ? value
@@ -297,18 +297,9 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
           <QtyCell value={localItem.showroom} onChange={(v) => handleChange('showroom', v)} width={COL.qty} editing={editingLocation} onSubmit={handleSaveLocation} />
           <QtyCell value={localItem.warehouse} onChange={(v) => handleChange('warehouse', v)} width={COL.qty} editing={editingLocation} onSubmit={handleSaveLocation} />
           <View style={[styles.contCell, { width: COL.cont }]}>
-            <TouchableOpacity
-              onPress={() => setContainerModalVisible(true)}
-              style={[styles.contTag, localItem.containers.category === 0 && styles.contTagEmpty]}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.contTagText, localItem.containers.category === 0 && styles.contTagTextEmpty]}>
-                {localItem.containers.category > 0 ? `C${localItem.containers.category}` : '—'}
-              </Text>
-            </TouchableOpacity>
             {editingLocation ? (
               <TextInput
-                style={[styles.qtyInput, { width: COL.cont - 8, marginTop: space.xs }]}
+                style={[styles.qtyInput, { width: COL.cont - 8 }]}
                 keyboardType="numeric"
                 value={String(localItem.containers.quantity)}
                 onChangeText={handleContainerQty}
@@ -317,12 +308,20 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
                 selectTextOnFocus
               />
             ) : (
-              <Text style={[styles.qtyValue, { width: COL.cont, marginTop: 2 }, localItem.containers.quantity === 0 && styles.qtyZero]}>
+              <Text style={[styles.qtyValue, { width: COL.cont }, localItem.containers.quantity === 0 && styles.qtyZero]}>
                 {localItem.containers.quantity}
               </Text>
             )}
+            <TouchableOpacity
+              onPress={() => setContainerModalVisible(true)}
+              style={[styles.contTag, { marginTop: space.xs }, localItem.containers.category === 0 && styles.contTagEmpty]}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.contTagText, localItem.containers.category === 0 && styles.contTagTextEmpty]}>
+                {localItem.containers.category > 0 ? `C${localItem.containers.category}` : '—'}
+              </Text>
+            </TouchableOpacity>
           </View>
-          <QtyCell value={localItem.closet} onChange={(v) => handleChange('closet', v)} width={COL.qty} editing={editingLocation} onSubmit={handleSaveLocation} />
         </View>
 
         {/* Actions */}

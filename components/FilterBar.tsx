@@ -8,12 +8,10 @@ const FilterBar = ({ editable = true }) => {
   const {
     setFilterType,
     setFilterLocation,
-    setFilterChecked,
     searchQuery,
     setSearchQuery,
     filterType,
     filterLocation,
-    filterChecked
   } = useInventory();
 
   // Local search state for debouncing
@@ -32,7 +30,6 @@ const FilterBar = ({ editable = true }) => {
     { key: 'showroom', label: 'Showroom' },
     { key: 'warehouse', label: 'Warehouse' },
     { key: 'containers', label: 'Containers' },
-    { key: 'closet', label: 'Closet' },
   ];
 
   if (!editable) {
@@ -69,25 +66,6 @@ const FilterBar = ({ editable = true }) => {
             <CloseIcon size={16} color={color.textMuted} />
           </TouchableOpacity>
         ) : null}
-      </View>
-
-      <Text style={styles.groupLabel}>Status</Text>
-      <View style={styles.segmentRow}>
-        {(['checked', 'unchecked'] as const).map((state) => {
-          const active = filterChecked === state;
-          return (
-            <TouchableOpacity
-              key={state}
-              style={[styles.segment, active && styles.segmentActive]}
-              onPress={() => setFilterChecked(filterChecked === state ? '' : state)}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
-                {state === 'checked' ? 'Checked' : 'Unchecked'}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
       </View>
 
       <Text style={styles.groupLabel}>Location</Text>

@@ -37,7 +37,7 @@ export default function RecountPage() {
         const countStr = parts[2] || '';
         const count = countStr.trim() === '' ? -1 : parseInt(countStr) || -1;
         const inventoryItem = originalInventory.find(item => item.code === code);
-        const previous = inventoryItem ? (inventoryItem.showroom + inventoryItem.closet) : 0;
+        const previous = inventoryItem ? inventoryItem.showroom : 0;
         return { code, name, count, previous };
       }).filter(Boolean) as RecountItem[];
       setRecountItems(items);

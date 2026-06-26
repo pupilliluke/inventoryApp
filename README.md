@@ -10,18 +10,17 @@ A mobile-first React Native inventory management system designed specifically fo
 - **Beautiful Login Screen**: Elegant login interface with background image and styled components
 
 ### Core Inventory Management
-- **Multi-Location Tracking**: Track inventory across 4 locations:
+- **Multi-Location Tracking**: Track inventory across locations:
   - Showroom
   - Warehouse 
   - Storage
-  - Closet
 - **Real-time Database Sync**: All changes sync instantly via Firebase Realtime Database
 - **Item Management**: Add, edit, and delete inventory items
 - **Type Classification**: 19 predefined product types including Assortment, Candle, Firecracker, Rocket, Smoke, Sparkler, Toy, Mortar, Missile, Rack, Fountain, Z-repeater, 200g, 500g, Novelty, Free Item, Shirt, and Other
 
 ### Advanced Filtering & Search
 - **Text Search**: Search by item name, code, or type
-- **Location Filters**: Filter by specific locations (Showroom Pull List, Warehouse, Storage, Closet)
+- **Location Filters**: Filter by specific locations (Showroom Pull List, Warehouse, Storage)
 - **Type Filters**: Multi-select type filtering with chip-based interface
 - **Reset Filters**: One-click filter reset functionality
 
@@ -84,7 +83,7 @@ A mobile-first React Native inventory management system designed specifically fo
 
 ### Filtering & Search
 - **Filter by Type** - Accordion with multi-select chip filters
-- **Location Buttons**: Showroom Pull List, Warehouse, Storage, Closet
+- **Location Buttons**: Showroom Pull List, Warehouse, Storage
 - **Search Input** - Real-time text filtering
 - **Type Chips** - Individual type filter toggles
 
@@ -115,7 +114,6 @@ interface InventoryItem {
   showroom: number;
   warehouse: number;
   storage: number;
-  closet: number;
   editable?: boolean;
 }
 ```
@@ -244,8 +242,7 @@ inventory/
   │   ├── type: string
   │   ├── showroom: number
   │   ├── warehouse: number
-  │   ├── storage: number
-  │   └── closet: number
+  │   └── storage: number
   └── ...
 
 users/

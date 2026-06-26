@@ -10,7 +10,6 @@ export interface InventoryItem {
   showroom: number;
   warehouse: number;
   containers: ContainerInfo; // ← category + quantity
-  closet: number; // ← Add this
   checked?: boolean; // ← Add checkbox field
   note?: string; // ← Add note field
   editable?: boolean;

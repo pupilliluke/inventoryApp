@@ -16,7 +16,6 @@ updateItem({
   showroom: 0,
   warehouse: 0,
   storage: 0,
-  closet: 0,
   editable: false,
 });
 ```
