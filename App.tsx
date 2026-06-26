@@ -11,7 +11,8 @@ import { InventoryProvider } from './context/InventoryContext';
 import { SessionProvider } from './context/SessionContext';
 import AuthGate from './components/AuthGate';
 import AdminGuard from './components/AdminGuard';
-import InventoryMain from './screens/HomeScreen';
+import HomeScreen from './screens/HomeScreen';
+import InventoryMain from './screens/InventoryMain';
 import UserListPage from './screens/UserListPage';
 import LogPage from './screens/LogPage';
 import RecountPage from './screens/RecountPage';
@@ -98,7 +99,8 @@ export default function App() {
             <InventoryProvider>
               <NavigationContainer theme={navTheme as any}>
                 <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.appBg } }}>
-                  <Stack.Screen name="Inventory" component={InventoryMain} />
+                  <Stack.Screen name="Inventory" component={HomeScreen} />
+                  <Stack.Screen name="InventoryList" component={InventoryMain} />
                   <Stack.Screen name="Tasks" component={TasksPage} />
                   <Stack.Screen name="PullLists" component={PullListPage} />
                   <Stack.Screen name="PullListDetail" component={PullListDetailPage} />

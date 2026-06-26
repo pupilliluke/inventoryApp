@@ -28,6 +28,8 @@ export default function TruckDetailPage() {
   const [search, setSearch] = useState('');
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+  // Index of the note currently being edited; null when all notes are read-only.
+  const [editingNote, setEditingNote] = useState<number | null>(null);
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -74,6 +76,8 @@ export default function TruckDetailPage() {
 
   // --- notes editing ---
   const addNote = () => {
+    // Open the new note straight into edit mode (its index is the old length).
+    setEditingNote(notes.length);
     setNotes((prev) => [...prev, '']);
     setDirty(true);
   };
@@ -83,6 +87,7 @@ export default function TruckDetailPage() {
   };
   const removeNote = (idx: number) => {
     setNotes((prev) => prev.filter((_, i) => i !== idx));
+    setEditingNote(null);
     setDirty(true);
   };
 
@@ -214,20 +219,44 @@ export default function TruckDetailPage() {
       ) : (
         displayNotes.map((note, idx) =>
           canEdit ? (
-            <View key={idx} style={styles.noteRow}>
-              <TextInput
-                style={styles.noteInput}
-                value={note}
-                onChangeText={(v) => setNote(idx, v)}
-                placeholder={`Note ${idx + 1}`}
-                placeholderTextColor={color.textMuted}
-                multiline
-                textAlignVertical="top"
-              />
-              <TouchableOpacity onPress={() => removeNote(idx)} style={styles.removeBtn} activeOpacity={0.7}>
-                <DeleteIcon size={16} color={color.negative} />
-              </TouchableOpacity>
-            </View>
+            editingNote === idx ? (
+              <View key={idx} style={styles.noteRow}>
+                <TextInput
+                  style={styles.noteInput}
+                  value={note}
+                  onChangeText={(v) => setNote(idx, v)}
+                  placeholder={`Note ${idx + 1}`}
+                  placeholderTextColor={color.textMuted}
+                  multiline
+                  textAlignVertical="top"
+                  autoFocus
+                  onBlur={() => setEditingNote(null)}
+                  onSubmitEditing={() => setEditingNote(null)}
+                />
+                <TouchableOpacity onPress={() => removeNote(idx)} style={styles.removeBtn} activeOpacity={0.7}>
+                  <DeleteIcon size={16} color={color.negative} />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View key={idx} style={styles.noteCard}>
+                <TouchableOpacity
+                  style={styles.noteCardBody}
+                  activeOpacity={0.7}
+                  onPress={() => setEditingNote(idx)}
+                >
+                  <View style={styles.noteAccent} />
+                  <Text
+                    style={[styles.noteCardText, !note.trim() && styles.noteCardEmpty]}
+                    numberOfLines={6}
+                  >
+                    {note.trim() ? note : 'Empty note — tap to edit'}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => removeNote(idx)} style={styles.removeBtn} activeOpacity={0.7}>
+                  <DeleteIcon size={16} color={color.negative} />
+                </TouchableOpacity>
+              </View>
+            )
           ) : (
             <View key={idx} style={styles.viewerNoteCard}>
               <Text style={styles.viewerNotesText}>{note}</Text>
@@ -385,11 +414,35 @@ const styles = StyleSheet.create({
     minHeight: 44,
     lineHeight: 20,
   },
-  viewerNoteCard: {
+  // Read-only note card shown when not editing (owner/admin).
+  noteCard: { flexDirection: 'row', alignItems: 'flex-start', gap: space.xs, marginBottom: space.sm },
+  noteCardBody: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    backgroundColor: color.surface,
     borderWidth: 1,
     borderColor: color.border,
     borderRadius: radius.sm,
-    backgroundColor: color.surfaceAlt,
+    overflow: 'hidden',
+  },
+  noteAccent: { width: 3, backgroundColor: color.accent },
+  noteCardText: {
+    flex: 1,
+    fontSize: 14,
+    color: color.text,
+    lineHeight: 20,
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+  },
+  noteCardEmpty: { color: color.textMuted, fontStyle: 'italic' },
+  viewerNoteCard: {
+    borderWidth: 1,
+    borderColor: color.border,
+    borderLeftWidth: 3,
+    borderLeftColor: color.accent,
+    borderRadius: radius.sm,
+    backgroundColor: color.surface,
     padding: space.md,
     marginBottom: space.sm,
   },

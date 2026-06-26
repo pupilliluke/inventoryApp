@@ -30,6 +30,8 @@ export default function PullListDetailPage() {
   const [search, setSearch] = useState('');
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+  // Notes show as a card; the text input only appears while editing.
+  const [editingNotes, setEditingNotes] = useState(false);
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -187,15 +189,30 @@ export default function PullListDetailPage() {
       {canEdit ? (
         <>
           <Text style={[styles.fieldLabel, { marginTop: space.lg }]}>Notes</Text>
-          <TextInput
-            style={styles.notesInput}
-            value={notes}
-            onChangeText={(t) => { setNotes(t); setDirty(true); }}
-            placeholder="Add notes for this pull list…"
-            placeholderTextColor={color.textMuted}
-            multiline
-            textAlignVertical="top"
-          />
+          {editingNotes ? (
+            <TextInput
+              style={styles.notesInput}
+              value={notes}
+              onChangeText={(t) => { setNotes(t); setDirty(true); }}
+              placeholder="Add notes for this pull list…"
+              placeholderTextColor={color.textMuted}
+              multiline
+              textAlignVertical="top"
+              autoFocus
+              onBlur={() => setEditingNotes(false)}
+            />
+          ) : (
+            <TouchableOpacity
+              style={styles.noteCardBody}
+              activeOpacity={0.7}
+              onPress={() => setEditingNotes(true)}
+            >
+              <View style={styles.noteAccent} />
+              <Text style={[styles.noteCardText, !notes.trim() && styles.noteCardEmpty]}>
+                {notes.trim() ? notes : 'No notes yet — tap to add.'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </>
       ) : remote?.notes ? (
         <View style={styles.viewerNotes}>
@@ -350,12 +367,35 @@ const styles = StyleSheet.create({
     minHeight: 72,
     lineHeight: 20,
   },
+  // Tappable note card shown when not editing.
+  noteCardBody: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    backgroundColor: color.surface,
+    borderWidth: 1,
+    borderColor: color.border,
+    borderRadius: radius.sm,
+    overflow: 'hidden',
+    minHeight: 44,
+  },
+  noteAccent: { width: 3, backgroundColor: color.accent },
+  noteCardText: {
+    flex: 1,
+    fontSize: 14,
+    color: color.text,
+    lineHeight: 20,
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+  },
+  noteCardEmpty: { color: color.textMuted, fontStyle: 'italic' },
   viewerNotes: {
     marginTop: space.lg,
     borderWidth: 1,
     borderColor: color.border,
+    borderLeftWidth: 3,
+    borderLeftColor: color.accent,
     borderRadius: radius.sm,
-    backgroundColor: color.surfaceAlt,
+    backgroundColor: color.surface,
     padding: space.md,
   },
   viewerNotesLabel: { ...font.label, marginBottom: space.xs },
