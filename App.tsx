@@ -18,6 +18,9 @@ import RecountPage from './screens/RecountPage';
 import ReportPage from './screens/ReportPage';
 import PullListPage from './screens/PullListPage';
 import PullListDetailPage from './screens/PullListDetailPage';
+import TasksPage from './screens/TasksPage';
+import TruckPage from './screens/TruckPage';
+import TruckDetailPage from './screens/TruckDetailPage';
 import AccountPage from './screens/AccountPage';
 import { color } from './theme/tokens';
 
@@ -96,8 +99,11 @@ export default function App() {
               <NavigationContainer theme={navTheme as any}>
                 <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.appBg } }}>
                   <Stack.Screen name="Inventory" component={InventoryMain} />
+                  <Stack.Screen name="Tasks" component={TasksPage} />
                   <Stack.Screen name="PullLists" component={PullListPage} />
                   <Stack.Screen name="PullListDetail" component={PullListDetailPage} />
+                  <Stack.Screen name="Truck" component={TruckPage} />
+                  <Stack.Screen name="TruckDetail" component={TruckDetailPage} />
                   <Stack.Screen name="UserListPage" component={GuardedUserListPage} />
                   <Stack.Screen name="LogPage" component={LogPage} />
                   <Stack.Screen name="RecountPage" component={GuardedRecountPage} />

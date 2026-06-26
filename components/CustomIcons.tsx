@@ -220,6 +220,17 @@ export const ResetIcon: React.FC<IconProps> = ({ size = 24, color = "currentColo
   </View>
 );
 
+export const TruckIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
+  <View style={{ width: size, height: size }}>
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect x="1" y="6" width="13" height="10" rx="1" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M14 9h4l3 3v4h-7V9z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Circle cx="6" cy="18.5" r="1.8" stroke={color} strokeWidth="2" />
+      <Circle cx="17.5" cy="18.5" r="1.8" stroke={color} strokeWidth="2" />
+    </Svg>
+  </View>
+);
+
 export const MenuIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
   <View style={{ width: size, height: size }}>
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">

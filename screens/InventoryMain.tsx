@@ -150,7 +150,7 @@ export default function InventoryMain() {
   };
 
   const navItems = [
-    { label: 'Pull Lists', icon: PullListIcon, onPress: () => { setNavigationMenuVisible(false); navigation.navigate('PullLists' as never); } },
+    { label: 'Tasks', icon: PullListIcon, onPress: () => { setNavigationMenuVisible(false); navigation.navigate('Tasks' as never); } },
     { label: 'Activity Log', icon: LogIcon, onPress: () => { setNavigationMenuVisible(false); navigation.navigate('LogPage' as never); } },
     { label: 'Account', icon: AccountIcon, onPress: () => { setNavigationMenuVisible(false); navigation.navigate('AccountPage' as never); } },
     // Admin-only entries.
