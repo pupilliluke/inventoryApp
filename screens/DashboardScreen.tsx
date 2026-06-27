@@ -26,6 +26,7 @@ import {
   UsersIcon,
   CountIcon,
   ViewIcon,
+  LowStockIcon,
 } from '../components/CustomIcons';
 import { color, space, radius, font, mono } from '../theme/tokens';
 
@@ -106,6 +107,12 @@ export default function DashboardScreen() {
       label: 'Trucks',
       Icon: TruckIcon,
       onPress: () => navigation.navigate('Truck'),
+    },
+    {
+      key: 'LowQuantity',
+      label: 'Low Qty / Out',
+      Icon: LowStockIcon,
+      onPress: () => navigation.navigate('LowQuantity'),
     },
     {
       key: 'InventoryList',
