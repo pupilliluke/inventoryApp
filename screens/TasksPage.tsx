@@ -3,7 +3,7 @@ import { SafeAreaView, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import ScreenHeader from '../components/ScreenHeader';
-import { PullListIcon, TruckIcon } from '../components/CustomIcons';
+import { PullListIcon, TruckIcon, LowStockIcon } from '../components/CustomIcons';
 import { color, space, radius, font } from '../theme/tokens';
 
 export default function TasksPage() {
@@ -21,6 +21,12 @@ export default function TasksPage() {
       label: 'Truck',
       description: 'Build truck lists with text notes and item lists.',
       Icon: TruckIcon,
+    },
+    {
+      key: 'LowQuantity',
+      label: 'Low Quantity / Out',
+      description: 'One shared list of items running low or out, with notes.',
+      Icon: LowStockIcon,
     },
   ] as const;
 
