@@ -231,6 +231,16 @@ export const TruckIcon: React.FC<IconProps> = ({ size = 24, color = "currentColo
   </View>
 );
 
+export const LowStockIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
+  <View style={{ width: size, height: size }}>
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M12 3 2 20h20L12 3z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M12 10v4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M12 17h.01" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  </View>
+);
+
 export const MenuIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
   <View style={{ width: size, height: size }}>
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">

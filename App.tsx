@@ -22,6 +22,7 @@ import PullListDetailPage from './screens/PullListDetailPage';
 import TasksPage from './screens/TasksPage';
 import TruckPage from './screens/TruckPage';
 import TruckDetailPage from './screens/TruckDetailPage';
+import LowQuantityPage from './screens/LowQuantityPage';
 import AccountPage from './screens/AccountPage';
 import { color } from './theme/tokens';
 
@@ -106,6 +107,7 @@ export default function App() {
                   <Stack.Screen name="PullListDetail" component={PullListDetailPage} />
                   <Stack.Screen name="Truck" component={TruckPage} />
                   <Stack.Screen name="TruckDetail" component={TruckDetailPage} />
+                  <Stack.Screen name="LowQuantity" component={LowQuantityPage} />
                   <Stack.Screen name="UserListPage" component={GuardedUserListPage} />
                   <Stack.Screen name="LogPage" component={LogPage} />
                   <Stack.Screen name="RecountPage" component={GuardedRecountPage} />

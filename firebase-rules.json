@@ -35,6 +35,11 @@
       ".read": true,
       ".write": true,
       ".indexOn": "updatedAt"
+    },
+
+    "lowQuantity": {
+      ".read": true,
+      ".write": true
     }
   }
 }
