@@ -28,6 +28,7 @@ const NAV_ITEMS: NavItem[] = [
   { route: 'Truck', label: 'Trucks', Icon: TruckIcon },
   { route: 'LowQuantity', label: 'Low Qty / Out', Icon: LowStockIcon },
   { route: 'LogPage', label: 'Activity Log', Icon: LogIcon },
+  { route: 'Analytics', label: 'Analytics', Icon: ChartIcon },
   { route: 'ReportPage', label: 'Reports', Icon: ChartIcon },
   { route: 'UserListPage', label: 'Users', Icon: UsersIcon, admin: true },
   { route: 'RecountPage', label: 'Recount', Icon: CountIcon, admin: true },
