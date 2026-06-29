@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, View, StyleSheet, FlatList, Alert, ScrollView, KeyboardAvoidingView, Platform, TextInput, TouchableOpacity } from 'react-native';
+import { SafeAreaView, View, StyleSheet, Alert, ScrollView, KeyboardAvoidingView, Platform, TextInput, TouchableOpacity } from 'react-native';
 import { Text, Portal, Modal } from 'react-native-paper';
 import { ref, onValue } from 'firebase/database';
 import { db } from '../firebaseConfig';
@@ -169,6 +169,20 @@ export default function UserListPage() {
     setUserToToggleAdmin({ key: '', name: '', makeAdmin: false });
   };
 
+  const handleApprove = async (userKey, targetName, approved) => {
+    try {
+      await UserMutations.setUserApproved(activeUser, userKey, targetName, approved);
+      Alert.alert('Success', approved ? 'User approved' : 'Access revoked');
+    } catch (error) {
+      if (error instanceof UserNotAuthenticatedError) {
+        console.warn('No active user — please sign out and sign in again.');
+      } else {
+        Alert.alert('Error', 'Failed to update approval status');
+        console.error(error);
+      }
+    }
+  };
+
   const loadUserList = (userKey) => setSelectedUser(userKey);
 
   const filteredInventory = inventory.filter(item =>
@@ -186,9 +200,10 @@ export default function UserListPage() {
     // Bootstrap admins (hardcoded by email) can't be demoted from here.
     const isBootstrapAdmin = isAdminEmail(user.email);
     const userIsAdmin = isBootstrapAdmin || isAdminRole(user);
+    const isPending = user.status === 'pending' && !userIsAdmin;
 
     return (
-      <View style={[styles.userRow, isSelected && styles.userRowSelected]}>
+      <View style={[styles.userRow, isSelected && styles.userRowSelected, isPending && styles.userRowPending]}>
         {isEditing ? (
           <TextInput
             value={newUserName}
@@ -200,7 +215,14 @@ export default function UserListPage() {
             autoFocus
           />
         ) : (
-          <Text style={styles.userName}>{user.name}</Text>
+          <View style={styles.userNameWrap}>
+            <Text style={styles.userName}>{user.name}</Text>
+            {isPending && (
+              <View style={styles.pendingBadge}>
+                <Text style={styles.pendingBadgeText}>Pending</Text>
+              </View>
+            )}
+          </View>
         )}
 
         <View style={styles.userActions}>
@@ -208,6 +230,13 @@ export default function UserListPage() {
             <>
               <CustomIconButton iconType="check" size={18} color={color.positive} onPress={() => handleRenameUser(userKey, newUserName)} />
               <CustomIconButton iconType="close" size={18} color={color.negative} onPress={() => { setEditingUser(null); setNewUserName(''); }} />
+            </>
+          ) : isPending ? (
+            <>
+              <TouchableOpacity style={styles.approveBtn} onPress={() => handleApprove(userKey, user.name, true)} activeOpacity={0.8}>
+                <Text style={styles.approveBtnText}>Approve</Text>
+              </TouchableOpacity>
+              <CustomIconButton iconType="delete" size={18} color={color.negative} onPress={() => handleDeleteUser(userKey)} />
             </>
           ) : (
             <>
@@ -240,6 +269,17 @@ export default function UserListPage() {
   );
 
   const userKeys = Object.keys(users);
+  const isPendingKey = (key) => {
+    const u = users[key];
+    if (!u) return false;
+    const admin = isAdminEmail(u.email) || isAdminRole(u);
+    return !admin && u.status === 'pending';
+  };
+  // Surface users awaiting approval at the top of the list.
+  const orderedKeys = [...userKeys].sort(
+    (a, b) => Number(isPendingKey(b)) - Number(isPendingKey(a))
+  );
+  const pendingCount = userKeys.filter(isPendingKey).length;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -250,7 +290,7 @@ export default function UserListPage() {
       />
 
       <KeyboardAvoidingView style={styles.content} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView contentContainerStyle={{ padding: space.md }}>
+        <ScrollView style={styles.scroll} contentContainerStyle={{ padding: space.md }}>
           {showAddUser && (
             <View style={styles.panel}>
               <Text style={styles.sectionLabel}>Add New User</Text>
@@ -273,7 +313,14 @@ export default function UserListPage() {
             </View>
           )}
 
-          <Text style={styles.heading}>All Users · {userKeys.length}</Text>
+          <View style={styles.headingRow}>
+            <Text style={styles.heading}>All Users · {userKeys.length}</Text>
+            {pendingCount > 0 && (
+              <View style={styles.pendingCountChip}>
+                <Text style={styles.pendingCountText}>{pendingCount} awaiting approval</Text>
+              </View>
+            )}
+          </View>
           {userKeys.length === 0 ? (
             <View style={styles.emptyPanel}>
               <Text style={styles.emptyText}>No users yet</Text>
@@ -281,13 +328,11 @@ export default function UserListPage() {
             </View>
           ) : (
             <View style={styles.table}>
-              <FlatList
-                data={userKeys}
-                renderItem={renderUserRow}
-                keyExtractor={(item) => item}
-                scrollEnabled={false}
-                showsVerticalScrollIndicator={false}
-              />
+              {orderedKeys.map((userKey, index) => (
+                <React.Fragment key={userKey}>
+                  {renderUserRow({ item: userKey, index })}
+                </React.Fragment>
+              ))}
             </View>
           )}
 
@@ -321,13 +366,11 @@ export default function UserListPage() {
                 </View>
               ) : (
                 <View style={styles.table}>
-                  <FlatList
-                    data={filteredInventory}
-                    renderItem={renderInventoryRow}
-                    keyExtractor={(item) => item.code}
-                    scrollEnabled={false}
-                    showsVerticalScrollIndicator={false}
-                  />
+                  {filteredInventory.map((item) => (
+                    <React.Fragment key={item.code}>
+                      {renderInventoryRow({ item })}
+                    </React.Fragment>
+                  ))}
                 </View>
               )}
             </View>
@@ -397,6 +440,7 @@ export default function UserListPage() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: color.appBg },
   content: { flex: 1 },
+  scroll: { flex: 1 },
 
   panel: {
     backgroundColor: color.surface,
@@ -427,6 +471,25 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginBottom: space.sm,
   },
+  headingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  pendingCountChip: {
+    backgroundColor: color.warningBg,
+    borderWidth: 1,
+    borderColor: color.warning,
+    borderRadius: radius.sm,
+    paddingHorizontal: space.sm,
+    paddingVertical: 2,
+    marginBottom: space.sm,
+  },
+  pendingCountText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: color.warning,
+  },
   table: {
     borderWidth: 1,
     borderColor: color.border,
@@ -449,11 +512,49 @@ const styles = StyleSheet.create({
     borderLeftWidth: 3,
     borderLeftColor: color.accent,
   },
-  userName: {
+  userRowPending: {
+    backgroundColor: color.warningBg,
+    borderLeftWidth: 3,
+    borderLeftColor: color.warning,
+  },
+  userNameWrap: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+  },
+  userName: {
     fontSize: 15,
     fontWeight: '600',
     color: color.text,
+  },
+  pendingBadge: {
+    backgroundColor: color.warningBg,
+    borderWidth: 1,
+    borderColor: color.warning,
+    borderRadius: radius.sm,
+    paddingHorizontal: space.xs,
+    paddingVertical: 1,
+  },
+  pendingBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+    color: color.warning,
+  },
+  approveBtn: {
+    backgroundColor: color.positive,
+    borderRadius: radius.sm,
+    paddingHorizontal: space.md,
+    paddingVertical: space.xs,
+    marginRight: space.xs,
+  },
+  approveBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: color.textInverse,
+    letterSpacing: 0.3,
   },
   inlineInput: {
     flex: 1,

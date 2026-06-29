@@ -395,9 +395,11 @@ export const UserMutations = {
     const userRef = ref(db, `users/${userKey}`);
 
     try {
-      // Setting role to null removes the key, fully revoking admin.
+      // Setting role to null removes the key, fully revoking admin. Granting admin
+      // also approves the user, since an admin is implicitly past the waitlist.
       await update(userRef, {
         role: makeAdmin ? 'admin' : null,
+        ...(makeAdmin ? { status: 'approved' } : {}),
         updatedAt: new Date().toISOString(),
       });
 
@@ -409,6 +411,40 @@ export const UserMutations = {
       });
     } catch (error) {
       console.error('Failed to update user admin status:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Approve a waitlisted user (or revoke access back to pending). New non-admin
+   * users start as `status: 'pending'` and cannot use the app until an admin
+   * approves them here. Only admins reach this (the screen is guarded).
+   */
+  async setUserApproved(
+    activeUser: ActiveUser | null,
+    userKey: string,
+    targetName: string,
+    approved: boolean
+  ): Promise<void> {
+    ensureUserAuthenticated(activeUser);
+
+    const db = getDatabase();
+    const userRef = ref(db, `users/${userKey}`);
+
+    try {
+      await update(userRef, {
+        status: approved ? 'approved' : 'pending',
+        updatedAt: new Date().toISOString(),
+      });
+
+      // Log the action (non-blocking)
+      await appendLog({
+        userId: activeUser.id,
+        userName: activeUser.name,
+        message: LogMessages.userApprovalChanged(activeUser, targetName, approved)
+      });
+    } catch (error) {
+      console.error('Failed to update user approval status:', error);
       throw error;
     }
   }

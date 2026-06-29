@@ -13,7 +13,7 @@ import AnimatedGridHero from '../components/AnimatedGridHero';
 import UserBadge from '../components/UserBadge';
 import { useInventory } from '../context/InventoryContext';
 import { useSession } from '../context/SessionContext';
-import { useIsAdmin } from '../utils/admin';
+import { useIsAdmin, usePendingUsers } from '../utils/admin';
 import { subscribePullLists, pullListLineCount, pullListTotal, PullList } from '../utils/pullLists';
 import { InventoryItem } from '../types/inventoryItem';
 import { CONTAINER_COLORS } from '../components/InventoryRow';
@@ -82,6 +82,7 @@ export default function DashboardScreen() {
   const navigation = useNavigation<any>();
   const { activeUser } = useSession();
   const isAdmin = useIsAdmin();
+  const pendingUsers = usePendingUsers();
   // InventoryContext is created with a null default, so the hook is loosely
   // typed; narrow to the fields this screen reads.
   const { originalInventory, loading } = useInventory() as unknown as {
@@ -225,6 +226,30 @@ export default function DashboardScreen() {
         </View>
 
         <View style={styles.body}>
+          {/* Pending-approval notification (admins only) */}
+          {isAdmin && pendingUsers.length > 0 && (
+            <TouchableOpacity
+              style={styles.approvalBanner}
+              onPress={() => navigation.navigate('UserListPage')}
+              activeOpacity={0.85}
+            >
+              <View style={styles.approvalBadge}>
+                <Text style={styles.approvalBadgeText}>{pendingUsers.length}</Text>
+              </View>
+              <View style={styles.approvalTextWrap}>
+                <Text style={styles.approvalTitle}>
+                  {pendingUsers.length === 1
+                    ? '1 user is waiting for approval'
+                    : `${pendingUsers.length} users are waiting for approval`}
+                </Text>
+                <Text style={styles.approvalSub} numberOfLines={1}>
+                  {pendingUsers.map((u) => u.name).join(', ')}
+                </Text>
+              </View>
+              <Text style={styles.approvalAction}>Review ›</Text>
+            </TouchableOpacity>
+          )}
+
           {/* Container status */}
           <View style={styles.sectionHead}>
             <Text style={styles.sectionLabel}>Container Status</Text>
@@ -474,6 +499,51 @@ const styles = StyleSheet.create({
   },
 
   body: { padding: space.md },
+
+  // Pending-approval banner
+  approvalBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+    backgroundColor: color.warningBg,
+    borderWidth: 1,
+    borderColor: color.warning,
+    borderRadius: radius.md,
+    paddingVertical: space.md,
+    paddingHorizontal: space.md,
+    marginBottom: space.lg,
+  },
+  approvalBadge: {
+    minWidth: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: color.warning,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+  },
+  approvalBadgeText: {
+    fontFamily: mono,
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#ffffff',
+  },
+  approvalTextWrap: { flex: 1 },
+  approvalTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: color.warning,
+  },
+  approvalSub: {
+    fontSize: 12,
+    color: color.textSecondary,
+    marginTop: 1,
+  },
+  approvalAction: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: color.warning,
+  },
 
   sectionHead: {
     flexDirection: 'row',

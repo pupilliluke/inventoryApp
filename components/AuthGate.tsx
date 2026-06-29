@@ -4,8 +4,10 @@ import { useAuth, useUser } from '@clerk/expo';
 import LoadingScreen from '../screens/LoadingScreen';
 import SignInScreen from '../screens/SignInScreen';
 import SSOCallbackScreen from '../screens/SSOCallbackScreen';
+import WaitlistScreen from '../screens/WaitlistScreen';
 import { useSession } from '../context/SessionContext';
 import { ensureFirebaseUser } from '../utils/userSync';
+import { useApprovalState } from '../utils/admin';
 
 // On web, Google OAuth returns to this path so Clerk can complete the handshake.
 function isSSOCallbackRoute(): boolean {
@@ -62,6 +64,7 @@ export default function AuthGate({ children }: AuthGateProps) {
   const { user } = useUser();
   const { setActiveUser, clearSession } = useSession();
   const [synced, setSynced] = useState(false);
+  const approval = useApprovalState();
 
   useEffect(() => {
     let cancelled = false;
@@ -132,6 +135,17 @@ export default function AuthGate({ children }: AuthGateProps) {
 
   if (!synced) {
     return <LoadingScreen message="Setting up your account..." />;
+  }
+
+  // Approval gate: a brand-new user's record syncs as `pending` and must be
+  // approved by an admin. Show the setup screen until the record resolves, then
+  // the waitlist while pending. Admins resolve to `approved` immediately.
+  if (approval === 'loading') {
+    return <LoadingScreen message="Setting up your account..." />;
+  }
+
+  if (approval === 'pending') {
+    return <WaitlistScreen />;
   }
 
   return <>{children}</>;
