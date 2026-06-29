@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useClerk } from '@clerk/clerk-expo';
+import { useClerk, useAuth } from '@clerk/clerk-expo';
 import LoadingScreen from './LoadingScreen';
 
 /**
@@ -34,18 +34,33 @@ function hasOAuthCallbackParams(): boolean {
  */
 export default function SSOCallbackScreen() {
   const clerk = useClerk();
+  const { isLoaded, isSignedIn } = useAuth();
 
   useEffect(() => {
     let cancelled = false;
     const home = typeof window !== 'undefined' ? `${window.location.origin}/` : '/';
+    const goHome = () => {
+      // `replace` so `/sso-callback` drops out of the history stack.
+      if (typeof window !== 'undefined') window.location.replace(home);
+    };
 
-    // Back-button (or any stray visit) lands here without OAuth params. Don't
-    // re-run the handshake — that would sign the user out. Just go home, using
-    // `replace` so `/sso-callback` drops out of the history stack.
+    // Wait for Clerk to resolve auth state before deciding anything.
+    if (!isLoaded) return;
+
+    // Already signed in → this is a stale/back-button visit to /sso-callback
+    // (the handshake already completed). Re-running it would tear down the live
+    // session and sign the user out. Just go home. This is the robust guard:
+    // it holds even when the OAuth params still linger in the URL, which is the
+    // case the params-only check below cannot catch.
+    if (isSignedIn) {
+      goHome();
+      return;
+    }
+
+    // Signed out with no real callback params — a stray visit. Go home without
+    // touching the session.
     if (!hasOAuthCallbackParams()) {
-      if (typeof window !== 'undefined') {
-        window.location.replace(home);
-      }
+      goHome();
       return;
     }
 
@@ -69,7 +84,7 @@ export default function SSOCallbackScreen() {
     return () => {
       cancelled = true;
     };
-  }, [clerk]);
+  }, [clerk, isLoaded, isSignedIn]);
 
   return <LoadingScreen message="Finishing sign in..." />;
 }
