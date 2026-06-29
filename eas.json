@@ -13,6 +13,9 @@
     },
     "production": {
       "autoIncrement": true,
+      "ios": {
+        "image": "latest"
+      },
       "env": {
         "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_live_Y2xlcmsuY3JhY2tpbmdhbmRzdGFja2luZy5jb20k",
         "EXPO_NO_CAPABILITY_SYNC": "1"
