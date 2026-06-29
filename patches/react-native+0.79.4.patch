@@ -1,0 +1,21 @@
+diff --git a/node_modules/react-native/third-party-podspecs/fmt.podspec b/node_modules/react-native/third-party-podspecs/fmt.podspec
+index 2f38990..45ab403 100644
+--- a/node_modules/react-native/third-party-podspecs/fmt.podspec
++++ b/node_modules/react-native/third-party-podspecs/fmt.podspec
+@@ -19,7 +19,15 @@ Pod::Spec.new do |spec|
+   }
+   spec.pod_target_xcconfig = {
+     "CLANG_CXX_LANGUAGE_STANDARD" => rct_cxx_language_standard(),
+-    "GCC_WARN_INHIBIT_ALL_WARNINGS" => "YES" # Disable warnings because we don't control this library
++    "GCC_WARN_INHIBIT_ALL_WARNINGS" => "YES", # Disable warnings because we don't control this library
++    # Xcode 26 / Apple Clang 21 rejects fmt's C++20 consteval format-string checks.
++    # Disable them (runtime validation instead) when compiling fmt itself.
++    "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) FMT_USE_CONSTEVAL=0"
++  }
++  # Propagate the same define to every pod that depends on fmt (folly, glog,
++  # React-Core, ...), since the failing consteval instantiations compile there.
++  spec.user_target_xcconfig = {
++    "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) FMT_USE_CONSTEVAL=0"
+   }
+   spec.platforms = min_supported_versions
+   spec.libraries = "c++"

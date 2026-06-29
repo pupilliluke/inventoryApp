@@ -7,7 +7,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "build": "expo export --platform web"
+    "build": "expo export --platform web",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.19.31",
@@ -17,7 +18,11 @@
     "@react-navigation/native": "^7.1.14",
     "@react-navigation/native-stack": "^7.3.21",
     "expo": "~53.0.13",
+    "expo-auth-session": "~6.2.1",
+    "expo-crypto": "~14.1.5",
+    "expo-secure-store": "~14.2.4",
     "expo-status-bar": "~2.2.3",
+    "expo-web-browser": "~14.2.0",
     "firebase": "^11.9.1",
     "react": "19.0.0",
     "react-dom": "19.0.0",
@@ -26,15 +31,13 @@
     "react-native-safe-area-context": "^5.4.0",
     "react-native-svg": "^15.12.1",
     "react-native-vector-icons": "^10.2.0",
-    "react-native-web": "^0.20.0",
-    "expo-secure-store": "~14.2.4",
-    "expo-web-browser": "~14.2.0",
-    "expo-auth-session": "~6.2.1",
-    "expo-crypto": "~14.1.5"
+    "react-native-web": "^0.20.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~19.0.10",
+    "patch-package": "^8.0.1",
+    "postinstall-postinstall": "^2.1.0",
     "typescript": "~5.8.3"
   },
   "private": true
