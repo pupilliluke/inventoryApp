@@ -42,7 +42,8 @@
     },
     "plugins": [
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      "./plugins/withFmtConstevalFix"
     ]
   }
 }
