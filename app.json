@@ -19,7 +19,7 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.pupilli.dev.inventoryApp",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
