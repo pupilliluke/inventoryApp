@@ -16,6 +16,35 @@ function isSSOCallbackRoute(): boolean {
   );
 }
 
+/**
+ * Resolve the user's name from Clerk.
+ *
+ * Sign in with Apple only delivers the name on the *first* authorization, and
+ * Clerk records it on the external account rather than always promoting it to
+ * the top-level user fields. So when the user's first/last/full name are empty
+ * (the usual case for Apple), fall back to the name stored on the external
+ * account before giving up.
+ */
+function resolveClerkName(user: NonNullable<ReturnType<typeof useUser>['user']>): {
+  firstName: string | null;
+  lastName: string | null;
+  fullName: string | null;
+} {
+  let firstName = user.firstName;
+  let lastName = user.lastName;
+  const fullName = user.fullName;
+
+  if (!firstName && !lastName && !fullName) {
+    const account = user.externalAccounts?.find((a) => a.firstName || a.lastName);
+    if (account) {
+      firstName = account.firstName ?? null;
+      lastName = account.lastName ?? null;
+    }
+  }
+
+  return { firstName, lastName, fullName };
+}
+
 interface AuthGateProps {
   children: ReactNode;
 }
@@ -42,18 +71,20 @@ export default function AuthGate({ children }: AuthGateProps) {
         user.primaryEmailAddress?.emailAddress ??
         user.emailAddresses?.[0]?.emailAddress;
 
+      const { firstName, lastName, fullName } = resolveClerkName(user);
+
       if (!email) {
         // No email (shouldn't happen with Google) — fall back to the Clerk id/name.
-        setActiveUser({ id: user.id, name: user.fullName ?? 'User' });
+        setActiveUser({ id: user.id, name: fullName ?? 'User' });
         setSynced(true);
         return;
       }
 
       ensureFirebaseUser({
         email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        fullName: user.fullName,
+        firstName,
+        lastName,
+        fullName,
       })
         .then((syncedUser) => {
           if (cancelled) return;
@@ -65,9 +96,11 @@ export default function AuthGate({ children }: AuthGateProps) {
           console.error('Failed to sync Clerk user to Firebase:', err);
           if (cancelled) return;
           // Don't block the user on a sync hiccup — use the Clerk identity directly.
+          const fallbackName =
+            [firstName, lastName].filter(Boolean).join(' ').trim() || fullName || email;
           setActiveUser({
             id: email,
-            name: user.fullName ?? email,
+            name: fallbackName,
           });
           setSynced(true);
         });
