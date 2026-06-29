@@ -57,13 +57,31 @@ export default function SignInScreen() {
 
       // Native: in-app browser flow (COOP does not apply).
       const startFlow = strategy === 'oauth_apple' ? startAppleOAuth : startGoogleOAuth;
-      const { createdSessionId, setActive } = await startFlow({
+      const result = await startFlow({
         redirectUrl: AuthSession.makeRedirectUri(),
       });
+
+      // TEMP DIAGNOSTIC: see exactly what the OAuth flow returns.
+      console.log('[OAuth result]', JSON.stringify({
+        createdSessionId: result.createdSessionId,
+        signInStatus: result.signIn?.status,
+        signUpStatus: result.signUp?.status,
+        signUpMissingFields: result.signUp?.missingFields,
+        signUpUnverifiedFields: result.signUp?.unverifiedFields,
+      }));
+
+      const { createdSessionId, setActive, signUp } = result;
 
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
         // AuthGate picks up the signed-in state and continues.
+      } else if (signUp && setActive) {
+        // New OAuth user: if Clerk created a complete sign-up, activate its session.
+        if (signUp.status === 'complete' && signUp.createdSessionId) {
+          await setActive({ session: signUp.createdSessionId });
+        } else {
+          setError(`Sign-up needs: ${signUp.missingFields?.join(', ') || signUp.status || 'unknown'}`);
+        }
       } else {
         setError('Could not complete sign in. Please try again.');
       }

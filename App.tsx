@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme as NavDefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Provider as PaperProvider, DefaultTheme } from 'react-native-paper';
 import { ClerkProvider } from '@clerk/clerk-expo';
@@ -63,8 +63,10 @@ const theme = {
 };
 
 const navTheme = {
+  ...NavDefaultTheme,
   dark: false,
   colors: {
+    ...NavDefaultTheme.colors,
     primary: color.accent,
     background: color.appBg,
     card: color.surface,
