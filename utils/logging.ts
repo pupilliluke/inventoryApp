@@ -94,7 +94,21 @@ export const LogMessages = {
     const oldNoteDisplay = oldNote?.trim() || '(empty)';
     const newNoteDisplay = newNote?.trim() || '(empty)';
     return `${user.name} updated note for Item #${itemCode} (${itemName}): "${oldNoteDisplay}" → "${newNoteDisplay}"`;
-  }
+  },
+
+  todoCreated: (user: ActiveUser, text: string, assigneeName: string) =>
+    `${user.name} created to-do "${text}" (assigned to ${assigneeName || 'Unassigned'})`,
+
+  todoEdited: (user: ActiveUser, oldText: string, newText: string, assigneeName: string) =>
+    oldText === newText
+      ? `${user.name} reassigned to-do "${newText}" to ${assigneeName || 'Unassigned'}`
+      : `${user.name} edited to-do: "${oldText}" → "${newText}" (assigned to ${assigneeName || 'Unassigned'})`,
+
+  todoDeleted: (user: ActiveUser, text: string) =>
+    `${user.name} deleted to-do "${text}"`,
+
+  todoToggled: (user: ActiveUser, text: string, done: boolean) =>
+    `${user.name} ${done ? 'completed' : 'reopened'} to-do "${text}"`,
 };
 
 /**

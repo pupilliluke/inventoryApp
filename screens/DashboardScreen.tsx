@@ -11,6 +11,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import AnimatedGridHero from '../components/AnimatedGridHero';
 import UserBadge from '../components/UserBadge';
+import NavMenu from '../components/NavMenu';
 import { useInventory } from '../context/InventoryContext';
 import { useSession } from '../context/SessionContext';
 import { useIsAdmin, usePendingUsers } from '../utils/admin';
@@ -26,14 +27,9 @@ import {
 } from '../utils/analytics';
 import {
   PullListIcon,
-  TruckIcon,
-  LogIcon,
-  AccountIcon,
   UsersIcon,
-  CountIcon,
   ViewIcon,
-  LowStockIcon,
-  ChartIcon,
+  CheckIcon,
 } from '../components/CustomIcons';
 import { color, space, radius, font, mono } from '../theme/tokens';
 
@@ -138,36 +134,6 @@ export default function DashboardScreen() {
       Icon: PullListIcon,
       onPress: () => navigation.navigate('PullLists'),
     },
-    {
-      key: 'Truck',
-      label: 'Trucks',
-      Icon: TruckIcon,
-      onPress: () => navigation.navigate('Truck'),
-    },
-    {
-      key: 'LowQuantity',
-      label: 'Low Qty / Out',
-      Icon: LowStockIcon,
-      onPress: () => navigation.navigate('LowQuantity'),
-    },
-    {
-      key: 'InventoryList',
-      label: 'Inventory',
-      Icon: ViewIcon,
-      onPress: () => navigation.navigate('InventoryList'),
-    },
-    {
-      key: 'LogPage',
-      label: 'Activity',
-      Icon: LogIcon,
-      onPress: () => navigation.navigate('LogPage'),
-    },
-    {
-      key: 'Analytics',
-      label: 'Analytics',
-      Icon: ChartIcon,
-      onPress: () => navigation.navigate('Analytics'),
-    },
     ...(isAdmin
       ? [
           {
@@ -176,19 +142,13 @@ export default function DashboardScreen() {
             Icon: UsersIcon,
             onPress: () => navigation.navigate('UserListPage'),
           },
-          {
-            key: 'RecountPage',
-            label: 'Recount',
-            Icon: CountIcon,
-            onPress: () => navigation.navigate('RecountPage'),
-          },
         ]
       : []),
     {
-      key: 'AccountPage',
-      label: 'Account',
-      Icon: AccountIcon,
-      onPress: () => navigation.navigate('AccountPage'),
+      key: 'InventoryList',
+      label: 'Inventory',
+      Icon: ViewIcon,
+      onPress: () => navigation.navigate('InventoryList'),
     },
   ];
 
@@ -205,7 +165,10 @@ export default function DashboardScreen() {
         <View onLayout={onHeroLayout}>
           <AnimatedGridHero height={232} width={heroWidth || undefined} color="#7cb3e8" background={color.chromeAlt}>
             <View style={styles.heroTopBar}>
-              <Text style={styles.heroEyebrow}>Phantom Warehouse</Text>
+              <View style={styles.heroTopLeft}>
+                <NavMenu />
+                <Text style={styles.heroEyebrow}>Phantom Warehouse</Text>
+              </View>
               <UserBadge />
             </View>
 
@@ -249,6 +212,22 @@ export default function DashboardScreen() {
               <Text style={styles.approvalAction}>Review ›</Text>
             </TouchableOpacity>
           )}
+
+          {/* Tasks — entry point to pull lists, trucks, low stock & to-dos */}
+          <TouchableOpacity
+            style={styles.tasksCard}
+            onPress={() => navigation.navigate('Tasks')}
+            activeOpacity={0.85}
+          >
+            <View style={styles.tasksIcon}>
+              <CheckIcon size={24} color={color.accent} />
+            </View>
+            <View style={styles.tasksBody}>
+              <Text style={styles.tasksTitle}>Tasks</Text>
+              <Text style={styles.tasksSub}>Pull lists, trucks, low stock & to-dos</Text>
+            </View>
+            <Text style={styles.tasksChevron}>›</Text>
+          </TouchableOpacity>
 
           {/* Container status */}
           <View style={styles.sectionHead}>
@@ -445,6 +424,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: space.lg,
   },
+  heroTopLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.xs,
+    marginLeft: -space.sm, // pull the menu button's tap padding to the edge
+  },
   heroEyebrow: {
     fontSize: 10,
     fontWeight: '800',
@@ -544,6 +529,31 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: color.warning,
   },
+
+  // Tasks entry card (above container status)
+  tasksCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+    backgroundColor: color.surface,
+    borderWidth: 1,
+    borderColor: color.border,
+    borderRadius: radius.md,
+    padding: space.md,
+    marginBottom: space.xl,
+  },
+  tasksIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.md,
+    backgroundColor: color.accentBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tasksBody: { flex: 1 },
+  tasksTitle: { ...font.title, fontSize: 16 },
+  tasksSub: { fontSize: 12, color: color.textMuted, marginTop: 2 },
+  tasksChevron: { fontSize: 24, color: color.textMuted },
 
   sectionHead: {
     flexDirection: 'row',

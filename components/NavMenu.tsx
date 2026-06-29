@@ -24,6 +24,7 @@ const NAV_ITEMS: NavItem[] = [
   { route: 'Inventory', label: 'Dashboard', Icon: HomeIcon },
   { route: 'InventoryList', label: 'Inventory', Icon: ViewIcon },
   { route: 'Tasks', label: 'Tasks', Icon: CheckIcon },
+  { route: 'Todo', label: 'To-Do', Icon: CheckIcon },
   { route: 'PullLists', label: 'Pull Lists', Icon: PullListIcon },
   { route: 'Truck', label: 'Trucks', Icon: TruckIcon },
   { route: 'LowQuantity', label: 'Low Qty / Out', Icon: LowStockIcon },

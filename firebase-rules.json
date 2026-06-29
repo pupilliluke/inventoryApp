@@ -31,6 +31,12 @@
       ".indexOn": "updatedAt"
     },
 
+    "todos": {
+      ".read": true,
+      ".write": true,
+      ".indexOn": "updatedAt"
+    },
+
     "trucks": {
       ".read": true,
       ".write": true,

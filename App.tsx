@@ -21,6 +21,7 @@ import AnalyticsPage from './screens/AnalyticsPage';
 import PullListPage from './screens/PullListPage';
 import PullListDetailPage from './screens/PullListDetailPage';
 import TasksPage from './screens/TasksPage';
+import TodoPage from './screens/TodoPage';
 import TruckPage from './screens/TruckPage';
 import TruckDetailPage from './screens/TruckDetailPage';
 import LowQuantityPage from './screens/LowQuantityPage';
@@ -104,6 +105,7 @@ export default function App() {
                   <Stack.Screen name="Inventory" component={HomeScreen} />
                   <Stack.Screen name="InventoryList" component={InventoryMain} />
                   <Stack.Screen name="Tasks" component={TasksPage} />
+                  <Stack.Screen name="Todo" component={TodoPage} />
                   <Stack.Screen name="PullLists" component={PullListPage} />
                   <Stack.Screen name="PullListDetail" component={PullListDetailPage} />
                   <Stack.Screen name="Truck" component={TruckPage} />
