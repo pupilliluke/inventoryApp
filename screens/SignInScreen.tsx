@@ -4,7 +4,9 @@ import { Text } from 'react-native-paper';
 import { useSSO, useSignIn } from '@clerk/expo';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
-import { GoogleIcon } from '../components/CustomIcons';
+import { GoogleIcon, AppleIcon } from '../components/CustomIcons';
+
+type OAuthStrategy = 'oauth_google' | 'oauth_apple';
 import { color, space, radius } from '../theme/tokens';
 
 // Ensures the browser-based auth session can complete (native redirects).
@@ -25,20 +27,20 @@ export default function SignInScreen() {
   useWarmUpBrowser();
   const { startSSOFlow } = useSSO();
   const { signIn } = useSignIn();
-  const [loading, setLoading] = useState(false);
+  const [loadingStrategy, setLoadingStrategy] = useState<OAuthStrategy | null>(null);
   const [error, setError] = useState('');
 
-  const handleGoogleSignIn = useCallback(async () => {
+  const handleOAuth = useCallback(async (strategy: OAuthStrategy) => {
     setError('');
-    setLoading(true);
+    setLoadingStrategy(strategy);
     try {
       if (Platform.OS === 'web') {
         // Full-page redirect flow on web. A popup-based flow trips
         // Cross-Origin-Opener-Policy and can't hand the session back, so we
-        // navigate the whole page to Google and return via /sso-callback.
+        // navigate the whole page to the provider and return via /sso-callback.
         const origin = window.location.origin;
         const { error: ssoError } = await signIn.sso({
-          strategy: 'oauth_google',
+          strategy,
           redirectUrl: `${origin}/`,
           redirectCallbackUrl: `${origin}/sso-callback`,
         });
@@ -51,7 +53,7 @@ export default function SignInScreen() {
 
       // Native: in-app browser flow (COOP does not apply).
       const { createdSessionId, setActive } = await startSSOFlow({
-        strategy: 'oauth_google',
+        strategy,
         redirectUrl: AuthSession.makeRedirectUri(),
       });
 
@@ -62,10 +64,10 @@ export default function SignInScreen() {
         setError('Could not complete sign in. Please try again.');
       }
     } catch (err: any) {
-      console.error('Google sign-in error:', err);
+      console.error(`${strategy} sign-in error:`, err);
       setError(err?.errors?.[0]?.message ?? err?.message ?? 'Sign in failed. Please try again.');
     } finally {
-      setLoading(false);
+      setLoadingStrategy(null);
     }
   }, [startSSOFlow, signIn]);
 
@@ -82,19 +84,37 @@ export default function SignInScreen() {
         <Text style={styles.subtitle}>Sign in to access the inventory system</Text>
 
         <View style={styles.card}>
+          {Platform.OS !== 'android' && (
+            <TouchableOpacity
+              onPress={() => handleOAuth('oauth_apple')}
+              disabled={loadingStrategy !== null}
+              style={styles.appleButton}
+              activeOpacity={0.8}
+            >
+              {loadingStrategy === 'oauth_apple' ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <AppleIcon size={18} />
+              )}
+              <Text style={styles.appleButtonLabel}>
+                {loadingStrategy === 'oauth_apple' ? 'Signing in…' : 'Continue with Apple'}
+              </Text>
+            </TouchableOpacity>
+          )}
+
           <TouchableOpacity
-            onPress={handleGoogleSignIn}
-            disabled={loading}
+            onPress={() => handleOAuth('oauth_google')}
+            disabled={loadingStrategy !== null}
             style={styles.googleButton}
             activeOpacity={0.8}
           >
-            {loading ? (
+            {loadingStrategy === 'oauth_google' ? (
               <ActivityIndicator size="small" color={color.textSecondary} />
             ) : (
               <GoogleIcon size={18} />
             )}
             <Text style={styles.googleButtonLabel}>
-              {loading ? 'Signing in…' : 'Continue with Google'}
+              {loadingStrategy === 'oauth_google' ? 'Signing in…' : 'Continue with Google'}
             </Text>
           </TouchableOpacity>
 
@@ -154,6 +174,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: color.borderStrong,
     padding: space.xl,
+  },
+  appleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space.sm,
+    backgroundColor: '#000000',
+    borderRadius: radius.sm,
+    paddingVertical: space.md,
+    marginBottom: space.md,
+  },
+  appleButtonLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   googleButton: {
     flexDirection: 'row',
