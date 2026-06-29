@@ -26,9 +26,11 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
   const [activeUser, setActiveUserState] = useState<ActiveUser | null>(null);
   const [isSessionLoaded, setIsSessionLoaded] = useState(false);
 
-  // Load session from sessionStorage on mount
+  // Load session from sessionStorage on mount (web only — native has no
+  // sessionStorage, and the active user is re-derived from Clerk on sign-in).
   useEffect(() => {
     try {
+      if (typeof sessionStorage === 'undefined') return;
       const savedUser = sessionStorage.getItem('activeUser');
       if (savedUser) {
         const user = JSON.parse(savedUser) as ActiveUser;
@@ -41,11 +43,12 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
     }
   }, []);
 
-  // Save to sessionStorage whenever activeUser changes
+  // Save to sessionStorage whenever activeUser changes (web only).
   const setActiveUser = (user: ActiveUser | null) => {
     setActiveUserState(user);
-    
+
     try {
+      if (typeof sessionStorage === 'undefined') return;
       if (user) {
         sessionStorage.setItem('activeUser', JSON.stringify(user));
       } else {
