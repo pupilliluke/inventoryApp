@@ -5,6 +5,11 @@ export interface PullListItem {
   code: string;
   name: string;
   quantity: number;
+  // When checked, the item has been pulled: its quantity is moved out of the
+  // inventory container and zeroed here. `pulledQty` remembers how much was
+  // pulled so unchecking can restore both numbers.
+  checked?: boolean;
+  pulledQty?: number;
 }
 
 export interface PullList {

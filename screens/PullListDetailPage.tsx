@@ -7,10 +7,11 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useInventory } from '../context/InventoryContext';
 import { useSession } from '../context/SessionContext';
 import ScreenHeader from '../components/ScreenHeader';
-import { AddIcon, DeleteIcon, SearchIcon, CloseIcon } from '../components/CustomIcons';
+import { AddIcon, DeleteIcon, SearchIcon, CloseIcon, CheckIcon } from '../components/CustomIcons';
 import {
   subscribePullList, savePullList, deletePullList, PullList, PullListItem,
 } from '../utils/pullLists';
+import { InventoryMutations } from '../utils/inventoryMutations';
 import { useIsAdmin } from '../utils/admin';
 import { color, space, radius, font, mono } from '../theme/tokens';
 
@@ -100,6 +101,54 @@ export default function PullListDetailPage() {
     setDirty(true);
   };
 
+  // Codes currently being checked/unchecked, to block double taps mid-write.
+  const [toggling, setToggling] = useState<Record<string, boolean>>({});
+
+  // Toggle the "pulled" checkbox for a line item. Checking moves the item's
+  // quantity out of its inventory container and zeroes the pull-list quantity;
+  // unchecking restores both. Inventory + pull list are persisted immediately.
+  const togglePulled = async (item: PullListItem) => {
+    if (!canEdit || !listId || toggling[item.code]) return;
+    const willCheck = !item.checked;
+    const inv = (originalInventory || []).find((it: any) => it.code === item.code);
+
+    setToggling((p) => ({ ...p, [item.code]: true }));
+    try {
+      // Adjust the inventory container quantity (clamped at 0), if the item
+      // still exists in inventory.
+      if (inv) {
+        const currentQty = inv.containers?.quantity || 0;
+        const delta = willCheck ? item.quantity : (item.pulledQty || 0);
+        const newQty = willCheck
+          ? Math.max(0, currentQty - delta)
+          : currentQty + delta;
+        const newInv = {
+          ...inv,
+          containers: { ...(inv.containers || { category: 0, quantity: 0 }), quantity: newQty },
+        };
+        await InventoryMutations.updateItem(activeUser, inv, newInv);
+      }
+
+      // Update the pull-list line item.
+      const updatedItem: PullListItem = willCheck
+        ? { ...item, checked: true, pulledQty: item.quantity, quantity: 0 }
+        : { ...item, checked: false, quantity: item.pulledQty || 0, pulledQty: 0 };
+
+      const nextItems = { ...items, [item.code]: updatedItem };
+      setItems(nextItems);
+      await savePullList(listId, { items: nextItems });
+    } catch (e) {
+      console.error('Failed to toggle pulled state:', e);
+      Alert.alert('Error', 'Could not update the pulled state for this item.');
+    } finally {
+      setToggling((p) => {
+        const next = { ...p };
+        delete next[item.code];
+        return next;
+      });
+    }
+  };
+
   const handleSave = async () => {
     if (!canEdit || !listId) return;
     setSaving(true);
@@ -140,31 +189,54 @@ export default function PullListDetailPage() {
     }
   };
 
-  const renderItemRow = (item: PullListItem) => (
-    <View key={item.code} style={styles.itemRow}>
-      <View style={styles.itemInfo}>
-        <Text style={styles.itemCode}>{item.code}</Text>
-        <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
+  const renderItemRow = (item: PullListItem) => {
+    const checkbox = (
+      <View style={[styles.checkbox, item.checked && styles.checkboxChecked]}>
+        {item.checked && <CheckIcon size={14} color={color.textInverse} />}
       </View>
-      {canEdit ? (
-        <>
-          <TextInput
-            style={styles.qtyInput}
-            keyboardType="numeric"
-            value={String(item.quantity)}
-            onChangeText={(v) => setQty(item.code, v)}
-            returnKeyType="done"
-            selectTextOnFocus
-          />
-          <TouchableOpacity onPress={() => removeItem(item.code)} style={styles.removeBtn} activeOpacity={0.7}>
-            <DeleteIcon size={16} color={color.negative} />
+    );
+    return (
+      <View key={item.code} style={[styles.itemRow, item.checked && styles.itemRowChecked]}>
+        {canEdit ? (
+          <TouchableOpacity
+            onPress={() => togglePulled(item)}
+            disabled={!!toggling[item.code]}
+            style={styles.checkboxBtn}
+            activeOpacity={0.7}
+          >
+            {checkbox}
           </TouchableOpacity>
-        </>
-      ) : (
-        <Text style={styles.qtyReadonly}>{item.quantity}</Text>
-      )}
-    </View>
-  );
+        ) : (
+          checkbox
+        )}
+        <View style={styles.itemInfo}>
+          <Text style={styles.itemCode}>{item.code}</Text>
+          <Text style={[styles.itemName, item.checked && styles.itemTextStruck]} numberOfLines={2}>
+            {item.name}
+          </Text>
+        </View>
+        {canEdit && !item.checked ? (
+          <>
+            <TextInput
+              style={styles.qtyInput}
+              keyboardType="numeric"
+              value={String(item.quantity)}
+              onChangeText={(v) => setQty(item.code, v)}
+              returnKeyType="done"
+              selectTextOnFocus
+            />
+            <TouchableOpacity onPress={() => removeItem(item.code)} style={styles.removeBtn} activeOpacity={0.7}>
+              <DeleteIcon size={16} color={color.negative} />
+            </TouchableOpacity>
+          </>
+        ) : (
+          <Text style={[styles.qtyReadonly, item.checked && styles.itemTextStruck]}>
+            {item.checked ? (item.pulledQty ?? 0) : item.quantity}
+          </Text>
+        )}
+      </View>
+    );
+  };
 
   const header = (
     <View>
@@ -449,6 +521,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.md,
     marginBottom: space.sm,
   },
+  itemRowChecked: { opacity: 0.6 },
+  checkboxBtn: { padding: space.xs, marginLeft: -space.xs },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: radius.sm,
+    borderWidth: 2,
+    borderColor: color.border,
+    backgroundColor: color.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxChecked: { backgroundColor: color.accent, borderColor: color.accent },
+  itemTextStruck: { textDecorationLine: 'line-through', color: color.textMuted },
   itemInfo: { flex: 1 },
   itemCode: { fontFamily: mono, fontSize: 13, fontWeight: '700', color: color.accent },
   itemName: { fontSize: 13, color: color.textSecondary, marginTop: 1 },
