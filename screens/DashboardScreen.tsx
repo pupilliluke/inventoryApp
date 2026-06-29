@@ -15,9 +15,15 @@ import { useInventory } from '../context/InventoryContext';
 import { useSession } from '../context/SessionContext';
 import { useIsAdmin } from '../utils/admin';
 import { subscribePullLists, pullListLineCount, pullListTotal, PullList } from '../utils/pullLists';
-import { subscribeTrucks, truckLineCount, TruckList } from '../utils/trucks';
 import { InventoryItem } from '../types/inventoryItem';
 import { CONTAINER_COLORS } from '../components/InventoryRow';
+import {
+  subscribeMovements,
+  withinRange,
+  aggregateUsers,
+  totals,
+  Movement,
+} from '../utils/analytics';
 import {
   PullListIcon,
   TruckIcon,
@@ -27,6 +33,7 @@ import {
   CountIcon,
   ViewIcon,
   LowStockIcon,
+  ChartIcon,
 } from '../components/CustomIcons';
 import { color, space, radius, font, mono } from '../theme/tokens';
 
@@ -42,6 +49,26 @@ function formatWhen(iso: string): string {
   const d = new Date(iso);
   if (isNaN(d.getTime())) return '';
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function timeAgo(ts: number): string {
+  if (!ts) return '';
+  const diffMs = Date.now() - ts;
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function initials(name: string): string {
+  const parts = (name || '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 const CONTAINER_LABELS: Record<number, string> = {
@@ -63,11 +90,11 @@ export default function DashboardScreen() {
   };
 
   const [pullLists, setPullLists] = useState<PullList[]>([]);
-  const [trucks, setTrucks] = useState<TruckList[]>([]);
+  const [movements, setMovements] = useState<Movement[]>([]);
   const [heroWidth, setHeroWidth] = useState(0);
 
   useEffect(() => subscribePullLists(setPullLists), []);
-  useEffect(() => subscribeTrucks(setTrucks), []);
+  useEffect(() => subscribeMovements(setMovements, 500), []);
 
   // Headline KPIs and per-container rollups, derived from the full (unfiltered)
   // inventory so the dashboard reflects the whole warehouse, not active filters.
@@ -92,8 +119,16 @@ export default function DashboardScreen() {
     return { itemCount: items.length, units, byContainer, containerUnits };
   }, [originalInventory]);
 
-  const recentPullLists = pullLists.slice(0, 4);
-  const recentTrucks = trucks.slice(0, 3);
+  const recentPullLists = pullLists.slice(0, 1);
+
+  // Activity analytics over the last 7 days, derived from the parsed log feed.
+  const activity = useMemo(() => {
+    const recent = withinRange(movements, 7 * 24 * 60 * 60 * 1000, Date.now());
+    return {
+      totals: totals(recent),
+      users: aggregateUsers(recent, 5),
+    };
+  }, [movements]);
 
   const quickActions = [
     {
@@ -125,6 +160,12 @@ export default function DashboardScreen() {
       label: 'Activity',
       Icon: LogIcon,
       onPress: () => navigation.navigate('LogPage'),
+    },
+    {
+      key: 'Analytics',
+      label: 'Analytics',
+      Icon: ChartIcon,
+      onPress: () => navigation.navigate('Analytics'),
     },
     ...(isAdmin
       ? [
@@ -271,46 +312,84 @@ export default function DashboardScreen() {
             )}
           </View>
 
-          {/* Trucks */}
+          {/* Activity analytics */}
           <View style={[styles.sectionHead, { marginTop: space.xl }]}>
-            <Text style={styles.sectionLabel}>Trucks</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Truck')} activeOpacity={0.7}>
-              <Text style={styles.sectionAction}>View all ›</Text>
+            <Text style={styles.sectionLabel}>Activity · Last 7 Days</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Analytics')} activeOpacity={0.7}>
+              <Text style={styles.sectionAction}>Analytics ›</Text>
             </TouchableOpacity>
           </View>
+          <View style={styles.flowGrid}>
+            <View style={[styles.flowCard, { borderColor: color.positive, backgroundColor: color.positiveBg }]}>
+              <Text style={[styles.flowLabel, { color: color.positive }]}>Units In ▲</Text>
+              <Text style={[styles.flowValue, { color: color.positive }]}>{activity.totals.inUnits}</Text>
+            </View>
+            <View style={[styles.flowCard, { borderColor: color.negative, backgroundColor: color.negativeBg }]}>
+              <Text style={[styles.flowLabel, { color: color.negative }]}>Units Out ▼</Text>
+              <Text style={[styles.flowValue, { color: color.negative }]}>{activity.totals.outUnits}</Text>
+            </View>
+            <View style={[styles.flowCard, { borderColor: color.border, backgroundColor: color.surface }]}>
+              <Text style={[styles.flowLabel, { color: color.textSecondary }]}>Net</Text>
+              <Text
+                style={[
+                  styles.flowValue,
+                  { color: activity.totals.net > 0 ? color.positive : activity.totals.net < 0 ? color.negative : color.text },
+                ]}
+              >
+                {activity.totals.net > 0 ? '+' : ''}{activity.totals.net}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.flowMetaRow}>
+            <Text style={styles.flowMetaText}>{activity.totals.movements} changes</Text>
+            <Text style={styles.flowMetaDot}>·</Text>
+            <Text style={styles.flowMetaText}>{activity.totals.activeItems} items touched</Text>
+          </View>
+
+          {/* Recent users */}
+          <View style={[styles.sectionHead, { marginTop: space.xl }]}>
+            <Text style={styles.sectionLabel}>Recent Users</Text>
+            {isAdmin && (
+              <TouchableOpacity onPress={() => navigation.navigate('UserListPage')} activeOpacity={0.7}>
+                <Text style={styles.sectionAction}>View all ›</Text>
+              </TouchableOpacity>
+            )}
+          </View>
           <View style={styles.listCard}>
-            {recentTrucks.length === 0 ? (
+            {activity.users.length === 0 ? (
               <View style={styles.emptyRow}>
-                <TruckIcon size={22} color={color.textMuted} />
-                <Text style={styles.emptyText}>No truck lists yet. Tap “View all” to create one.</Text>
+                <UsersIcon size={22} color={color.textMuted} />
+                <Text style={styles.emptyText}>No recent activity yet. Changes show up here as the team works.</Text>
               </View>
             ) : (
-              recentTrucks.map((list, i) => {
-                const mine = !!activeUser && list.ownerId === activeUser.id;
-                const noteCount = (list.notes || []).length;
+              activity.users.map((u, i) => {
+                const mine = !!activeUser && u.userId === activeUser.id;
                 return (
-                  <TouchableOpacity
-                    key={list.id}
-                    style={[styles.listRow, i === recentTrucks.length - 1 && styles.listRowLast]}
-                    activeOpacity={0.7}
-                    onPress={() => navigation.navigate('TruckDetail', { listId: list.id })}
+                  <View
+                    key={u.userId || u.userName}
+                    style={[styles.listRow, i === activity.users.length - 1 && styles.listRowLast]}
                   >
+                    <View style={styles.avatar}>
+                      <Text style={styles.avatarText}>{initials(u.userName)}</Text>
+                    </View>
                     <View style={styles.listRowMain}>
                       <View style={styles.listTitleLine}>
-                        <Text style={styles.listTitle} numberOfLines={1}>{list.title}</Text>
+                        <Text style={styles.listTitle} numberOfLines={1}>{u.userName}</Text>
                         {mine && <Text style={styles.youBadge}>YOU</Text>}
-                        {noteCount > 0 && (
-                          <Text style={styles.noteBadge}>{noteCount} NOTE{noteCount === 1 ? '' : 'S'}</Text>
-                        )}
                       </View>
-                      <Text style={styles.listOwner} numberOfLines={1}>by {list.ownerName}</Text>
+                      <Text style={styles.listOwner} numberOfLines={1}>
+                        {u.actions} {u.actions === 1 ? 'action' : 'actions'} · {timeAgo(u.lastTs)}
+                      </Text>
                     </View>
                     <View style={styles.listMeta}>
-                      <Text style={styles.listMetaValue}>{truckLineCount(list)}</Text>
-                      <Text style={styles.listMetaLabel}>items</Text>
+                      <Text style={[styles.listMetaValue, { color: color.positive }]}>+{u.inUnits}</Text>
+                      <Text style={styles.listMetaLabel}>in</Text>
                     </View>
-                    <Text style={styles.listWhen}>{formatWhen(list.updatedAt)}</Text>
-                  </TouchableOpacity>
+                    <View style={styles.listMeta}>
+                      <Text style={[styles.listMetaValue, { color: color.negative }]}>-{u.outUnits}</Text>
+                      <Text style={styles.listMetaLabel}>out</Text>
+                    </View>
+                  </View>
                 );
               })
             )}
@@ -483,7 +562,7 @@ const styles = StyleSheet.create({
     color: color.text,
   },
 
-  // List cards (pull lists / trucks)
+  // List cards (pull lists / recent users)
   listCard: {
     backgroundColor: color.surface,
     borderWidth: 1,
@@ -518,19 +597,6 @@ const styles = StyleSheet.create({
     paddingVertical: 1,
     overflow: 'hidden',
   },
-  noteBadge: {
-    fontSize: 9,
-    fontWeight: '800',
-    letterSpacing: 0.6,
-    color: color.textSecondary,
-    backgroundColor: color.surfaceAlt,
-    borderWidth: 1,
-    borderColor: color.border,
-    borderRadius: radius.sm,
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-    overflow: 'hidden',
-  },
   listMeta: { alignItems: 'center', width: 40 },
   listMetaValue: { fontFamily: mono, fontSize: 15, fontWeight: '700', color: color.text },
   listMetaLabel: {
@@ -548,4 +614,44 @@ const styles = StyleSheet.create({
     padding: space.lg,
   },
   emptyText: { flex: 1, fontSize: 13, color: color.textMuted, lineHeight: 18 },
+
+  // Activity flow cards (in / out / net)
+  flowGrid: { flexDirection: 'row', gap: space.sm },
+  flowCard: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    paddingVertical: space.md,
+    paddingHorizontal: space.sm,
+    alignItems: 'center',
+  },
+  flowLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+  },
+  flowValue: { fontFamily: mono, fontSize: 24, fontWeight: '800', marginTop: space.xs },
+  flowMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+    marginTop: space.sm,
+    paddingHorizontal: space.xs,
+  },
+  flowMetaText: { fontSize: 11, fontWeight: '600', color: color.textMuted },
+  flowMetaDot: { fontSize: 11, color: color.textMuted },
+
+  // Recent-user avatar
+  avatar: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.md,
+    backgroundColor: color.accentBg,
+    borderWidth: 1,
+    borderColor: color.accentBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: { fontSize: 13, fontWeight: '800', color: color.accent, letterSpacing: 0.3 },
 });

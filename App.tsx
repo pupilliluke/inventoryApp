@@ -17,6 +17,7 @@ import UserListPage from './screens/UserListPage';
 import LogPage from './screens/LogPage';
 import RecountPage from './screens/RecountPage';
 import ReportPage from './screens/ReportPage';
+import AnalyticsPage from './screens/AnalyticsPage';
 import PullListPage from './screens/PullListPage';
 import PullListDetailPage from './screens/PullListDetailPage';
 import TasksPage from './screens/TasksPage';
@@ -110,6 +111,7 @@ export default function App() {
                   <Stack.Screen name="LowQuantity" component={LowQuantityPage} />
                   <Stack.Screen name="UserListPage" component={GuardedUserListPage} />
                   <Stack.Screen name="LogPage" component={LogPage} />
+                  <Stack.Screen name="Analytics" component={AnalyticsPage} />
                   <Stack.Screen name="RecountPage" component={GuardedRecountPage} />
                   <Stack.Screen name="ReportPage" component={ReportPage} />
                   <Stack.Screen name="AccountPage" component={AccountPage} />
