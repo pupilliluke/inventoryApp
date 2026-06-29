@@ -6,7 +6,7 @@ import { useNavigation, useNavigationState } from '@react-navigation/native';
 import CustomIconButton from './CustomIconButton';
 import {
   HomeIcon, ViewIcon, CheckIcon, PullListIcon, TruckIcon, LowStockIcon,
-  LogIcon, ChartIcon, UsersIcon, CountIcon, AccountIcon,
+  LogIcon, ChartIcon, UsersIcon, CountIcon, AccountIcon, ResetIcon,
 } from './CustomIcons';
 import { useIsAdmin } from '../utils/admin';
 import { color, space, radius, font } from '../theme/tokens';
@@ -28,6 +28,7 @@ const NAV_ITEMS: NavItem[] = [
   { route: 'PullLists', label: 'Pull Lists', Icon: PullListIcon },
   { route: 'Truck', label: 'Trucks', Icon: TruckIcon },
   { route: 'LowQuantity', label: 'Low Qty / Out', Icon: LowStockIcon },
+  { route: 'NotReturning', label: 'Not Getting Back', Icon: ResetIcon },
   { route: 'LogPage', label: 'Activity Log', Icon: LogIcon },
   { route: 'Analytics', label: 'Analytics', Icon: ChartIcon },
   { route: 'ReportPage', label: 'Reports', Icon: ChartIcon },

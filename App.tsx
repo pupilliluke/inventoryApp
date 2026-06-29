@@ -8,6 +8,7 @@ import { tokenCache } from './utils/tokenCache';
 import { signInAnonymously } from 'firebase/auth';
 import { auth } from './firebaseConfig';
 import { InventoryProvider } from './context/InventoryContext';
+import { NotReturningProvider } from './context/NotReturningContext';
 import { SessionProvider } from './context/SessionContext';
 import AuthGate from './components/AuthGate';
 import AdminGuard from './components/AdminGuard';
@@ -25,6 +26,7 @@ import TodoPage from './screens/TodoPage';
 import TruckPage from './screens/TruckPage';
 import TruckDetailPage from './screens/TruckDetailPage';
 import LowQuantityPage from './screens/LowQuantityPage';
+import NotReturningPage from './screens/NotReturningPage';
 import AccountPage from './screens/AccountPage';
 import { color } from './theme/tokens';
 
@@ -100,6 +102,7 @@ export default function App() {
         <SessionProvider>
           <AuthGate>
             <InventoryProvider>
+              <NotReturningProvider>
               <NavigationContainer theme={navTheme as any}>
                 <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.appBg } }}>
                   <Stack.Screen name="Inventory" component={HomeScreen} />
@@ -111,6 +114,7 @@ export default function App() {
                   <Stack.Screen name="Truck" component={TruckPage} />
                   <Stack.Screen name="TruckDetail" component={TruckDetailPage} />
                   <Stack.Screen name="LowQuantity" component={LowQuantityPage} />
+                  <Stack.Screen name="NotReturning" component={NotReturningPage} />
                   <Stack.Screen name="UserListPage" component={GuardedUserListPage} />
                   <Stack.Screen name="LogPage" component={LogPage} />
                   <Stack.Screen name="Analytics" component={AnalyticsPage} />
@@ -119,6 +123,7 @@ export default function App() {
                   <Stack.Screen name="AccountPage" component={AccountPage} />
                 </Stack.Navigator>
               </NavigationContainer>
+              </NotReturningProvider>
             </InventoryProvider>
           </AuthGate>
         </SessionProvider>

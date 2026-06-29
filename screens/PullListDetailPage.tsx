@@ -6,6 +6,7 @@ import { Text, ActivityIndicator } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useInventory } from '../context/InventoryContext';
 import { useSession } from '../context/SessionContext';
+import { useNotReturning, NOT_RETURNING_COLOR } from '../context/NotReturningContext';
 import ScreenHeader from '../components/ScreenHeader';
 import { AddIcon, DeleteIcon, SearchIcon, CloseIcon, CheckIcon } from '../components/CustomIcons';
 import {
@@ -21,6 +22,7 @@ export default function PullListDetailPage() {
   const listId: string | undefined = route.params?.listId;
   const { activeUser } = useSession();
   const { originalInventory } = useInventory();
+  const { isNotReturning } = useNotReturning();
   const isAdmin = useIsAdmin();
 
   const [remote, setRemote] = useState<PullList | null>(null);
@@ -210,7 +212,12 @@ export default function PullListDetailPage() {
           checkbox
         )}
         <View style={styles.itemInfo}>
-          <Text style={styles.itemCode}>{item.code}</Text>
+          <View style={styles.codeRow}>
+            <Text style={styles.itemCode}>{item.code}</Text>
+            {isNotReturning(item.code) && (
+              <View style={styles.notReturningDot} accessibilityLabel="Not getting back" />
+            )}
+          </View>
           <Text style={[styles.itemName, item.checked && styles.itemTextStruck]} numberOfLines={2}>
             {item.name}
           </Text>
@@ -317,7 +324,12 @@ export default function PullListDetailPage() {
               {results.map((it: any) => (
                 <TouchableOpacity key={it.code} style={styles.resultRow} onPress={() => addItem(it)} activeOpacity={0.7}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.itemCode}>{it.code}</Text>
+                    <View style={styles.codeRow}>
+                      <Text style={styles.itemCode}>{it.code}</Text>
+                      {isNotReturning(it.code) && (
+                        <View style={styles.notReturningDot} accessibilityLabel="Not getting back" />
+                      )}
+                    </View>
                     <Text style={styles.itemName} numberOfLines={1}>{it.name}</Text>
                   </View>
                   <AddIcon size={18} color={color.accent} />
@@ -536,6 +548,8 @@ const styles = StyleSheet.create({
   checkboxChecked: { backgroundColor: color.accent, borderColor: color.accent },
   itemTextStruck: { textDecorationLine: 'line-through', color: color.textMuted },
   itemInfo: { flex: 1 },
+  codeRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
+  notReturningDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: NOT_RETURNING_COLOR },
   itemCode: { fontFamily: mono, fontSize: 13, fontWeight: '700', color: color.accent },
   itemName: { fontSize: 13, color: color.textSecondary, marginTop: 1 },
   qtyInput: {

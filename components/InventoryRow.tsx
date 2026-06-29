@@ -3,6 +3,7 @@ import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, ScrollView 
 import { Modal, Portal, List } from 'react-native-paper';
 import { InventoryItem } from '../types/inventoryItem';
 import { useInventory } from '../context/InventoryContext';
+import { useNotReturning, NOT_RETURNING_COLOR } from '../context/NotReturningContext';
 import { useSession } from '../context/SessionContext';
 import { InventoryMutations, UserNotAuthenticatedError } from '../utils/inventoryMutations';
 import { useNavigation } from '@react-navigation/native';
@@ -67,6 +68,7 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
   const [containerModalVisible, setContainerModalVisible] = useState(false);
 
   const { calculateTotal, updateItem } = useInventory();
+  const { isNotReturning } = useNotReturning();
   const { activeUser } = useSession();
   const navigation = useNavigation();
   const [localItem, setLocalItem] = useState(item);
@@ -278,6 +280,7 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
 
   const hasNote = !!(localItem.note && localItem.note.trim());
   const containerColor = CONTAINER_COLORS[localItem.containers.category];
+  const notReturning = isNotReturning(localItem.code);
 
   return (
     <View style={[styles.row, localItem.checked && styles.rowChecked]}>
@@ -294,7 +297,12 @@ const InventoryRow = ({ item }: { item: InventoryItem }) => {
             )}
           </TouchableOpacity>
           <View style={styles.itemText}>
-            <Text style={styles.code} numberOfLines={1}>{localItem.code}</Text>
+            <View style={styles.codeRow}>
+              <Text style={styles.code} numberOfLines={1}>{localItem.code}</Text>
+              {notReturning && (
+                <View style={styles.notReturningDot} accessibilityLabel="Not getting back" />
+              )}
+            </View>
             <Text style={styles.name} numberOfLines={2}>{localItem.name}</Text>
             <TouchableOpacity onPress={() => setEditModalVisible(true)} style={styles.typeTag} activeOpacity={0.7}>
               <Text style={styles.typeTagText}>{localItem.type}</Text>
@@ -566,6 +574,17 @@ const styles = StyleSheet.create({
   },
   itemText: {
     flex: 1,
+  },
+  codeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.xs,
+  },
+  notReturningDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: NOT_RETURNING_COLOR,
   },
   code: {
     fontFamily: mono,
