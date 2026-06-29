@@ -72,6 +72,9 @@ export const LogMessages = {
   userRenamed: (renamerUser: ActiveUser, oldName: string, newName: string) =>
     `${renamerUser.name} renamed user: ${oldName} → ${newName}`,
 
+  userAdminChanged: (actorUser: ActiveUser, targetName: string, makeAdmin: boolean) =>
+    `${actorUser.name} ${makeAdmin ? 'granted admin to' : 'revoked admin from'} ${targetName}`,
+
   selfRenamed: (oldName: string, newName: string) =>
     `${oldName} changed their name to ${newName}`,
   
