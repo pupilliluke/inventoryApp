@@ -18,6 +18,17 @@ export const GoogleIcon: React.FC<IconProps> = ({ size = 24 }) => (
   </View>
 );
 
+export const AppleIcon: React.FC<IconProps> = ({ size = 24, color = "#FFFFFF" }) => (
+  <View style={{ width: size, height: size }}>
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        fill={color}
+        d="M17.05 12.04c-.03-2.76 2.25-4.08 2.35-4.15-1.28-1.87-3.27-2.13-3.98-2.16-1.69-.17-3.3 1-4.16 1-.85 0-2.18-.97-3.58-.95-1.84.03-3.54 1.07-4.49 2.72-1.91 3.32-.49 8.23 1.37 10.92.91 1.32 2 2.8 3.42 2.75 1.37-.06 1.89-.89 3.55-.89 1.65 0 2.12.89 3.57.86 1.47-.03 2.41-1.34 3.31-2.67 1.04-1.53 1.47-3.01 1.49-3.09-.03-.01-2.86-1.1-2.89-4.35l.02.05zM14.33 4.07c.76-.92 1.27-2.2 1.13-3.47-1.09.04-2.41.73-3.19 1.64-.7.81-1.31 2.1-1.15 3.34 1.21.1 2.45-.62 3.21-1.51z"
+      />
+    </Svg>
+  </View>
+);
+
 export const PullListIcon: React.FC<IconProps> = ({ size = 24, color = "currentColor" }) => (
   <View style={{ width: size, height: size }}>
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
