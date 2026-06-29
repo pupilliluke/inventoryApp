@@ -66,6 +66,16 @@ export default function AuthGate({ children }: AuthGateProps) {
   const [synced, setSynced] = useState(false);
   const approval = useApprovalState();
 
+  // Diagnostic: we can't see native console logs, so if Clerk never finishes
+  // initializing (isLoaded stuck false), surface the key + a hint ON SCREEN
+  // after a delay so we can tell "missing key" vs "reached but hanging".
+  const [clerkStalled, setClerkStalled] = useState(false);
+  useEffect(() => {
+    if (isLoaded) return;
+    const timer = setTimeout(() => setClerkStalled(true), 10000);
+    return () => clearTimeout(timer);
+  }, [isLoaded]);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -121,6 +131,15 @@ export default function AuthGate({ children }: AuthGateProps) {
   }, [isSignedIn, user, synced, setActiveUser, clearSession]);
 
   if (!isLoaded) {
+    if (clerkStalled) {
+      const pk = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
+      const keyInfo = pk ? `${pk.slice(0, 20)}…` : 'MISSING';
+      return (
+        <LoadingScreen
+          message={`Auth didn't start after 10s.\nkey: ${keyInfo}\nClerk can't reach its server.`}
+        />
+      );
+    }
     return <LoadingScreen message="Starting up..." />;
   }
 

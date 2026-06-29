@@ -56,5 +56,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: color.onChromeMuted,
     fontWeight: '500',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
