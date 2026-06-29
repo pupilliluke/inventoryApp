@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { SafeAreaView, View, StyleSheet, TextInput, TouchableOpacity, ScrollView } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
-import { useUser, useAuth } from '@clerk/expo';
+import { useUser, useAuth } from '@clerk/clerk-expo';
 import { getDatabase, ref, update } from 'firebase/database';
 import ScreenHeader from '../components/ScreenHeader';
 import { AccountIcon, CheckIcon } from '../components/CustomIcons';

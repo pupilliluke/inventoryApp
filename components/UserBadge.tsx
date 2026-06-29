@@ -3,7 +3,7 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Menu, Text } from 'react-native-paper';
 import { UsersIcon, CloseIcon } from './CustomIcons';
 import { useSession } from '../context/SessionContext';
-import { useAuth } from '@clerk/expo';
+import { useAuth } from '@clerk/clerk-expo';
 import { color, space, radius } from '../theme/tokens';
 
 interface UserBadgeProps {

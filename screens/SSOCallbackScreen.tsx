@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useClerk } from '@clerk/expo';
+import { useClerk } from '@clerk/clerk-expo';
 import LoadingScreen from './LoadingScreen';
 
 /**

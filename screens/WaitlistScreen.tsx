@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Text } from 'react-native-paper';
-import { useAuth, useUser } from '@clerk/expo';
+import { useAuth, useUser } from '@clerk/clerk-expo';
 import { color, space, radius } from '../theme/tokens';
 
 /**

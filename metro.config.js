@@ -4,8 +4,8 @@ const defaultConfig = getDefaultConfig(__dirname);
 
 defaultConfig.resolver.sourceExts.push('cjs');
 
-// Clerk (@clerk/expo) imports package "exports" subpaths such as "@clerk/react/internal",
-// which only resolve when package exports are enabled.
+// Clerk (@clerk/clerk-expo) imports package "exports" subpaths such as
+// "@clerk/clerk-react/internal", which only resolve when package exports are enabled.
 defaultConfig.resolver.unstable_enablePackageExports = true;
 
 // Restrict resolution to the CommonJS ("require") condition so Firebase v11 keeps

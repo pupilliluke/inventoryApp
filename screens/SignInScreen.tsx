@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, StyleSheet, Image, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Text } from 'react-native-paper';
-import { useSSO, useSignIn } from '@clerk/expo';
+import { useOAuth, useSignIn } from '@clerk/clerk-expo';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import { GoogleIcon, AppleIcon } from '../components/CustomIcons';
@@ -25,8 +25,10 @@ function useWarmUpBrowser() {
 
 export default function SignInScreen() {
   useWarmUpBrowser();
-  const { startSSOFlow } = useSSO();
-  const { signIn } = useSignIn();
+  const { signIn, isLoaded } = useSignIn();
+  // useOAuth binds the provider at hook-init time, so we create one per strategy.
+  const { startOAuthFlow: startGoogleOAuth } = useOAuth({ strategy: 'oauth_google' });
+  const { startOAuthFlow: startAppleOAuth } = useOAuth({ strategy: 'oauth_apple' });
   const [loadingStrategy, setLoadingStrategy] = useState<OAuthStrategy | null>(null);
   const [error, setError] = useState('');
 
@@ -37,23 +39,25 @@ export default function SignInScreen() {
       if (Platform.OS === 'web') {
         // Full-page redirect flow on web. A popup-based flow trips
         // Cross-Origin-Opener-Policy and can't hand the session back, so we
-        // navigate the whole page to the provider and return via /sso-callback.
+        // navigate the whole page to the provider and return via /sso-callback,
+        // where SSOCallbackScreen completes the handshake.
+        if (!isLoaded || !signIn) {
+          setError('Still loading — please try again in a moment.');
+          return;
+        }
         const origin = window.location.origin;
-        const { error: ssoError } = await signIn.sso({
+        await signIn.authenticateWithRedirect({
           strategy,
-          redirectUrl: `${origin}/`,
-          redirectCallbackUrl: `${origin}/sso-callback`,
+          redirectUrl: `${origin}/sso-callback`,
+          redirectUrlComplete: `${origin}/`,
         });
         // On success the browser navigates away; only errors return here.
-        if (ssoError) {
-          setError((ssoError as any)?.message ?? 'Sign in failed. Please try again.');
-        }
         return;
       }
 
       // Native: in-app browser flow (COOP does not apply).
-      const { createdSessionId, setActive } = await startSSOFlow({
-        strategy,
+      const startFlow = strategy === 'oauth_apple' ? startAppleOAuth : startGoogleOAuth;
+      const { createdSessionId, setActive } = await startFlow({
         redirectUrl: AuthSession.makeRedirectUri(),
       });
 
@@ -69,7 +73,7 @@ export default function SignInScreen() {
     } finally {
       setLoadingStrategy(null);
     }
-  }, [startSSOFlow, signIn]);
+  }, [signIn, isLoaded, startGoogleOAuth, startAppleOAuth]);
 
   return (
     <View style={styles.background}>

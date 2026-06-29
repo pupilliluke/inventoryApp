@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useUser } from '@clerk/expo';
+import { useUser } from '@clerk/clerk-expo';
 import { ref, onValue } from 'firebase/database';
 import { db } from '../firebaseConfig';
 import { emailToUserKey } from './userKey';

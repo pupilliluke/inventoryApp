@@ -1,6 +1,6 @@
 import React, { useEffect, useState, ReactNode } from 'react';
 import { Platform } from 'react-native';
-import { useAuth, useUser } from '@clerk/expo';
+import { useAuth, useUser } from '@clerk/clerk-expo';
 import LoadingScreen from '../screens/LoadingScreen';
 import SignInScreen from '../screens/SignInScreen';
 import SSOCallbackScreen from '../screens/SSOCallbackScreen';
