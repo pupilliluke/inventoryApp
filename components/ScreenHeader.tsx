@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import CustomIconButton from './CustomIconButton';
+import NavMenu from './NavMenu';
 import { color, space } from '../theme/tokens';
 
 interface ScreenHeaderProps {
@@ -8,10 +9,12 @@ interface ScreenHeaderProps {
   eyebrow?: string;
   onBack?: () => void;
   right?: ReactNode;
+  /** Hide the hamburger nav menu (shown by default on every secondary screen). */
+  hideMenu?: boolean;
 }
 
 /** Industrial dark command bar used across secondary screens. */
-export default function ScreenHeader({ title, eyebrow, onBack, right }: ScreenHeaderProps) {
+export default function ScreenHeader({ title, eyebrow, onBack, right, hideMenu }: ScreenHeaderProps) {
   return (
     <View style={styles.header}>
       {onBack && (
@@ -22,6 +25,7 @@ export default function ScreenHeader({ title, eyebrow, onBack, right }: ScreenHe
         <Text style={styles.title}>{title}</Text>
       </View>
       {right}
+      {!hideMenu && <NavMenu />}
     </View>
   );
 }
