@@ -50,6 +50,9 @@ export default function TodoPage() {
 
   const [todoToDelete, setTodoToDelete] = useState<TodoItem | null>(null);
 
+  // Sort/filter by completion state.
+  const [filter, setFilter] = useState<'all' | 'open' | 'done'>('all');
+
   useEffect(() => subscribeTodos(setTodos), []);
   useEffect(() => {
     const usersRef = ref(db, 'users');
@@ -169,6 +172,11 @@ export default function TodoPage() {
   };
 
   const openCount = todos.filter((t) => !t.done).length;
+  const doneCount = todos.length - openCount;
+  const visibleTodos =
+    filter === 'open' ? todos.filter((t) => !t.done)
+    : filter === 'done' ? todos.filter((t) => t.done)
+    : todos;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -222,6 +230,29 @@ export default function TodoPage() {
             )}
           </View>
 
+          {/* Sort/filter by completion state */}
+          {todos.length > 0 && (
+            <View style={styles.segment}>
+              {([
+                { key: 'all', label: `All · ${todos.length}` },
+                { key: 'open', label: `Open · ${openCount}` },
+                { key: 'done', label: `Done · ${doneCount}` },
+              ] as const).map(({ key, label }) => {
+                const active = filter === key;
+                return (
+                  <TouchableOpacity
+                    key={key}
+                    style={[styles.segmentBtn, active && styles.segmentBtnActive]}
+                    onPress={() => setFilter(key)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
+
           {todos.length === 0 ? (
             <View style={styles.emptyPanel}>
               <Text style={styles.emptyText}>No to-dos yet</Text>
@@ -229,13 +260,20 @@ export default function TodoPage() {
                 {isAdmin ? 'Tap + to add the first one.' : 'Nothing assigned right now.'}
               </Text>
             </View>
+          ) : visibleTodos.length === 0 ? (
+            <View style={styles.emptyPanel}>
+              <Text style={styles.emptyText}>{filter === 'open' ? 'Nothing open' : 'Nothing completed'}</Text>
+              <Text style={styles.emptySubtext}>
+                {filter === 'open' ? 'All to-dos are checked off.' : 'No to-dos have been completed yet.'}
+              </Text>
+            </View>
           ) : (
             <View style={styles.table}>
-              {todos.map((todo, i) => {
+              {visibleTodos.map((todo, i) => {
                 const isEditing = editingId === todo.id;
                 const mine = !!activeUser && todo.assigneeId === activeUser.id;
                 const toggleable = canToggle(todo);
-                const last = i === todos.length - 1;
+                const last = i === visibleTodos.length - 1;
 
                 if (isEditing) {
                   return (
@@ -399,6 +437,30 @@ const styles = StyleSheet.create({
     marginBottom: space.sm,
   },
   openChipText: { fontSize: 11, fontWeight: '700', color: color.accent },
+
+  // Completion sort/filter segmented control
+  segment: {
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: color.border,
+    borderRadius: radius.sm,
+    backgroundColor: color.surfaceAlt,
+    padding: 2,
+    marginBottom: space.md,
+  },
+  segmentBtn: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: space.sm,
+    borderRadius: radius.sm,
+  },
+  segmentBtnActive: {
+    backgroundColor: color.surface,
+    borderWidth: 1,
+    borderColor: color.accent,
+  },
+  segmentText: { fontSize: 12, fontWeight: '700', color: color.textSecondary },
+  segmentTextActive: { color: color.accent },
 
   table: {
     borderWidth: 1,
