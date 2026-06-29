@@ -67,13 +67,34 @@ export default function AuthGate({ children }: AuthGateProps) {
   const approval = useApprovalState();
 
   // Diagnostic: we can't see native console logs, so if Clerk never finishes
-  // initializing (isLoaded stuck false), surface the key + a hint ON SCREEN
-  // after a delay so we can tell "missing key" vs "reached but hanging".
+  // initializing (isLoaded stuck false), surface state ON SCREEN. The raw FAPI
+  // probe distinguishes "device can't reach Clerk" (network/instance) from
+  // "clerk-js's own fetch is broken" (a 200 here but Clerk still hung).
   const [clerkStalled, setClerkStalled] = useState(false);
+  const [probe, setProbe] = useState('probing…');
   useEffect(() => {
     if (isLoaded) return;
     const timer = setTimeout(() => setClerkStalled(true), 10000);
-    return () => clearTimeout(timer);
+
+    let finished = false;
+    const probeUrl =
+      'https://clerk.crackingandstacking.com/v1/environment?_clerk_js_version=5.127.0';
+    const timeout = new Promise<string>((resolve) =>
+      setTimeout(() => resolve('TIMEOUT (no response 8s)'), 8000)
+    );
+    Promise.race([
+      fetch(probeUrl)
+        .then((r) => `HTTP ${r.status}`)
+        .catch((e) => `err: ${String(e?.message ?? e).slice(0, 28)}`),
+      timeout,
+    ]).then((res) => {
+      if (!finished) setProbe(res);
+    });
+
+    return () => {
+      finished = true;
+      clearTimeout(timer);
+    };
   }, [isLoaded]);
 
   useEffect(() => {
@@ -133,10 +154,10 @@ export default function AuthGate({ children }: AuthGateProps) {
   if (!isLoaded) {
     if (clerkStalled) {
       const pk = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
-      const keyInfo = pk ? `${pk.slice(0, 20)}…` : 'MISSING';
+      const keyInfo = pk ? `${pk.slice(0, 16)}…` : 'MISSING';
       return (
         <LoadingScreen
-          message={`Auth didn't start after 10s.\nkey: ${keyInfo}\nClerk can't reach its server.`}
+          message={`Auth stalled (10s)\nkey: ${keyInfo}\nFAPI probe: ${probe}`}
         />
       );
     }
