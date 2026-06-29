@@ -5,7 +5,7 @@ import InventoryRow, { COL } from '../components/InventoryRow';
 import { InventoryItem } from '../types/inventoryItem';
 import { Modal, Portal } from 'react-native-paper';
 import { Keyboard, SafeAreaView, View, Text, StyleSheet, Alert, ScrollView, TextInput, TouchableOpacity, FlatList, Platform } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { ref, update } from 'firebase/database';
 import { db } from '../firebaseConfig';
 import UserBadge from '../components/UserBadge';
@@ -23,6 +23,7 @@ const typeFilters = [
 
 export default function InventoryMain() {
   const navigation = useNavigation();
+  const route = useRoute<any>();
   const { activeUser } = useSession();
   const isAdmin = useIsAdmin();
 
@@ -41,6 +42,17 @@ export default function InventoryMain() {
   } = useInventory();
 
   const [manageVisible, setManageVisible] = useState(false);
+
+  // The NavMenu's "Manage Inventory" entry navigates here with `openManage`.
+  // Open the sheet, then clear the param so it doesn't reopen on later renders
+  // and so navigating here again re-fires the action.
+  useEffect(() => {
+    if (route.params?.openManage) {
+      setManageVisible(true);
+      navigation.setParams({ openManage: undefined } as never);
+    }
+  }, [route.params?.openManage, navigation]);
+
   const [newCode, setNewCode] = useState('');
   const [newName, setNewName] = useState('');
   const [showTypeFilters, setShowTypeFilters] = useState(false);

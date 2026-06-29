@@ -6,7 +6,7 @@ import { useNavigation, useNavigationState } from '@react-navigation/native';
 import CustomIconButton from './CustomIconButton';
 import {
   HomeIcon, ViewIcon, CheckIcon, PullListIcon, TruckIcon, LowStockIcon,
-  LogIcon, ChartIcon, UsersIcon, CountIcon, AccountIcon, ResetIcon,
+  LogIcon, ChartIcon, UsersIcon, CountIcon, AccountIcon, ResetIcon, AddIcon,
 } from './CustomIcons';
 import { useIsAdmin } from '../utils/admin';
 import { color, space, radius, font } from '../theme/tokens';
@@ -16,6 +16,10 @@ interface NavItem {
   label: string;
   Icon: React.FC<{ size?: number; color?: string }>;
   admin?: boolean;
+  // Unique list key — needed when two items target the same route.
+  key?: string;
+  // Navigation params handed to the target screen (e.g. open a modal on arrival).
+  params?: Record<string, unknown>;
 }
 
 // Detail screens (PullListDetail / TruckDetail) are omitted because they
@@ -23,6 +27,8 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { route: 'Inventory', label: 'Dashboard', Icon: HomeIcon },
   { route: 'InventoryList', label: 'Inventory', Icon: ViewIcon },
+  // Opens the Manage Inventory sheet on the inventory screen via a route param.
+  { key: 'ManageInventory', route: 'InventoryList', label: 'Manage Inventory', Icon: AddIcon, params: { openManage: true } },
   { route: 'Tasks', label: 'Tasks', Icon: CheckIcon },
   { route: 'Todo', label: 'To-Do', Icon: CheckIcon },
   { route: 'PullLists', label: 'Pull Lists', Icon: PullListIcon },
@@ -53,11 +59,13 @@ export default function NavMenu() {
 
   const items = NAV_ITEMS.filter((it) => !it.admin || isAdmin);
 
-  const go = (route: string) => {
+  const go = ({ route, params }: NavItem) => {
     setOpen(false);
-    if (route === currentRoute) return;
+    // A pure destination already on top — nothing to do. Items carrying params
+    // (e.g. Manage Inventory) always navigate so the param re-fires the action.
+    if (route === currentRoute && !params) return;
     // Defer until after the modal dismiss so the transition feels smooth.
-    requestAnimationFrame(() => navigation.navigate(route));
+    requestAnimationFrame(() => navigation.navigate(route as never, params as never));
   };
 
   return (
@@ -83,14 +91,17 @@ export default function NavMenu() {
               />
             </View>
             <ScrollView contentContainerStyle={styles.list}>
-              {items.map(({ route, label, Icon }) => {
-                const active = route === currentRoute;
+              {items.map((item) => {
+                const { route, label, Icon, params } = item;
+                // Action items (those carrying params) never show as the active
+                // destination — only the canonical route entry highlights.
+                const active = route === currentRoute && !params;
                 return (
                   <TouchableOpacity
-                    key={route}
+                    key={item.key ?? route}
                     style={[styles.item, active && styles.itemActive]}
                     activeOpacity={0.7}
-                    onPress={() => go(route)}
+                    onPress={() => go(item)}
                   >
                     <View style={[styles.itemIcon, active && styles.itemIconActive]}>
                       <Icon size={20} color={active ? color.accent : color.textSecondary} />
