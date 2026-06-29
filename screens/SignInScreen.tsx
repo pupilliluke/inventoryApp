@@ -7,7 +7,7 @@ import * as AuthSession from 'expo-auth-session';
 import { GoogleIcon, AppleIcon } from '../components/CustomIcons';
 
 type OAuthStrategy = 'oauth_google' | 'oauth_apple';
-import { color, space, radius } from '../theme/tokens';
+import { color, space } from '../theme/tokens';
 
 // Ensures the browser-based auth session can complete (native redirects).
 WebBrowser.maybeCompleteAuthSession();
@@ -83,20 +83,20 @@ export default function SignInScreen() {
         <Text style={styles.title}>Phantom Warehouse</Text>
         <Text style={styles.subtitle}>Sign in to access the inventory system</Text>
 
-        <View style={styles.card}>
+        <View style={styles.actions}>
           {Platform.OS !== 'android' && (
             <TouchableOpacity
               onPress={() => handleOAuth('oauth_apple')}
               disabled={loadingStrategy !== null}
-              style={styles.appleButton}
-              activeOpacity={0.8}
+              style={[styles.button, styles.appleButton]}
+              activeOpacity={0.85}
             >
               {loadingStrategy === 'oauth_apple' ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
+                <ActivityIndicator size="small" color="#0f172a" />
               ) : (
-                <AppleIcon size={18} />
+                <AppleIcon size={19} color="#0f172a" />
               )}
-              <Text style={styles.appleButtonLabel}>
+              <Text style={[styles.buttonLabel, styles.appleButtonLabel]}>
                 {loadingStrategy === 'oauth_apple' ? 'Signing in…' : 'Continue with Apple'}
               </Text>
             </TouchableOpacity>
@@ -105,15 +105,15 @@ export default function SignInScreen() {
           <TouchableOpacity
             onPress={() => handleOAuth('oauth_google')}
             disabled={loadingStrategy !== null}
-            style={styles.googleButton}
-            activeOpacity={0.8}
+            style={[styles.button, styles.googleButton]}
+            activeOpacity={0.85}
           >
             {loadingStrategy === 'oauth_google' ? (
-              <ActivityIndicator size="small" color={color.textSecondary} />
+              <ActivityIndicator size="small" color={color.onChrome} />
             ) : (
-              <GoogleIcon size={18} />
+              <GoogleIcon size={19} />
             )}
-            <Text style={styles.googleButtonLabel}>
+            <Text style={[styles.buttonLabel, styles.googleButtonLabel]}>
               {loadingStrategy === 'oauth_google' ? 'Signing in…' : 'Continue with Google'}
             </Text>
           </TouchableOpacity>
@@ -167,48 +167,48 @@ const styles = StyleSheet.create({
     marginBottom: space.xl,
     fontWeight: '500',
   },
-  card: {
+  actions: {
     width: '100%',
-    backgroundColor: color.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: color.borderStrong,
-    padding: space.xl,
+    gap: space.md,
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space.sm,
+    height: 54,
+    borderRadius: 14,
+    paddingHorizontal: space.lg,
+    // Soft elevation to lift the buttons off the dark backdrop.
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 14,
+    elevation: 6,
+  },
+  buttonLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
   appleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: space.sm,
-    backgroundColor: '#000000',
-    borderRadius: radius.sm,
-    paddingVertical: space.md,
-    marginBottom: space.md,
+    backgroundColor: '#FFFFFF',
   },
   appleButtonLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#0f172a',
   },
   googleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: space.sm,
-    backgroundColor: color.surface,
-    borderRadius: radius.sm,
+    // Frosted, slightly raised panel that reads against the dark slate.
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderWidth: 1,
-    borderColor: color.border,
-    paddingVertical: space.md,
+    borderColor: 'rgba(255,255,255,0.18)',
   },
   googleButtonLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: color.text,
+    color: color.onChrome,
   },
   error: {
-    color: color.negative,
-    marginTop: space.lg,
+    color: '#fca5a5',
+    marginTop: space.sm,
     fontSize: 13,
     fontWeight: '500',
     textAlign: 'center',
