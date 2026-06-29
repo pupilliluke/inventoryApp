@@ -376,5 +376,40 @@ export const UserMutations = {
       console.error('Failed to rename user:', error);
       throw error;
     }
+  },
+
+  /**
+   * Grant or revoke admin status for a user. Admins are stored as `role: 'admin'`
+   * on the user's Firebase record; revoking clears the role. Only callers who are
+   * themselves admins should reach this (the User Management screen is guarded).
+   */
+  async setUserAdmin(
+    activeUser: ActiveUser | null,
+    userKey: string,
+    targetName: string,
+    makeAdmin: boolean
+  ): Promise<void> {
+    ensureUserAuthenticated(activeUser);
+
+    const db = getDatabase();
+    const userRef = ref(db, `users/${userKey}`);
+
+    try {
+      // Setting role to null removes the key, fully revoking admin.
+      await update(userRef, {
+        role: makeAdmin ? 'admin' : null,
+        updatedAt: new Date().toISOString(),
+      });
+
+      // Log the action (non-blocking)
+      await appendLog({
+        userId: activeUser.id,
+        userName: activeUser.name,
+        message: LogMessages.userAdminChanged(activeUser, targetName, makeAdmin)
+      });
+    } catch (error) {
+      console.error('Failed to update user admin status:', error);
+      throw error;
+    }
   }
 };

@@ -6,6 +6,7 @@ import { db } from '../firebaseConfig';
 import { useNavigation } from '@react-navigation/native';
 import { useSession } from '../context/SessionContext';
 import { UserMutations, UserNotAuthenticatedError } from '../utils/inventoryMutations';
+import { isAdminRole, isAdminEmail } from '../utils/admin';
 import { AddIcon, DeleteIcon, EditIcon, ViewIcon, CheckIcon, CloseIcon, SearchIcon } from '../components/CustomIcons';
 import ScreenHeader from '../components/ScreenHeader';
 import CustomIconButton from '../components/CustomIconButton';
@@ -26,6 +27,8 @@ export default function UserListPage() {
   const [editConfirmVisible, setEditConfirmVisible] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [userToEdit, setUserToEdit] = useState({ oldName: '', newName: '' });
+  const [adminConfirmVisible, setAdminConfirmVisible] = useState(false);
+  const [userToToggleAdmin, setUserToToggleAdmin] = useState({ key: '', name: '', makeAdmin: false });
 
   useEffect(() => {
     const invRef = ref(db, 'inventory');
@@ -138,6 +141,34 @@ export default function UserListPage() {
     setNewUserName('');
   };
 
+  const handleToggleAdmin = (userKey, makeAdmin) => {
+    const user = users[userKey];
+    setUserToToggleAdmin({ key: userKey, name: user?.name ?? userKey, makeAdmin });
+    setAdminConfirmVisible(true);
+  };
+
+  const confirmToggleAdmin = async () => {
+    try {
+      const { key, name, makeAdmin } = userToToggleAdmin;
+      await UserMutations.setUserAdmin(activeUser, key, name, makeAdmin);
+      setAdminConfirmVisible(false);
+      setUserToToggleAdmin({ key: '', name: '', makeAdmin: false });
+      Alert.alert('Success', makeAdmin ? 'User is now an admin' : 'Admin access removed');
+    } catch (error) {
+      if (error instanceof UserNotAuthenticatedError) {
+        console.warn('No active user — please sign out and sign in again.');
+      } else {
+        Alert.alert('Error', 'Failed to update admin status');
+        console.error(error);
+      }
+    }
+  };
+
+  const cancelToggleAdmin = () => {
+    setAdminConfirmVisible(false);
+    setUserToToggleAdmin({ key: '', name: '', makeAdmin: false });
+  };
+
   const loadUserList = (userKey) => setSelectedUser(userKey);
 
   const filteredInventory = inventory.filter(item =>
@@ -152,6 +183,9 @@ export default function UserListPage() {
     const user = users[userKey];
     const isSelected = selectedUser === userKey;
     const isEditing = editingUser === userKey;
+    // Bootstrap admins (hardcoded by email) can't be demoted from here.
+    const isBootstrapAdmin = isAdminEmail(user.email);
+    const userIsAdmin = isBootstrapAdmin || isAdminRole(user);
 
     return (
       <View style={[styles.userRow, isSelected && styles.userRowSelected]}>
@@ -177,6 +211,16 @@ export default function UserListPage() {
             </>
           ) : (
             <>
+              <TouchableOpacity
+                style={[styles.adminPill, userIsAdmin ? styles.adminPillOn : styles.adminPillOff, isBootstrapAdmin && styles.adminPillLocked]}
+                onPress={() => handleToggleAdmin(userKey, !userIsAdmin)}
+                disabled={isBootstrapAdmin}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.adminPillText, userIsAdmin ? styles.adminPillTextOn : styles.adminPillTextOff]}>
+                  {userIsAdmin ? 'Admin' : 'User'}
+                </Text>
+              </TouchableOpacity>
               <CustomIconButton iconType="view" size={18} color={color.accent} onPress={() => loadUserList(userKey)} />
               <CustomIconButton iconType="edit" size={18} color={color.warning} onPress={() => { setEditingUser(userKey); setNewUserName(user.name); }} />
               <CustomIconButton iconType="delete" size={18} color={color.negative} onPress={() => handleDeleteUser(userKey)} />
@@ -309,6 +353,26 @@ export default function UserListPage() {
         </Modal>
       </Portal>
 
+      {/* Admin toggle confirmation */}
+      <Portal>
+        <Modal visible={adminConfirmVisible} onDismiss={cancelToggleAdmin} contentContainerStyle={styles.dialog} dismissable>
+          <Text style={styles.dialogTitle}>{userToToggleAdmin?.makeAdmin ? 'Grant Admin Access' : 'Revoke Admin Access'}</Text>
+          <Text style={styles.dialogBody}>
+            {userToToggleAdmin?.makeAdmin
+              ? <>Make "{userToToggleAdmin?.name}" an admin? They'll be able to manage users, recounts, and other admin-only areas.</>
+              : <>Remove admin access from "{userToToggleAdmin?.name}"? They'll lose access to admin-only areas.</>}
+          </Text>
+          <View style={styles.dialogActions}>
+            <TouchableOpacity style={styles.btnGhost} onPress={cancelToggleAdmin} activeOpacity={0.8}>
+              <Text style={styles.btnGhostText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.btnPrimary} onPress={confirmToggleAdmin} activeOpacity={0.8}>
+              <Text style={styles.btnPrimaryText}>{userToToggleAdmin?.makeAdmin ? 'Make Admin' : 'Revoke'}</Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
+      </Portal>
+
       {/* Rename confirmation */}
       <Portal>
         <Modal visible={editConfirmVisible} onDismiss={cancelRenameUser} contentContainerStyle={styles.dialog} dismissable>
@@ -406,6 +470,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  adminPill: {
+    paddingHorizontal: space.sm,
+    paddingVertical: space.xs,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    marginRight: space.xs,
+    minWidth: 52,
+    alignItems: 'center',
+  },
+  adminPillOn: { backgroundColor: color.accentBg, borderColor: color.accent },
+  adminPillOff: { backgroundColor: color.surfaceAlt, borderColor: color.border },
+  adminPillLocked: { opacity: 0.6 },
+  adminPillText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.4, textTransform: 'uppercase' },
+  adminPillTextOn: { color: color.accent },
+  adminPillTextOff: { color: color.textSecondary },
   invRow: {
     flexDirection: 'row',
     alignItems: 'center',
