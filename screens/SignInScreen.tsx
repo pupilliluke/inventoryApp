@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, StyleSheet, Image, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Text } from 'react-native-paper';
-import { useOAuth, useSignIn } from '@clerk/clerk-expo';
+import { useOAuth, useSignIn, useClerk } from '@clerk/clerk-expo';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import { GoogleIcon, AppleIcon } from '../components/CustomIcons';
@@ -26,6 +26,7 @@ function useWarmUpBrowser() {
 export default function SignInScreen() {
   useWarmUpBrowser();
   const { signIn, isLoaded } = useSignIn();
+  const clerk = useClerk();
   // useOAuth binds the provider at hook-init time, so we create one per strategy.
   const { startOAuthFlow: startGoogleOAuth } = useOAuth({ strategy: 'oauth_google' });
   const { startOAuthFlow: startAppleOAuth } = useOAuth({ strategy: 'oauth_apple' });
@@ -37,21 +38,18 @@ export default function SignInScreen() {
     setLoadingStrategy(strategy);
     try {
       if (Platform.OS === 'web') {
-        // Full-page redirect flow on web. A popup-based flow trips
-        // Cross-Origin-Opener-Policy and can't hand the session back, so we
-        // navigate the whole page to the provider and return via /sso-callback,
-        // where SSOCallbackScreen completes the handshake.
-        if (!isLoaded || !signIn) {
-          setError('Still loading — please try again in a moment.');
-          return;
-        }
+        // Hosted Account Portal on web. The in-app custom redirect flow
+        // (signIn.authenticateWithRedirect + handleRedirectCallback) creates the
+        // account on the production instance but does NOT reliably persist the
+        // session, bouncing users back to sign-in. Clerk's hosted portal — the
+        // same flow email invitations use — completes the handshake reliably.
+        // Both buttons land on the portal, which offers Google + Apple.
         const origin = window.location.origin;
-        await signIn.authenticateWithRedirect({
-          strategy,
-          redirectUrl: `${origin}/sso-callback`,
-          redirectUrlComplete: `${origin}/`,
+        clerk.redirectToSignIn({
+          signInForceRedirectUrl: origin,
+          signUpForceRedirectUrl: origin,
         });
-        // On success the browser navigates away; only errors return here.
+        // The browser navigates to the portal; nothing returns here.
         return;
       }
 
@@ -91,7 +89,7 @@ export default function SignInScreen() {
     } finally {
       setLoadingStrategy(null);
     }
-  }, [signIn, isLoaded, startGoogleOAuth, startAppleOAuth]);
+  }, [clerk, signIn, isLoaded, startGoogleOAuth, startAppleOAuth]);
 
   return (
     <View style={styles.background}>
