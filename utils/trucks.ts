@@ -5,6 +5,10 @@ export interface TruckItem {
   code: string;
   name: string;
   quantity: number;
+  /** Second, user-entered quantity (e.g. counted/loaded), separate from `quantity`. */
+  quantity2?: number;
+  /** Loading checklist flag — true once the item has been pulled/loaded. */
+  checked?: boolean;
 }
 
 export interface TruckList {

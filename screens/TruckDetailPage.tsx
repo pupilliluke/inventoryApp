@@ -4,10 +4,9 @@ import {
 } from 'react-native';
 import { Text, ActivityIndicator } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useInventory } from '../context/InventoryContext';
 import { useSession } from '../context/SessionContext';
 import ScreenHeader from '../components/ScreenHeader';
-import { AddIcon, DeleteIcon, SearchIcon, CloseIcon } from '../components/CustomIcons';
+import { AddIcon, DeleteIcon, SearchIcon, CloseIcon, CheckIcon } from '../components/CustomIcons';
 import { subscribeTruck, saveTruck, deleteTruck, TruckList, TruckItem } from '../utils/trucks';
 import { useIsAdmin } from '../utils/admin';
 import { color, space, radius, font, mono } from '../theme/tokens';
@@ -17,7 +16,6 @@ export default function TruckDetailPage() {
   const route = useRoute<any>();
   const listId: string | undefined = route.params?.listId;
   const { activeUser } = useSession();
-  const { originalInventory } = useInventory();
   const isAdmin = useIsAdmin();
 
   const [remote, setRemote] = useState<TruckList | null>(null);
@@ -25,7 +23,8 @@ export default function TruckDetailPage() {
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState<string[]>([]);
   const [items, setItems] = useState<Record<string, TruckItem>>({});
-  const [search, setSearch] = useState('');
+  // Filters the items already in this truck list (by code or name).
+  const [listFilter, setListFilter] = useState('');
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   // Index of the note currently being edited; null when all notes are read-only.
@@ -59,20 +58,20 @@ export default function TruckDetailPage() {
     return Object.values(source).sort((a, b) => a.name.localeCompare(b.name));
   }, [canEdit, items, remote]);
 
-  const displayNotes = canEdit ? notes : remote?.notes || [];
+  // Items shown after applying the in-list filter (by code or name).
+  const visibleItems = useMemo(() => {
+    const q = listFilter.trim().toLowerCase();
+    if (!q) return displayItems;
+    return displayItems.filter(
+      (it) =>
+        (it.name && it.name.toLowerCase().includes(q)) ||
+        (it.code && String(it.code).toLowerCase().includes(q))
+    );
+  }, [displayItems, listFilter]);
 
-  const results = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return [];
-    return (originalInventory || [])
-      .filter(
-        (it: any) =>
-          !items[it.code] &&
-          ((it.name && it.name.toLowerCase().includes(q)) ||
-            (it.code && String(it.code).toLowerCase().includes(q)))
-      )
-      .slice(0, 25);
-  }, [search, originalInventory, items]);
+  const checkedCount = useMemo(() => displayItems.filter((it) => it.checked).length, [displayItems]);
+
+  const displayNotes = canEdit ? notes : remote?.notes || [];
 
   // --- notes editing ---
   const addNote = () => {
@@ -92,17 +91,17 @@ export default function TruckDetailPage() {
   };
 
   // --- item editing ---
-  const addItem = (inv: any) => {
-    setItems((prev) =>
-      prev[inv.code] ? prev : { ...prev, [inv.code]: { code: inv.code, name: inv.name, quantity: 1 } }
-    );
-    setDirty(true);
-    setSearch('');
-  };
-  const setQty = (code: string, v: string) => {
+  const setQty2 = (code: string, v: string) => {
     setItems((prev) => ({
       ...prev,
-      [code]: { ...prev[code], quantity: Math.max(0, parseInt(v, 10) || 0) },
+      [code]: { ...prev[code], quantity2: Math.max(0, parseInt(v, 10) || 0) },
+    }));
+    setDirty(true);
+  };
+  const toggleChecked = (code: string) => {
+    setItems((prev) => ({
+      ...prev,
+      [code]: { ...prev[code], checked: !prev[code]?.checked },
     }));
     setDirty(true);
   };
@@ -156,27 +155,55 @@ export default function TruckDetailPage() {
   };
 
   const renderItemRow = (item: TruckItem) => (
-    <View key={item.code} style={styles.itemRow}>
+    <View key={item.code} style={[styles.itemRow, item.checked && styles.itemRowChecked]}>
+      <TouchableOpacity
+        style={[styles.checkBox, item.checked && styles.checkBoxChecked]}
+        onPress={canEdit ? () => toggleChecked(item.code) : undefined}
+        disabled={!canEdit}
+        activeOpacity={0.7}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: !!item.checked }}
+      >
+        {item.checked && <CheckIcon size={14} color={color.textInverse} />}
+      </TouchableOpacity>
       <View style={styles.itemInfo}>
         <Text style={styles.itemCode}>{item.code}</Text>
-        <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
+        <Text style={[styles.itemName, item.checked && styles.itemNameChecked]} numberOfLines={2}>{item.name}</Text>
       </View>
       {canEdit ? (
         <>
-          <TextInput
-            style={styles.qtyInput}
-            keyboardType="numeric"
-            value={String(item.quantity)}
-            onChangeText={(v) => setQty(item.code, v)}
-            returnKeyType="done"
-            selectTextOnFocus
-          />
+          <View style={styles.qtyGroup}>
+            <Text style={styles.qtyTag}>QTY</Text>
+            <Text style={styles.qtyReadonly}>{item.quantity}</Text>
+          </View>
+          <View style={styles.qtyGroup}>
+            <Text style={styles.qtyTag}>COUNT</Text>
+            <TextInput
+              style={[styles.qtyInput, styles.qtyInput2]}
+              keyboardType="numeric"
+              value={item.quantity2 != null ? String(item.quantity2) : ''}
+              onChangeText={(v) => setQty2(item.code, v)}
+              placeholder="0"
+              placeholderTextColor={color.textMuted}
+              returnKeyType="done"
+              selectTextOnFocus
+            />
+          </View>
           <TouchableOpacity onPress={() => removeItem(item.code)} style={styles.removeBtn} activeOpacity={0.7}>
             <DeleteIcon size={16} color={color.negative} />
           </TouchableOpacity>
         </>
       ) : (
-        <Text style={styles.qtyReadonly}>{item.quantity}</Text>
+        <>
+          <View style={styles.qtyGroup}>
+            <Text style={styles.qtyTag}>QTY</Text>
+            <Text style={styles.qtyReadonly}>{item.quantity}</Text>
+          </View>
+          <View style={styles.qtyGroup}>
+            <Text style={styles.qtyTag}>COUNT</Text>
+            <Text style={styles.qtyReadonly}>{item.quantity2 != null ? item.quantity2 : '—'}</Text>
+          </View>
+        </>
       )}
     </View>
   );
@@ -265,51 +292,32 @@ export default function TruckDetailPage() {
         )
       )}
 
-      {/* Add items */}
-      {canEdit && (
-        <>
-          <Text style={[styles.fieldLabel, { marginTop: space.lg }]}>Add Items</Text>
-          <View style={styles.searchWrap}>
-            <SearchIcon size={16} color={color.textMuted} />
-            <TextInput
-              style={styles.searchInput}
-              value={search}
-              onChangeText={setSearch}
-              placeholder="Search by name or code"
-              placeholderTextColor={color.textMuted}
-            />
-            {search.length > 0 && (
-              <TouchableOpacity onPress={() => setSearch('')} activeOpacity={0.7}>
-                <CloseIcon size={16} color={color.textMuted} />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {results.length > 0 && (
-            <View style={styles.resultsBox}>
-              {results.map((it: any) => (
-                <TouchableOpacity key={it.code} style={styles.resultRow} onPress={() => addItem(it)} activeOpacity={0.7}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.itemCode}>{it.code}</Text>
-                    <Text style={styles.itemName} numberOfLines={1}>{it.name}</Text>
-                  </View>
-                  <AddIcon size={18} color={color.accent} />
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-          {search.trim().length > 0 && results.length === 0 && (
-            <Text style={styles.noResults}>No matching items.</Text>
-          )}
-        </>
-      )}
-
       <View style={styles.listHeaderRow}>
-        <Text style={styles.sectionLabel}>Items ({displayItems.length})</Text>
+        <Text style={styles.sectionLabel}>
+          Items ({displayItems.length}){checkedCount > 0 ? ` · ${checkedCount} checked` : ''}
+        </Text>
         <Text style={styles.sectionTotal}>
           {displayItems.reduce((s, it) => s + (it.quantity || 0), 0)} units
         </Text>
       </View>
+
+      {displayItems.length > 0 && (
+        <View style={styles.searchWrap}>
+          <SearchIcon size={16} color={color.textMuted} />
+          <TextInput
+            style={styles.searchInput}
+            value={listFilter}
+            onChangeText={setListFilter}
+            placeholder="Search items in this list"
+            placeholderTextColor={color.textMuted}
+          />
+          {listFilter.length > 0 && (
+            <TouchableOpacity onPress={() => setListFilter('')} activeOpacity={0.7}>
+              <CloseIcon size={16} color={color.textMuted} />
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
     </View>
   );
 
@@ -367,8 +375,12 @@ export default function TruckDetailPage() {
               {canEdit ? 'Search above to add items to this truck.' : 'This truck list has no items yet.'}
             </Text>
           </View>
+        ) : visibleItems.length === 0 ? (
+          <View style={styles.emptyItems}>
+            <Text style={styles.emptySubtitle}>No items match “{listFilter.trim()}”.</Text>
+          </View>
         ) : (
-          displayItems.map(renderItemRow)
+          visibleItems.map(renderItemRow)
         )}
       </ScrollView>
 
@@ -498,11 +510,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.md,
     marginBottom: space.sm,
   },
+  itemRowChecked: { opacity: 0.6, backgroundColor: color.surfaceAlt },
+  checkBox: {
+    width: 24,
+    height: 24,
+    borderRadius: radius.sm,
+    borderWidth: 2,
+    borderColor: color.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkBoxChecked: { backgroundColor: color.accent, borderColor: color.accent },
   itemInfo: { flex: 1 },
   itemCode: { fontFamily: mono, fontSize: 13, fontWeight: '700', color: color.accent },
   itemName: { fontSize: 13, color: color.textSecondary, marginTop: 1 },
+  itemNameChecked: { textDecorationLine: 'line-through' },
+  qtyGroup: { alignItems: 'center' },
+  qtyTag: { fontSize: 8, fontWeight: '800', letterSpacing: 0.4, color: color.textMuted, marginBottom: 2 },
   qtyInput: {
-    width: 56,
+    width: 48,
     borderWidth: 1,
     borderColor: color.borderFocus,
     borderRadius: radius.sm,
@@ -514,7 +540,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: color.text,
   },
-  qtyReadonly: { fontFamily: mono, fontSize: 16, fontWeight: '700', color: color.text, width: 56, textAlign: 'center' },
+  // Second (user count) field — accent border to distinguish from the order qty.
+  qtyInput2: { borderColor: color.accentBorder, backgroundColor: color.accentBg },
+  qtyReadonly: { fontFamily: mono, fontSize: 16, fontWeight: '700', color: color.text, width: 48, textAlign: 'center' },
   removeBtn: { padding: space.xs },
   saveBtn: {
     backgroundColor: color.accent,
