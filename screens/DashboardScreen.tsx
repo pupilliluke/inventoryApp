@@ -30,6 +30,7 @@ import {
   UsersIcon,
   ViewIcon,
   CheckIcon,
+  TruckIcon,
 } from '../components/CustomIcons';
 import { color, space, radius, font, mono } from '../theme/tokens';
 
@@ -134,16 +135,12 @@ export default function DashboardScreen() {
       Icon: PullListIcon,
       onPress: () => navigation.navigate('PullLists'),
     },
-    ...(isAdmin
-      ? [
-          {
-            key: 'UserListPage',
-            label: 'Users',
-            Icon: UsersIcon,
-            onPress: () => navigation.navigate('UserListPage'),
-          },
-        ]
-      : []),
+    {
+      key: 'Truck',
+      label: 'Trucks',
+      Icon: TruckIcon,
+      onPress: () => navigation.navigate('Truck'),
+    },
     {
       key: 'InventoryList',
       label: 'Inventory',
