@@ -58,6 +58,9 @@ export default function PullListDetailPage() {
   const isOwner = !!(remote && activeUser && remote.ownerId === activeUser.id);
   // Owners edit their own lists; admins can edit/delete anyone's.
   const canEdit = isOwner || isAdmin;
+  // Anyone signed in can check items off — even on lists they didn't create.
+  // (Checking moves inventory + logs under the acting user, so it needs a user.)
+  const canCheck = !!activeUser;
 
   // Editors edit the local copy; viewers see the live remote copy (read-only).
   const displayItems = useMemo(() => {
@@ -110,7 +113,7 @@ export default function PullListDetailPage() {
   // quantity out of its inventory container and zeroes the pull-list quantity;
   // unchecking restores both. Inventory + pull list are persisted immediately.
   const togglePulled = async (item: PullListItem) => {
-    if (!canEdit || !listId || toggling[item.code]) return;
+    if (!canCheck || !listId || toggling[item.code]) return;
     const willCheck = !item.checked;
     const inv = (originalInventory || []).find((it: any) => it.code === item.code);
 
@@ -136,7 +139,11 @@ export default function PullListDetailPage() {
         ? { ...item, checked: true, pulledQty: item.quantity, quantity: 0 }
         : { ...item, checked: false, quantity: item.pulledQty || 0, pulledQty: 0 };
 
-      const nextItems = { ...items, [item.code]: updatedItem };
+      // Editors merge into their working copy (may hold unsaved edits); everyone
+      // else merges into the freshest remote copy so we don't overwrite changes
+      // made by others since this screen loaded.
+      const base = canEdit ? items : (remote?.items || items);
+      const nextItems = { ...base, [item.code]: updatedItem };
       setItems(nextItems);
       await savePullList(listId, { items: nextItems });
     } catch (e) {
@@ -199,7 +206,7 @@ export default function PullListDetailPage() {
     );
     return (
       <View key={item.code} style={[styles.itemRow, item.checked && styles.itemRowChecked]}>
-        {canEdit ? (
+        {canCheck ? (
           <TouchableOpacity
             onPress={() => togglePulled(item)}
             disabled={!!toggling[item.code]}
@@ -261,7 +268,7 @@ export default function PullListDetailPage() {
       ) : (
         <>
           <Text style={styles.viewerTitle}>{remote?.title}</Text>
-          <Text style={styles.viewerOwner}>by {remote?.ownerName} · view only</Text>
+          <Text style={styles.viewerOwner}>by {remote?.ownerName} · tap to check items off</Text>
         </>
       )}
 
